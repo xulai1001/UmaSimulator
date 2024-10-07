@@ -20,22 +20,31 @@
 
 #define USE_BACKEND BACKEND_CUDA
 
+#define curran
+
 const int MAX_SCORE = 200000;//最大允许的分数，70000在larc剧本肯定很够用了，但不排除selfplay随机出来的开局存在一些极端情况
 
 #if USE_BACKEND == BACKEND_LIBTORCH || defined UMAAI_TESTLIBTORCH
 
 const int LIBTORCH_USE_GPU = true;//是否使用GPU
-
+#ifdef hzy
 //修改以下两个目录的同时，附加包含目录也需要修改
 #define TORCH_LIBROOT "C:/local/libtorch/lib/"
 #define TORCH_LIBROOT_DEBUG "C:/local/libtorch_debug/lib/"
 
+#endif
 #endif
 
 
 #if USE_BACKEND == BACKEND_CUDA
 
 //修改以下目录的同时，附加包含目录也需要修改
+#ifdef hzy
 #define CUDA_LIBROOT "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.1/lib/x64/"
+#endif
+
+#ifdef curran
+#define CUDA_LIBROOT "H:/CUDA/CUDA 12.6/lib/x64/"
+#endif
 
 #endif

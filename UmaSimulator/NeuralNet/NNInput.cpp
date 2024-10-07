@@ -221,7 +221,24 @@ void SupportCard::getNNInputV1(float* buf, const Game& game) const
   {
     bufUniqueType[18] = 1.0;
   }
-  else if (uniqueEffectType == 21)
+  else if (uniqueEffectType == 20) // 巨匠
+  {
+      int cardTypeCount[7] = { 0,0,0,0,0,0,0 };
+      for (int i = 0; i < 6; i++)
+      {
+          int t = game.cardParam[i].cardType;
+          assert(t <= 6 && t >= 0);
+          cardTypeCount[t]++;
+      }
+      cardTypeCount[5] += cardTypeCount[6];
+      int cardTypes = 0;
+      for (int i = 0; i < 4; i++)
+          if (cardTypeCount[i] > 0)
+              writeUniqueEffect(i + 3, cardTypeCount[i]); // 速耐力根智 = 0-4 = CardEffect词条3
+      if (cardTypeCount[5] > 0)
+          writeUniqueEffect(30, cardTypeCount[5]); // pt = 30
+  }
+  else if (uniqueEffectType == 21) // 万籁
   {
     int cardTypeCount[7] = { 0,0,0,0,0,0,0 };
     for (int i = 0; i < 6; i++)
@@ -242,7 +259,7 @@ void SupportCard::getNNInputV1(float* buf, const Game& game) const
   }
   else
   {
-    assert(false);
+   // assert(false);
   }
 
 

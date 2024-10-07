@@ -282,9 +282,11 @@ CardTrainingEffect SupportCard::getCardEffect(const Game& game, int atTrain, int
                   effect.apply(args[2], args[3]);
               }
               break;
+            case 22:    // 理事长
+                break;
             default:   // type == 0
                 if (uniqueEffectType != 0) {
-                    cout << "未知固有 #" << uniqueEffectType << endl;
+                    //cout << "未知固有 #" << uniqueEffectType << endl;
                 }
                 break;
         }   // switch
