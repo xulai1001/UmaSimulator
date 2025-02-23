@@ -5591,6 +5591,44 @@
     ],
     "star": 5
   },
+  "107301": {
+    "bonusData": [],
+    "fiveStatusBonus": [
+      0,
+      0,
+      20,
+      10,
+      0
+    ],
+    "fiveStatusInitial": [
+      117,
+      115,
+      91,
+      126,
+      101
+    ],
+    "freeRaces": [
+      {
+        "startTurn": 12,
+        "endTurn": 32,
+        "count": 1
+      }
+    ],
+    "gameId": 107301,
+    "name": "[志、高し、強し！]ツルマルツヨシ",
+    "preferRaces": [],
+    "preferReds": [],
+    "races": [
+      11,
+      43,
+      55,
+      59,
+      66,
+      67,
+      71
+    ],
+    "star": 5
+  },
   "107401": {
     "bonusData": [],
     "fiveStatusBonus": [
