@@ -7065,6 +7065,46 @@
     ],
     "star": 5
   },
+  "111501": {
+    "bonusData": [],
+    "fiveStatusBonus": [
+      10,
+      10,
+      10,
+      0,
+      0
+    ],
+    "fiveStatusInitial": [
+      123,
+      112,
+      122,
+      88,
+      105
+    ],
+    "freeRaces": [
+      {
+        "startTurn": 12,
+        "endTurn": 27,
+        "count": 1
+      }
+    ],
+    "gameId": 111501,
+    "name": "[総攬]オルフェーヴル",
+    "preferRaces": [],
+    "preferReds": [],
+    "races": [
+      11,
+      30,
+      33,
+      43,
+      47,
+      55,
+      59,
+      69,
+      71
+    ],
+    "star": 5
+  },
   "111601": {
     "bonusData": [],
     "fiveStatusBonus": [
