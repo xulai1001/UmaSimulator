@@ -95,6 +95,8 @@ ModelOutputValueV1 Evaluator::extractValueFromNNOutputBuf(float* buf)
 
 Action Evaluator::extractActionFromNNOutputBuf(float* buf, const Game& game)
 {
+  return Action();
+  /*
   Action bestAction = { 0, -1 };
   float bestValue = -1e8;
 
@@ -144,6 +146,7 @@ Action Evaluator::extractActionFromNNOutputBuf(float* buf, const Game& game)
   if (print)
     std::cout<< bestAction.toString() << std::endl;
   return bestAction;
+  */
 }
 
 Evaluator::Evaluator()

@@ -45,27 +45,6 @@ static double adjustRadicalFactor(double maxRf, int turn)
   return factor * maxRf;
 }
 
-Action Search::intToTwoStageAction(int i)
-{
-  if (i < 21)
-    return Action::intToAction(i);
-  else if (i < 21 + 8)
-  {
-    Action a;
-    a.dishType = DISH_sandwich;
-    a.train = i - 21;
-    return a;
-  }
-  else if (i < 21 + 8 + 8)
-  {
-    Action a;
-    a.dishType = DISH_curry;
-    a.train = i - 21 - 8;
-    return a;
-  }
-  assert(false);
-  return Action();
-}
 
 Search::Search(Model* model, int batchSize, int threadNumInGame):threadNumInGame(threadNumInGame), batchSize(batchSize)
 {
@@ -73,8 +52,8 @@ Search::Search(Model* model, int batchSize, int threadNumInGame):threadNumInGame
   for (int i = 0; i < threadNumInGame; i++)
     evaluators[i] = Evaluator(model, batchSize);
 
-  allActionResults.resize(Action::MAX_TWOSTAGE_ACTION_TYPE);
-  for (int i = 0; i < Action::MAX_TWOSTAGE_ACTION_TYPE; i++)
+  allActionResults.resize(Action::MAX_ACTION_TYPE);
+  for (int i = 0; i < Action::MAX_ACTION_TYPE; i++)
     allActionResults[i].clear();
 
   param.searchSingleMax = 0;
@@ -105,6 +84,9 @@ void Search::setParam(SearchParam param0)
 Action Search::runSearch(const Game& game,
   std::mt19937_64& rand, bool twoStageSearchFirstYear)
 {
+
+  throw("TODO");
+  /*
   assert(param.searchSingleMax > 0 && "Search.param not initialized");
 
   rootGame = game;
@@ -217,10 +199,15 @@ Action Search::runSearch(const Game& game,
   Action bestAction = Action::intToAction(bestActionInt);
   assert(rootGame.isLegal(bestAction));
   return bestAction;
+  */
 }
 
 void Search::printSearchResult(bool showSearchNum)
 {
+  
+
+  throw("TODO");
+  /*
   for (int actionInt = 0; actionInt < Action::MAX_ACTION_TYPE; actionInt++)
   {
     Action action = Action::intToAction(actionInt);
@@ -231,11 +218,14 @@ void Search::printSearchResult(bool showSearchNum)
     if (showSearchNum)
       cout << ", searchNum=" << res.num ;
     cout << endl;
-  }
+  }*/
 }
 
 ModelOutputValueV1 Search::evaluateNewGame(const Game& game, std::mt19937_64& rand)
 {
+
+  throw("TODO");
+  /*
   rootGame = game;
   //param.maxDepth = TOTAL_TURN;
   //param.maxRadicalFactor = radicalFactor;
@@ -245,6 +235,7 @@ ModelOutputValueV1 Search::evaluateNewGame(const Game& game, std::mt19937_64& ra
   allActionResults[0].isLegal = true;
   searchSingleAction(param.searchSingleMax, rand, allActionResults[0], Action::Action_RedistributeCardsForTest);
   return allActionResults[0].getWeightedMeanScore(adjustRadicalFactor(radicalFactor,game.turn));
+  */
 }
 
 
@@ -254,6 +245,7 @@ void Search::searchSingleAction(
   SearchResult& searchResult,
   Action action)
 {
+  /*
   //先检查action是否合法
   assert(action.train == TRA_redistributeCardsForTest || rootGame.isLegal(action)
     || (rootGame.isLegal(Action(action.dishType, TRA_none)) && rootGame.isLegal(Action(DISH_none, action.train))));
@@ -309,7 +301,7 @@ void Search::searchSingleAction(
   {
     searchResult.addResult(NNresultBuf[i]);
   }
-
+  */
 }
 
 void Search::searchSingleActionThread(
@@ -321,6 +313,9 @@ void Search::searchSingleActionThread(
   Action action
 )
 {
+
+  throw("TODO");
+  /*
   Evaluator& eva = evaluators[threadIdx];
   assert(eva.maxBatchsize == batchSize);
   bool isTwoStageAction = (action.dishType != DISH_none && action.train != TRA_none);
@@ -369,34 +364,7 @@ void Search::searchSingleActionThread(
     }
 
   }
-}
-
-void Search::integrateTwoStageResults()
-{
-  for (int dish = 1; dish <= 2; dish++)
-  {
-    if (!rootGame.isDishLegal(dish))
-      continue;
-    double bestValue = -1e6;
-    int bestActionInt = -1;
-    for (int tra = 0; tra < 8; tra++)
-    {
-      int actionInt = 21 - 8 + dish * 8 + tra;
-      auto& res = allActionResults[actionInt];
-
-      if (res.isLegal)
-      {
-        double value = res.getWeightedMeanScore(res.lastRadicalFactor).value;
-        //cout << dish << tra << " " << value << endl;
-        if (value > bestValue)
-        {
-          bestValue = value;
-          bestActionInt = actionInt;
-        }
-      }
-    }
-    allActionResults[Action(dish, TRA_none).toInt()] = allActionResults[bestActionInt];
-  }
+  */
 }
 
 

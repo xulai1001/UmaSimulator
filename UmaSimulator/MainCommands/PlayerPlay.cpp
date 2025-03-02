@@ -64,7 +64,7 @@ void main_playerPlay()
   {
     Search search(modelptr, batchsize, threadNum, param);
     Game game;
-    game.newGame(rand, true, umaId, umaStars, cards, zhongmaBlue, zhongmaBonus);
+    game.newGame(rand, GameSettings(), umaId, umaStars, cards, zhongmaBlue, zhongmaBonus);
     //game = gameGenerator.get();
     //for (int i = 0; i < 36; i++)
     //{
@@ -185,9 +185,6 @@ void main_playerPlay()
      // auto tdata = search.exportTrainingSample();
 
       Action action;
-      action.dishType = DISH_none;
-      action.train = -1;
-      string dishKeys[14] = { "0","a1","a2","b1","b2","b3","b4","b5","c1","c2","c3","c4","c5","d" };//13种菜对应的键盘输入
 
       string s;
       if (game.isRacing)
@@ -215,25 +212,6 @@ void main_playerPlay()
           endl;
       }
 
-      //显示可以吃的菜
-      if (game.cook_dish == DISH_none)
-      {
-        if (game.isRacing)
-          cout << termcolor::green << "吃菜并比赛：" << termcolor::reset;
-        else
-          cout << termcolor::green << "吃菜：" << termcolor::reset;
-        int legalDishNum = 0;
-        for (int i = 1; i < 14; i++)
-        {
-          if (!game.isDishLegal(i))
-            continue;
-          legalDishNum += 1;
-          cout << termcolor::cyan << dishKeys[i] << termcolor::reset << ":" << Action::dishName[i] << " ";
-        }
-        if (legalDishNum == 0)
-          cout << termcolor::red << "没有可以吃的菜" << termcolor::reset;
-        cout << endl;
-      }
       //显示手写逻辑
       Action handWrittenAction = Evaluator::handWrittenStrategy(game);
       cout << "手写逻辑：" << termcolor::green << handWrittenAction.toString() << termcolor::reset << endl;
@@ -241,39 +219,26 @@ void main_playerPlay()
 
       cin >> s;
 
-      //s是不是吃菜
-      bool isDish = false;
-      for (int i = 1; i < 14; i++)
       {
-        if (s == dishKeys[i])
-        {
-          action.dishType = i;
-          action.train = TRA_none;
-          isDish = true;
-        }
-      }
-      if (!isDish)
-      {
-        action.dishType = 0;
         if (game.isRacing && s == "0")
-          action.train = TRA_race;
+          action.idx = T_race;
         else if (s == "1")
-          action.train = TRA_speed;
+          action.idx = T_speed;
         else if (s == "2")
-          action.train = TRA_stamina;
+          action.idx = T_stamina;
         else if (s == "3")
-          action.train = TRA_power;
+          action.idx = T_power;
         else if (s == "4")
-          action.train = TRA_guts;
+          action.idx = T_guts;
         else if (s == "5")
-          action.train = TRA_wiz;
+          action.idx = T_wiz;
         else if (s == "6")
         {
           cout << termcolor::green << "你确定要休息吗？输入y确认，输入n重新选择" << termcolor::reset << endl;
           cin >> s;
           if (s != "y")
             continue;
-          action.train = TRA_rest;
+          action.idx = T_rest;
         }
         else if (s == "7")
         {
@@ -281,7 +246,7 @@ void main_playerPlay()
           cin >> s;
           if (s != "y")
             continue;
-          action.train = TRA_outgoing;
+          action.idx = T_outgoing;
         }
         else if (s == "8")
         {
@@ -289,7 +254,7 @@ void main_playerPlay()
           cin >> s;
           if (s != "y")
             continue;
-          action.train = TRA_race;
+          action.idx = T_race;
         }
         else if (s == "remake")
         {

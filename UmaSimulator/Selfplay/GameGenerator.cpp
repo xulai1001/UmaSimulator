@@ -94,13 +94,13 @@ Game GameGenerator::randomOpening()
 
 
   
-  game.newGame(rand, false, umaId, umaStars, cards, zhongmaBlue, zhongmaBonus);
+  game.newGame(rand, GameSettings(), umaId, umaStars, cards, zhongmaBlue, zhongmaBonus);
   
   if (param.cardRandType == 2)
     randomizeUmaCardParam(game);
 
-  game.eventStrength += int(normDistr(rand) * 5.0 + 0.5);
-  if (game.eventStrength < 0)game.eventStrength = 0;
+  game.gameSettings.eventStrength += int(normDistr(rand) * 5.0 + 0.5);
+  if (game.gameSettings.eventStrength < 0)game.gameSettings.eventStrength = 0;
 
   //给属性加随机
   int r = rand() % 100;
@@ -121,16 +121,16 @@ Game GameGenerator::randomOpening()
   if (game.skillPt < 0)game.skillPt = 0;
 
   if (rand() % 2 == 0)
-    game.ptScoreRate = 2.1 + 0.1 * normDistr(rand);
+    game.gameSettings.ptScoreRate = 2.1 + 0.1 * normDistr(rand);
   else
-    game.ptScoreRate = 2.2 + 0.3 * normDistr(rand);
+    game.gameSettings.ptScoreRate = 2.2 + 0.3 * normDistr(rand);
 
 
-  if (game.ptScoreRate > 3.0)game.ptScoreRate = 3.0;
-  if (game.ptScoreRate < 1.5)game.ptScoreRate = 1.5;
+  if (game.gameSettings.ptScoreRate > 3.0)game.gameSettings.ptScoreRate = 3.0;
+  if (game.gameSettings.ptScoreRate < 1.5)game.gameSettings.ptScoreRate = 1.5;
 
 
-  game.hintPtRate += 1.0 * normDistr(rand);
+  game.gameSettings.hintPtRate += 1.0 * normDistr(rand);
 
   //if (rand() % 8 == 0)
   //  game.isQieZhe = true;
@@ -166,6 +166,9 @@ Game GameGenerator::randomOpening()
 
 Game GameGenerator::randomizeBeforeOutput(const Game& game0)
 {
+  throw("TODO");
+  return Game();
+  /*
   //assert("false" && "not implemented, TODO: GameGenerator::randomizeBeforeOutput");
   
   Game game = game0;
@@ -264,6 +267,7 @@ Game GameGenerator::randomizeBeforeOutput(const Game& game0)
   }
 
   return game;
+  */
 }
 
 void GameGenerator::newGameBatch()

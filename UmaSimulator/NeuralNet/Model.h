@@ -1,7 +1,7 @@
 #pragma once
 #include "NNInput.h"
 #include "../config.h"
-#include "../Game/Action.h"
+#include "../Game/Game.h"
 #include <string>
 #include <vector>
 #include <mutex>

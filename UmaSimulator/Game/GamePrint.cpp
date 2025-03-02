@@ -27,6 +27,8 @@ std::string Person::getPersonName() const
 
 std::string Game::getPersonStrColored(int personId, int atTrain) const
 {
+  return "";
+  /*
   if (personId < 0)
     return "Empty";
 
@@ -85,7 +87,7 @@ std::string Game::getPersonStrColored(int personId, int atTrain) const
     assert(false);
     return "\033[31mUnknown\033[0m";
   }
-
+  */
 }
 
 void Game::printEvents(string s) const
@@ -129,7 +131,7 @@ static void printTableRow(string strs[5])
 
 void Game::print() const
 {
-
+  /*
   cout<<"\033[31m-------------------------------------------------------------------------------------------\033[0m"<<endl;
   cout << "当前马娘：" << GameDatabase::AllUmas[umaId].name << endl;
   cout << termcolor::green << "回合数：" << turn + 1 << "/" << TOTAL_TURN << ", 第" << turn / 24 + 1 << "年" << (turn % 24) / 2 + 1 << "月" << (turn % 2 ? "后" : "前") << "半" << termcolor::reset << endl;
@@ -501,7 +503,7 @@ void Game::print() const
   cout << divLineWhite;
 
   cout << "\033[31m-------------------------------------------------------------------------------------------\033[0m" << endl;
-
+  */
 }
 
 static int convertToHalfIfOver1200(int x)
@@ -527,5 +529,5 @@ void Game::printFinalStats() const
     termcolor::bright_blue << "智=" << termcolor::bright_yellow << convertToHalfIfOver1200(fiveStatus[4]) << termcolor::reset << " " <<
     termcolor::bright_blue << "pt=" << termcolor::bright_yellow << skillPt << termcolor::reset << " " <<
     endl;
-  cout << termcolor::bright_red << "(直接按每pt " << ptScoreRate << "分计算)" << termcolor::reset << endl;
+  cout << termcolor::bright_red << "(直接按每pt " << gameSettings.ptScoreRate << "分计算)" << termcolor::reset << endl;
 }

@@ -117,7 +117,7 @@ void main_testDemoGame()
 		bool allowedDebuffs[9] = { false, false, false, false, false, false, true, false, false };//第二年可以不消第几个debuff。第五个是智力，第七个是强心脏
 		Game game;
 
-		game.newGame(rand, false, umaId, umaStars, cards, zhongmaBlue, zhongmaBonus);
+		game.newGame(rand, GameSettings(), umaId, umaStars, cards, zhongmaBlue, zhongmaBonus);
 
 		while (!game.isEnd())
 		{
@@ -125,7 +125,7 @@ void main_testDemoGame()
 
 
 
-			game.eventStrength = GameConfig::eventStrength;
+			game.gameSettings.eventStrength = GameConfig::eventStrength;
 
 			lastTurn = game.turn;
 			//if (game.venusIsWisdomActive)
@@ -180,9 +180,9 @@ void main_testDemoGame()
 			assert(game.turn < TOTAL_TURN - 1 && !game.isRacing);
 
 
-			game.playerPrint = false;
+			game.gameSettings.playerPrint = false;
 			Action bestAction = search.runSearch(game, rand);
-			game.playerPrint = true;
+			game.gameSettings.playerPrint = true;
 
 
 			assert(false && "todo");

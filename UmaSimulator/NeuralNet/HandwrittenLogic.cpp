@@ -74,7 +74,7 @@ static void statusGainEvaluation(const Game& g, double* result) { //result依次是
       double s1 = statusSoftFunction(g.trainValue[tra][sta] - remain[sta], reserve, reserveInvX2);
       res += statusWeights[sta] * (s1 - s0);
     }
-    res += g.ptScoreRate * g.trainValue[tra][5];
+    res += g.gameSettings.ptScoreRate * g.trainValue[tra][5];
     result[tra] = res;
   }
 }
@@ -137,6 +137,8 @@ static double materialEvaluation(int turn, int count) //评估吃菜的开销，决定第二
 
 Action Evaluator::handWrittenStrategy(const Game& game)
 {
+  return Action();
+  /*
   Action bestAction;
   bestAction.dishType = DISH_none;
   bestAction.train = TRA_none;
@@ -491,5 +493,6 @@ Action Evaluator::handWrittenStrategy(const Game& game)
 
   }
   return bestAction;
+  */
 }
 

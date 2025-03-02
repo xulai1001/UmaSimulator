@@ -24,7 +24,7 @@ void main_test4()
   int n = 0;
   int stat[7] = { 0,0,0,0,0,0,0 };
   Game game;
-  game.newGame(rand, false, umaId, 5, cards, zhongmaBlue, zhongmaBonus);
+  game.newGame(rand, GameSettings(), umaId, 5, cards, zhongmaBlue, zhongmaBonus);
   game.turn = 50;
   for (int gamenum = 0; gamenum < 10000000; gamenum++)
   {

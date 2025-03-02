@@ -101,13 +101,6 @@ enum personIdEnum :int16_t
   PS_npc4 = 14,//NPC智
 };
 
-enum LegendColorEnum :int16_t
-{
-  L_blue,//蓝
-  L_green,//绿
-  L_red,//红（粉）
-  L_unknown = -1,
-};
 
 //int16_t stage;//分配人头前1，分配人头后c2，训练后有团卡事件（选出行或三选一）3，抽取心得前4（如果有），选心得5（如果有），固定与随机事件前6，6之后进入stage1
 //对于神经网络stage2可以计算policy，stage4/6可以计算value
@@ -152,9 +145,8 @@ struct Action
 {
   static const std::string trainingName[8];
   //static const Action Action_RedistributeCardsForTest;
-  //static const int MAX_ACTION_TYPE = 21;//标准的Action有编号，8+13=21种
-  //static const int MAX_TWOSTAGE_ACTION_TYPE = 21 + 8 + 8;//二阶段搜索考虑的最多Action个数，只有两种1级菜需要考虑二阶段搜索，8+13+2*8=37种
-
+  static const int MAX_ACTION_TYPE = 8;
+  
   int16_t stage;//这个action是作用于哪个stage的，如果是ST_distribute、ST_pickBuff、ST_event这三个不需要做出任何选择的stage，则无视以下内容
   int16_t idx;//stage=ST_train时为训练，01234速耐力根智，5外出，6休息，7比赛。stage=ST_decideEvent和ST_chooseBuff时是选第几个
   Action();//空Action
@@ -178,7 +170,6 @@ struct Game
   int16_t fiveStatusBonus[5];//马娘的五维属性的成长率
 
   int16_t turn;//回合数，从0开始，到77结束
-  int16_t gameStage;//游戏阶段，0是训练前，1是训练后
   int16_t vital;//体力，叫做“vital”是因为游戏里就这样叫的
   int16_t maxVital;//体力上限
   int16_t motivation;//干劲，从1到5分别是绝不调到绝好调，超绝好调不在这里
@@ -255,6 +246,7 @@ struct Game
 
 
   //可以通过上面的信息计算获得的非独立的信息，每回合更新一次，不需要录入
+  ScenarioBonus lg_bonus;
   int16_t trainValue[5][6];//训练数值的总数（下层+上层），第一个数是第几个训练，第二个数依次是速耐力根智pt
   int16_t trainVitalChange[5];//训练后的体力变化（负的体力消耗）
   int16_t failRate[5];//训练失败率
@@ -304,7 +296,7 @@ public:
 
 
   //原则上这几个private就行，如果private在某些地方非常不方便那就改成public
-
+  void calculateScenarioBonus();//计算剧本buff的各种加成
   void randomDistributeCards(std::mt19937_64& rand);//随机分配人头，ST_distribute->ST_train
   void calculateTrainingValue();//计算所有训练分别加多少，并计算失败率、训练等级提升等
   bool applyTraining(std::mt19937_64& rand, int16_t train);//ST_train->ST_decideEvent/ST_pickBuff/ST_event。处理 训练/出行/比赛 本身，不包括友人点击事件，不包括买buff，不包括固定事件和剧本事件。如果不合法，则返回false，且保证不做任何修改
@@ -370,6 +362,9 @@ public:
   void handleFriendOutgoing(std::mt19937_64& rand);//友人外出
   void handleFriendClickEvent(std::mt19937_64& rand, int atTrain);//友人点击事件
   void handleFriendFixedEvent();//友人固定事件，拜年+结算
+
+  void runFriendOutgoing(std::mt19937_64& rand, int idx);//友人外出
+  void runFriendClickEvent(std::mt19937_64& rand, int idx);//友人点击事件
   
 
   //算分

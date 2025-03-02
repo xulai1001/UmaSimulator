@@ -8,6 +8,7 @@ using namespace std;
 
 void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
 {
+  /*
   //每张卡的初始属性加成、初始羁绊、赛后加成不需要告诉神经网络，只告诉总赛后
 
   for (int ch = 0; ch < NNINPUT_CHANNELS_CARD_V1; ch++)
@@ -282,7 +283,7 @@ void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
   }
 
 
-
+  */
 }
 
 
@@ -344,23 +345,24 @@ void SetValue(float * buf, int &buf_ptr, float value) { //设置值
 
 void Game::getNNInputV1(float* buf, const SearchParam& param) const
 {
+  /*
   int buf_ptr = 0; //指向NNInput buf的指针
   NNInput_init(buf); //初始化NNInput
   //设置搜索参数
   buf[buf_ptr] = 1.0 * log(param.maxRadicalFactor + 1.0); //激进因子
   buf_ptr += 6;
 
-  /*** 合法的action选项 ***/
+  // 合法的action选项
   for(int i=0;i<Action::MAX_ACTION_TYPE;++i)
     SetValue(buf,buf_ptr,isLegal(Action::intToAction(i))?1.0:0.0);
 
-  /*** 参数相关设置 ***/
+  //参数相关设置
   //ptScoreRate
   SetValue(buf, buf_ptr, ptScoreRate - 2.0);
   SetValue(buf, buf_ptr, hintPtRate - 5.0);
   SetValue(buf, buf_ptr, (eventStrength - 20) * 0.1);
 
-  /*** 基本状态 ***/
+  // 基本状态 
   // 是否为link马
   SetValue(buf,buf_ptr,isLinkUma ? 1.0 : 0.0);
   // 是否为比赛回合
@@ -400,7 +402,7 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
     buf_ptr += 5;
   }
 
-  /*** Buff状态设置 ***/
+  // Buff状态设置 
   // 失败率改变量
   SetValue(buf, buf_ptr, failureRateBias < 0 ? 1.0 * failureRateBias : 0.0); //是否练习上手
   SetValue(buf, buf_ptr, failureRateBias > 0 ? 1.0 * failureRateBias : 0.0); //是否练习下手
@@ -414,7 +416,7 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
   // 是否放松心情
   SetValue(buf,buf_ptr,isRefreshMind?1.0:0.0);
 
-  /*** 种马状态设置 ***/
+  // 种马状态设置 
   // 种马蓝色数量
   for(int i=0;i<5;++i) 
     SetValue(buf,buf_ptr,zhongMaBlueCount[i]*0.1);
@@ -424,7 +426,7 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
   // 种马额外pt加成
   SetValue(buf,buf_ptr,zhongMaExtraBonus[5]*0.01);
 
-  /*** 比赛相关 ***/
+  // 比赛相关 
   // 赛后加成
   SetValue(buf,buf_ptr,saihou*0.03);
   // 是否在比赛
@@ -434,7 +436,7 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
   //buf[buf_ptr + friend_type] = 1.0;
   //buf_ptr += 3;
 
-  /*** 人物分布 ***/
+  // 人物分布 
   // 理事长羁绊和位置
   if (!isRacing && friend_type == 0) {
 	  SetValue(buf, buf_ptr, friendship_noncard_yayoi * 0.01);
@@ -492,7 +494,7 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
 	  buf_ptr += 30;
   
 
-  /*** 剧本相关 ***/
+  // 剧本相关 
   // 菜原料数量
   for (int i = 0; i < 5; ++i)
   {
@@ -573,7 +575,7 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
     buf[buf_ptr+cook_main_race_material_type] = 1.0;
   buf_ptr += 5;
   
-  /*** 剧本友人卡 ***/
+  // 剧本友人卡 
   // 友人卡的状态
   buf[buf_ptr+friend_type] = 1.0;
   buf_ptr += 3;
@@ -597,7 +599,7 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
     buf_ptr += 11;
   }
 
-  /*** 训练相关的信息 ***/
+  // 训练相关的信息 
   // 训练的数值和体力
   if (!isRacing) {
       for (int i = 0; i < 5; ++i) {
@@ -646,5 +648,5 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
   {
     persons[card].getCardNNInputV1(cardBuf + NNINPUT_CHANNELS_CARDPERSON_V1 * card, *this, card);
   }
-  
+  */
 }

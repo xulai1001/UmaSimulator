@@ -204,9 +204,9 @@ void main_ai()
 		}
 
 		bool suc = game.loadGameFromJson(jsonStr);
-		game.eventStrength = GameConfig::eventStrength;
-		game.ptScoreRate = GameConfig::scorePtRate;
-		game.scoringMode = GameConfig::scoringMode;
+		game.gameSettings.eventStrength = GameConfig::eventStrength;
+		game.gameSettings.ptScoreRate = GameConfig::scorePtRate;
+		game.gameSettings.scoringMode = GameConfig::scoringMode;
 		//bool suc2 = game2.loadGameFromJson(jsonStr2);
 		//game2.eventStrength = GameConfig::eventStrength;
 
@@ -265,7 +265,7 @@ void main_ai()
 				cout << p * 100 << "% ";
 				if (!GameConfig::noColor)cout << "\033[0m";
 			};
-
+		/*
 		auto printValue = [&ws](int which, double p, double ref)
 			{
 				string prefix[Action::MAX_ACTION_TYPE] = { "速:", "耐:", "力:", "根:", "智:", "| 休息: ", "外出: ", "比赛: " };
@@ -434,61 +434,6 @@ void main_ai()
 			}
 			cout << endl;
 
-			//13种吃菜
-			bool isAnyDishAvailable = false;
-			for (int dish = 1; dish < 14; dish++)
-			{
-				if (game.isDishLegal(dish))
-				{
-					isAnyDishAvailable = true;
-					break;
-				}
-			}
-			if (isAnyDishAvailable)
-			{
-				cout << "先做料理：    ";
-				for (int dish = 1; dish < 14; dish++)
-				{
-					Action a;
-					a.train = TRA_none;
-					a.dishType = dish;
-					if (!search.allActionResults[a.toInt()].isLegal)continue;
-					double value = search.allActionResults[a.toInt()].lastCalculate.value;
-					strToSendURA += L" " + to_wstring(a.toInt()) + L" " + to_wstring(value - restValue);
-					printValue(a.toInt(), value - restValue, maxValue - restValue);
-				}
-			}
-			cout << endl;
-
-			//农田升级是Game类内部自动进行的，需要显示具体怎样升级的
-			{
-				Game game2 = game;
-				game2.applyAction(rand, bestAction);
-				bool anyUpgrade = false;
-				for (int i = 0; i < 5; i++)
-					if (game2.cook_farm_level[i] > game.cook_farm_level[i])
-					{
-						anyUpgrade = true;
-						break;
-					}
-				if (anyUpgrade)
-				{
-					cout << "\033[1;36m";
-					if (game.turn == 35 || game.turn == 59)//合宿前一回合
-						cout << "推荐农田升级(可以训练结束后再升级)：";
-					else
-						cout << "推荐农田升级：";
-
-					for (int i = 0; i < 5; i++)
-						if (game2.cook_farm_level[i] > game.cook_farm_level[i])
-						{
-							cout << GameConstants::Cook_MaterialNames[i] << "升至" << game2.cook_farm_level[i] << "级  ";
-						}
-					cout << "\033[0m" << endl;
-				}
-
-
-			}
 
 			//strToSendURA = L"0.1234567 5.4321";
 			if (useWebsocket)
@@ -496,8 +441,8 @@ void main_ai()
 				wstring s = L"{\"CommandType\":1,\"Command\":\"PrintUmaAiResult\",\"Parameters\":[\"" + strToSendURA + L"\"]}";
 				//ws.send(s);
 			}
-
+			
 		}
-
+		*/
 	}
 }

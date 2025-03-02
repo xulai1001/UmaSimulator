@@ -36,12 +36,12 @@ bool Game::loadGameFromJson(std::string jsonStr)
     }
     //int zhongmaBlue[5] = { 18,0,0,0,0 };
     int zhongmaBonus[6] = { 10,10,30,0,10,70 };
-    newGame(rand,true,j["umaId"], j["umaStar"],newcards, newzmbluecount,zhongmaBonus);
+    newGame(rand,GameSettings(), j["umaId"], j["umaStar"], newcards, newzmbluecount, zhongmaBonus);
     
-    ptScoreRate = j.contains("ptScoreRate") ? double(j["ptScoreRate"]) : GameConstants::ScorePtRateDefault;
+    gameSettings.ptScoreRate = j.contains("ptScoreRate") ? double(j["ptScoreRate"]) : GameConstants::ScorePtRateDefault;
     
     turn = j["turn"];
-    gameStage = GameStage_beforeTrain;
+    stage = j["stage"];
     vital = j["vital"];
     maxVital = j["maxVital"];
     motivation = j["motivation"];
@@ -79,13 +79,13 @@ bool Game::loadGameFromJson(std::string jsonStr)
       for (int p = 0; p < 5; p++) {
         int pid = j["personDistribution"][i][p];
         if (pid == 102) {
-          personDistribution[i][p] = PSID_noncardYayoi;
+          personDistribution[i][p] = PS_noncardYayoi;
         }
         else if (pid == 103) {
-          personDistribution[i][p] = PSID_noncardReporter;
+          personDistribution[i][p] = PS_noncardReporter;
         }
         else if (pid >= 1000) {
-          personDistribution[i][p] = PSID_npc;
+          personDistribution[i][p] = PS_npc;
         }
         else if (pid >= 0 && pid < 9)
         {
@@ -101,101 +101,16 @@ bool Game::loadGameFromJson(std::string jsonStr)
         }
       }
     }
-
-    for (int i = 0; i < 5; i++) {
-      cook_material[i] = j["cook_material"][i];
-    }
-    cook_dish_pt = j["cook_dish_pt"];
-    cook_dish_pt_turn_begin = cook_dish_pt;
-    cook_dish = j["cook_dish"];
-    if (cook_dish != DISH_none)
-    {
-      int lastDishPtGain = GameConstants::Cook_DishGainPt[cook_dish];
-      cook_dish_pt_turn_begin -= lastDishPtGain;
-    }
-    for (int i = 0; i < 5; i++) {
-      cook_farm_level[i] = j["cook_farm_level"][i];
-    }
-
-    cook_farm_pt = j["cook_farm_pt"];
-    cook_dish_sure_success = j["cook_dish_sure_success"];
-    //注意cook_dish_sure_success是下一个料理是否大成功，而不是这个料理是否大成功
-    if (cook_dish != DISH_none)
-    {
-      cook_dish_sure_success = false;
-      //如果跨越1500倍数了，或者大于12000，下次必为大成功
-      if (cook_dish_pt >= 12000 || cook_dish_pt / 1500 != cook_dish_pt_turn_begin / 1500)
-        cook_dish_sure_success = true;
-    }
-    for (int i = 0; i < 5; i++) {
-      cook_win_history[i] = j["cook_win_history"][i];
-    }
-    
-    for (int i = 0; i < 4; i++) {
-      cook_harvest_history[i] = j["cook_harvest_history"][i];
-      cook_harvest_green_history[i] = j["cook_harvest_green_history"][i];
-    }
-    //calculate cook_harvest_extra
-    if (isXiahesu() || turn >= 72)
-    {
-      for (int i = 0; i < 5; i++)
-        cook_harvest_extra[i] = 0;
-    }
-    else
-    {
-      int harvestTurnNum = turn % 4;
-      vector<int> harvestBasic = { 0,0,0,0,0 };
-      int greenNum = 0;
-      for (int i = 0; i < 5; i++)
-      {
-        harvestBasic[i] = GameConstants::Cook_HarvestBasic[cook_farm_level[i]];
-      }
-      for (int i = 0; i < harvestTurnNum; i++)
-      {
-        int matType = cook_harvest_history[i];
-        if (matType == -1)
-          throw "ERROR: Game::loadGameFromJson cook_harvest_history[i] == -1";
-
-        harvestBasic[matType] += GameConstants::Cook_HarvestExtra[cook_farm_level[matType]];
-        if (cook_harvest_green_history[i])
-          greenNum += 1;
-      }
-
-      double multiplier = 
-        greenNum == 0 ? 1.0000001 :
-        greenNum == 1 ? 1.1000001 :
-        greenNum == 2 ? 1.2000001 :
-        greenNum == 3 ? 1.4000001 :
-        greenNum == 4 ? 1.6000001 :
-        1000;
-
-      for (int i = 0; i < 5; i++)
-      {
-        int harvestNum = j["cook_harvest_num"][i];
-        int extra = int(ceil(harvestNum / multiplier - harvestBasic[i]));
-        cook_harvest_extra[i] = extra;
-      }
-    }
-
     
 
-    for (int i = 0; i < 8; i++) {
-      cook_train_material_type[i] = j["cook_train_material_type"][i];
-      cook_train_green[i] = j["cook_train_green"][i];
-      if (cook_train_material_type[i] == -1)
-        cook_train_material_type[i] = i < 5 ? i : 0;//凯斯连战休息，以及锁比赛回合可能返回-1，这里设成萝卜，避免闪退
-    }
-    
-    cook_main_race_material_type = j.contains("cook_main_race_material_type") ? int(j["cook_main_race_material_type"]) : -1;
-    if (isRacing && cook_main_race_material_type == -1)//凯斯特殊回合
-      cook_main_race_material_type = 0;
 
     if (friend_type != 0) {
-      friend_outgoingUsed = j["friend_outgoingUsed"];
+      for (int i = 0; i < 5; i++) {
+        friend_outgoingUsed[i] = j["friend_outgoingUsed"][i];
+      }
       friend_stage = j["friend_stage"];
     }
 
-    updateDeyilv();
     calculateTrainingValue();
   //for (int k = 1; k < 5; k++) {
    //     cout << trainValue[1][k] << endl;

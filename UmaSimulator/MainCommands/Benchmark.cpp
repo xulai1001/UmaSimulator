@@ -42,7 +42,8 @@ void main_benchmark()
 
   auto rand = mt19937_64(114514);
   Game game;
-  game.newGame(rand, false, umaId, 5, cards, zhongmaBlue, zhongmaBonus);
+  GameSettings setting;
+  game.newGame(rand, setting, umaId, 5, cards, zhongmaBlue, zhongmaBonus);
   //game.print();
 
   const int64_t time0 = now_ms();

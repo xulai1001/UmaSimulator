@@ -173,7 +173,7 @@ void main_testCardsSingle()
 
       cards[5] = cardIdLv50;
       Game game;
-      game.newGame(rand, false, umaId, umaStars, cards.data(), zhongmaBlue, zhongmaBonus);
+      game.newGame(rand, GameSettings(), umaId, umaStars, cards.data(), zhongmaBlue, zhongmaBonus);
       //game.addAllStatus(initialStatusBonus);
       auto value = search.evaluateNewGame(game, rand);
 

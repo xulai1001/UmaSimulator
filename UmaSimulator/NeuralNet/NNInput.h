@@ -22,11 +22,11 @@ static_assert(NNINPUT_CHANNELS_V1 < 32767);//int16
 #endif
 
 
-const int NNOUTPUT_CHANNELS_POLICY_V1 = 21;
+const int NNOUTPUT_CHANNELS_POLICY_V1 = 8;
 const int NNOUTPUT_CHANNELS_VALUE_V1 = 3;
 const int NNOUTPUT_CHANNELS_V1 = NNOUTPUT_CHANNELS_POLICY_V1 + NNOUTPUT_CHANNELS_VALUE_V1;
 
 //should be the same as config.py in training scripts
-const float NNOUTPUT_Value_Mean = 43000;
+const float NNOUTPUT_Value_Mean = 49000;
 const float NNOUTPUT_Value_Scale = 400;
 const float NNOUTPUT_Valuevar_Scale = 200;

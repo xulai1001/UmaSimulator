@@ -135,8 +135,8 @@ namespace TestAiScore
     for (int gamenum = 0; gamenum < gamesEveryThread; gamenum++)
     {
       Game game;
-      game.newGame(rand, false, test.umaId, test.umaStars, &test.cards[0], &test.zhongmaBlue[0], &test.zhongmaBonus[0]);
-      game.eventStrength = test.eventStrength;
+      game.newGame(rand, GameSettings(), test.umaId, test.umaStars, &test.cards[0], &test.zhongmaBlue[0], &test.zhongmaBonus[0]);
+      game.gameSettings.eventStrength = test.eventStrength;
 
       while (!game.isEnd())
       {
@@ -200,8 +200,8 @@ namespace TestAiScore
     for (int gamenum = 0; gamenum < gamesEveryThread; gamenum++)
     {
         Game game;
-        game.newGame(rand, false, test.umaId, test.umaStars, &test.cards[0], &test.zhongmaBlue[0], &test.zhongmaBonus[0]);
-        game.eventStrength = test.eventStrength;
+        game.newGame(rand, GameSettings(), test.umaId, test.umaStars, &test.cards[0], &test.zhongmaBlue[0], &test.zhongmaBonus[0]);
+        game.gameSettings.eventStrength = test.eventStrength;
 
         auto value = search.evaluateNewGame(game, rand);
 

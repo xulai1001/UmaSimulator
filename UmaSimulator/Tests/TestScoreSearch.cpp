@@ -86,7 +86,7 @@ namespace TestScoreSearch
     for (int gamenum = 0; gamenum < gamesEveryThread; gamenum++)
     {
       Game game;
-      game.newGame(rand, false, test.umaId, test.umaStars, &test.cards[0], &test.zhongmaBlue[0], &test.zhongmaBonus[0]);
+      game.newGame(rand, GameSettings(), test.umaId, test.umaStars, &test.cards[0], &test.zhongmaBlue[0], &test.zhongmaBonus[0]);
 
 
       while (!game.isEnd())
