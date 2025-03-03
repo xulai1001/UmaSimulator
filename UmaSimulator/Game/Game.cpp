@@ -363,21 +363,41 @@ void Game::addMotivation(int value)
       motivation = 5;
   }
 }
-void Game::addJiBan(int idx, int value, bool ignoreAijiao)
+void Game::addJiBan(int idx, int value, int type)
 {
   if(idx==PS_noncardYayoi)
     friendship_noncard_yayoi += value;
   else if (idx == PS_noncardReporter)
     friendship_noncard_reporter += value;
-  else if (idx < 6)
-  {
-    auto& p = persons[idx];
-    int gain = (isAiJiao && !ignoreAijiao) ? value + 2 : value;
-    persons[idx].friendship += gain;
-    if (p.friendship > 100)p.friendship = 100;
-  }
   else
-    throw "ERROR: Game::addJiBan Unknown person id";
+  {
+    int gain = value;
+    if (type == 0)
+    {
+      gain += lg_bonus.jibanAdd1;
+      if (isAiJiao)
+        gain += 2;
+    }
+    else if(type == 1)
+    {
+      gain += lg_bonus.jibanAdd2;
+      if (isAiJiao)
+        gain += 2;
+    }
+    if (idx < 6)
+    {
+      auto& p = persons[idx];
+      persons[idx].friendship += gain;
+      if (p.friendship > 100)p.friendship = 100;
+    }
+    if (lg_mainColor == L_red)
+    {
+      lg_red_friendsGauge[idx] += gain;
+      if (lg_red_friendsGauge[idx] > 20)lg_red_friendsGauge[idx] = 20;
+    }
+    //else
+    //  throw "ERROR: Game::addJiBan Unknown person id";
+  }
 }
 void Game::addAllStatus(int value)
 {
@@ -1513,6 +1533,22 @@ ScenarioBuffInfo::ScenarioBuffInfo()
 {
 }
 
+int16_t ScenarioBuffInfo::getBuffColor() const
+{
+  if (buffId < 0)return -1;
+  return buffId / 19;
+}
+
+int16_t ScenarioBuffInfo::getBuffStar() const
+{
+  if (buffId < 0)return -1;
+  int idx = buffId % 19;
+  if (idx < 4)return 1;
+  else if (idx < 10)return 2;
+  else return 3;
+}
+
+
 Action::Action()
 {
 }
@@ -1520,4 +1556,8 @@ Action::Action()
 std::string Action::toString() const
 {
   return std::string();
+}
+
+ScenarioBuffCondition::ScenarioBuffCondition()
+{
 }

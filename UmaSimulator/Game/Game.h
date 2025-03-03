@@ -28,6 +28,7 @@ struct ScenarioBuffInfo
   int16_t getBuffColor() const;
   int16_t getBuffStar() const;
   std::string getName() const;
+  std::string getColoredState() const;
 };
 
 //剧本加成   //，只考虑五个训练共有的部分，按人头的不算
@@ -39,7 +40,8 @@ struct ScenarioBonus
   bool doubleHint;//追加一个hint
   
   float vitalReduce;//体力消耗减少%
-  float jibanAdd;//羁绊增加量
+  float jibanAdd1;//羁绊增加量1（点击或hint）
+  float jibanAdd2;//羁绊增加量2（只包括点击）
   float deyilv;//得意率提升%
   float disappearRateReduce;//消失率减少。原本的普通卡消失率是50，友人100。有对应buff时减少25
 
@@ -56,6 +58,16 @@ struct ScenarioBonus
   void clear();
 };
 
+struct ScenarioBuffCondition //触发buff的各种条件
+{
+  bool isRest;
+  bool isTraining;
+  bool isYouqing;
+  int16_t trainingSucceed;
+  int16_t trainingHead;
+  ScenarioBuffCondition();
+  void clear();
+};
 
 struct GameSettings
 {
@@ -260,6 +272,7 @@ struct Game
   //bool cardEffectCalculated;//支援卡效果是否已经计算过？吃无关菜不需要重新计算，分配卡组或者读json时需要置为false
   //CardTrainingEffect cardEffects[6];
 
+  ScenarioBuffCondition lg_buffCondition;
 
 
 
@@ -341,7 +354,7 @@ public:
   void addVital(int value);//增加或减少体力，并处理溢出
   void addVitalMax(int value);//增加体力上限，限制120
   void addMotivation(int value);//增加或减少心情，同时考虑“isPositiveThinking和蓝登
-  void addJiBan(int idx,int value,bool ignoreAijiao);//增加羁绊，并考虑爱娇和buff，也考虑红登充电。
+  void addJiBan(int idx,int value,int type);//增加羁绊，并考虑爱娇和buff，也考虑红登充电。type0是点击，type1是hint，type2是不吃任何加成的
   void addYayoiJiBan(int value);//增加理事长羁绊，剧本比赛等情况
   int getYayoiJiBan() const;//获得理事长羁绊
   void addStatusFriend(int idx, int value);//友人卡事件，增加属性值或者pt（idx=5），考虑事件加成

@@ -7,14 +7,6 @@
 #include "Game.h"
 using namespace std;
 using json = nlohmann::json;
-// 是否把低破卡当做满破处理（会导致一定的预测偏差）
-// 为True时会把所有ID的最高位改为满破（马娘5xxx，卡4xxx）
-static bool maskUmaId = true;
-
-int mask_umaId(int umaId)
-{
-    return umaId % 1000000;
-}
 
 bool Game::loadGameFromJson(std::string jsonStr)
 {
@@ -35,13 +27,13 @@ bool Game::loadGameFromJson(std::string jsonStr)
         
     }
     //int zhongmaBlue[5] = { 18,0,0,0,0 };
-    int zhongmaBonus[6] = { 10,10,30,0,10,70 };
+    int zhongmaBonus[6] = { 5,5,30,30,5,100 };
     newGame(rand,GameSettings(), j["umaId"], j["umaStar"], newcards, newzmbluecount, zhongmaBonus);
+    assert(friend_type == 0 || friend_personId == j["friend_personId"]);
     
     gameSettings.ptScoreRate = j.contains("ptScoreRate") ? double(j["ptScoreRate"]) : GameConstants::ScorePtRateDefault;
     
     turn = j["turn"];
-    stage = j["stage"];
     vital = j["vital"];
     maxVital = j["maxVital"];
     motivation = j["motivation"];
@@ -62,6 +54,8 @@ bool Game::loadGameFromJson(std::string jsonStr)
     isPositiveThinking = j["isPositiveThinking"];
     isRefreshMind = j["isRefreshMind"];
 
+    stage = j["stage"];
+    decidingEvent = j["decidingEvent"];
     isRacing = j["isRacing"];
     if (isRacing != isRacingTurn[turn])
     {
@@ -84,10 +78,10 @@ bool Game::loadGameFromJson(std::string jsonStr)
         else if (pid == 103) {
           personDistribution[i][p] = PS_noncardReporter;
         }
-        else if (pid >= 1000) {
-          personDistribution[i][p] = PS_npc;
-        }
-        else if (pid >= 0 && pid < 9)
+        //else if (pid >= 1000) {
+        //  personDistribution[i][p] = PS_npc;
+        //}
+        else if (pid >= 0 && pid < 16)
         {
           personDistribution[i][p] = pid;
         }
@@ -111,6 +105,36 @@ bool Game::loadGameFromJson(std::string jsonStr)
       friend_stage = j["friend_stage"];
     }
 
+    lg_mainColor = j["lg_mainColor"];
+    for (int i = 0; i < 3; i++) {
+      lg_gauge[i] = j["lg_gauge"][i];
+    }
+    for (int i = 0; i < 8; i++) {
+      lg_trainingColor[i] = j["lg_trainingColor"][i];
+    }
+    for (int i = 0; i < 10; i++) {
+      lg_buffs[i].buffId = j["lg_buffs"][i]["buffId"];
+      lg_buffs[i].coolTime = j["lg_buffs"][i]["coolTime"];
+      lg_buffs[i].isActive = j["lg_buffs"][i]["isActive"];
+    }
+
+    lg_pickedBuffsNum = j["lg_pickedBuffsNum"];
+    for (int i = 0; i < 9; i++) {
+      lg_pickedBuffs[i] = j["lg_pickedBuffs"][i];
+    }
+
+    lg_blue_active = j["lg_blue_active"];
+    lg_blue_remainCount = j["lg_blue_remainCount"];
+    lg_blue_currentStepCount = j["lg_blue_currentStepCount"];
+    lg_blue_canExtendCount = j["lg_blue_canExtendCount"];
+    lg_green_todo = j["lg_green_todo"];
+
+    for (int i = 0; i < 16; i++) {
+      lg_red_friendsGauge[i] = j["lg_red_friendsGauge"][i];
+      lg_red_friendsLv[i] = j["lg_red_friendsLv"][i];
+    }
+
+    calculateScenarioBonus(); 
     calculateTrainingValue();
   //for (int k = 1; k < 5; k++) {
    //     cout << trainValue[1][k] << endl;
