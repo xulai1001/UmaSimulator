@@ -37,7 +37,8 @@ struct ScenarioBonus
 {
   float hintProb;//红点概率提升%
   int16_t hintLv;//红点等级提升
-  bool doubleHint;//追加一个hint
+  int16_t moreHint;//追加几个hint
+  bool alwaysHint;//一定出现hint
   
   float vitalReduce;//体力消耗减少%
   float jibanAdd1;//羁绊增加量1（点击或hint）
@@ -368,6 +369,10 @@ public:
   bool isCardShining(int personIdx, int trainIdx) const;    // 判断指定卡是否闪彩。普通卡看羁绊与所在训练，团队卡看friendOrGroupCardStage
   //bool trainShiningCount(int trainIdx) const;    // 指定训练彩圈数 //uaf不一定有用
   void calculateTrainingValueSingle(int tra);//计算每个训练加多少   //uaf剧本可能五个训练一起算比较方便
+
+  //剧本相关
+  void addScenarioBuffBonus(int idx);//添加剧本心得加成到lg_bonus，包含判断部分buff的生效条件（干劲绝好调等）。“训练成功”之类的判定不在这里
+
 
 
   //友人卡相关事件

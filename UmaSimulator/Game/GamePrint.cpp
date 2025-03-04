@@ -123,9 +123,7 @@ std::string Game::getPersonStrColored(int personId, int atTrain) const
       int tra = personId - PS_npc0;
       s = "[" + Action::trainingName[tra] + "]NPC";
       assert(lg_mainColor == L_red);
-      int gauge = lg_red_friendsGauge[personId];
-      bool isShining = tra == atTrain && gauge == 20;
-      if (isShining)
+      if (isCardShining(personId, atTrain))
         s = "\033[36m" + s + "\033[0m";
     }
     else
@@ -403,7 +401,13 @@ void Game::print() const
     printTableRow(oneRow);
   }
 
-  if (isRacing)
+  if (stage != ST_train)
+  {
+    cout << divLineWhite;
+    cout << termcolor::red << "特殊回合" << termcolor::reset << endl;
+    return;//比赛回合就不显示训练了
+  }
+  else if (stage==ST_train && isRacing)
   {
     cout << divLineWhite;
     cout << "比赛颜色：" << getColoredColorName(lg_trainingColor[T_race]) << endl;

@@ -143,7 +143,9 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
 
 void Game::calculateScenarioBonus()
 {
-
+  lg_bonus.clear();
+  for (int i = 0; i < 10; i++)
+    addScenarioBuffBonus(i);
 }
 
 void Game::randomDistributeCards(std::mt19937_64& rand)
@@ -300,12 +302,9 @@ void Game::randomDistributeCards(std::mt19937_64& rand)
   calculateTrainingValue();
 }
 
-//总数=(1+料理pt加成+吃菜加成)*(1+料理pt技能点加成)
-//上层=min(总数-下层, 100)
+//需要提前计算calculateScenarioBonus()
 void Game::calculateTrainingValue()
 {
-  //剧本训练加成
-  
   for (int i = 0; i < 5; i++)
     calculateTrainingValueSingle(i);
 }
@@ -872,7 +871,7 @@ bool Game::isLegal(Action action) const
   {
     //if (isUraRace)
     //{
-      if (action.idx == T_none || action.idx == T_race)//none是吃菜然后比赛，race是直接比赛
+      if (action.stage==ST_train && action.idx == T_race)
         return true;
       else
         return false;
@@ -1029,44 +1028,49 @@ void Game::calculateTrainingValueSingle(int tra)
 
   int basicValue[6] = { 0,0,0,0,0,0 };//训练的基础值，=原基础值+支援卡加成
 
-  int totalXunlian = 0;//训练1+训练2+...
-  int totalGanjing = 0;//干劲1+干劲2+...
+  double totalXunlian = 0;//下层，训练1+训练2+...
+  double totalXunlianUpper = lg_bonus.xunlian;//=下层+剧本+npc
+  double totalGanjing = 0;//干劲1+干劲2+...
+  double totalGanjingUpper = lg_bonus.ganjing;//=下层+剧本
   double totalYouqingMultiplier = 1.0;//(1+友情1)*(1+友情2)*...
+  double totalYouqingUpper = lg_bonus.youqing;//剧本友情加成=剧本+npc
   int vitalCostBasic;//体力消耗基础量，=ReLU(基础体力消耗+link体力消耗增加-智彩体力消耗减少)
   double vitalCostMultiplier = 1.0;//(1-体力消耗减少率1)*(1-体力消耗减少率2)*...
   double failRateMultiplier = 1.0;//(1-失败率下降率1)*(1-失败率下降率2)*...
 
+
+
+
   int tlevel = getTrainingLevel(tra);
 
 
-  bool isCardShining_record[6] = { false,false,false,false,false,false };
   for (int h = 0; h < 5; h++)
   {
     int pIdx = personDistribution[tra][h];
     if (pIdx < 0)break;
-    if (pIdx == PS_npc)
-    {
-      headNum += 1;
-      continue;
-    }
-    if (pIdx >= 6)continue;//不是支援卡
+    if (pIdx == PS_noncardYayoi || pIdx == PS_noncardReporter)continue;//不是卡
 
     headNum += 1;
-    const Person& p = persons[pIdx];
-   
+
     if (isCardShining(pIdx, tra))
     {
       shiningNum += 1;
-      isCardShining_record[pIdx] = true;
     }
-    if (p.cardParam.isLink)
+
+    if (pIdx < 6)
     {
-      linkNum += 1;
+      const Person& p = persons[pIdx];
+      if (p.cardParam.isLink)
+      {
+        linkNum += 1;
+      }
     }
   }
   trainShiningNum[tra] = shiningNum;
 
-
+  totalXunlianUpper += lg_bonus.xunlianPerHead * headNum;
+  totalGanjingUpper += lg_bonus.ganjingPerHead * headNum;
+  totalYouqingUpper += lg_bonus.youqingPerShiningHead * shiningNum;
 
   //基础值
   for (int i = 0; i < 6; i++)
@@ -1077,32 +1081,51 @@ void Game::calculateTrainingValueSingle(int tra)
   {
     int pid = personDistribution[tra][h];
     if (pid < 0)break;//没人
-    if (pid >= 6)continue;//不是卡
-    const Person& p = persons[pid];
-    bool isThisCardShining = isCardShining_record[pid];//这张卡闪没闪
-    bool isThisTrainingShining = shiningNum > 0;//这个训练闪没闪
-    CardTrainingEffect eff = p.cardParam.getCardEffect(*this, isThisCardShining, tra, p.friendship, p.cardRecord, headNum, shiningNum);
-    
-    for (int i = 0; i < 6; i++)//基础值bonus
+    if (pid == PS_noncardYayoi || pid == PS_noncardReporter)continue;//不是卡
+
+    if (pid >= PS_npc0 && pid <= PS_npc4)
     {
-      if (basicValue[i] > 0)
-        basicValue[i] += int(eff.bonus[i]);
+      int lv = lg_red_friendsLv[pid]; 
+      totalXunlianUpper += GameConstants::LG_redLvXunlianNPC[lv];
+      if (isCardShining(pid, tra))//这个npc闪没闪
+      {
+        totalYouqingUpper += GameConstants::LG_redLvYouqingNPC[lv];
+      }
     }
-    if (isCardShining_record[pid])//闪彩，友情加成和智彩回复
+    else if (pid < 6)
     {
-      totalYouqingMultiplier *= (1 + 0.01 * eff.youQing);
-      if (tra == T_wiz)
-        vitalCostBasic -= eff.vitalBonus;
+      int lv = lg_red_friendsLv[pid];
+      totalXunlianUpper += GameConstants::LG_redLvXunlianCard[lv];
+
+      const Person& p = persons[pid];
+      bool isThisCardShining = isCardShining(pid, tra);//这张卡闪没闪
+      bool isThisTrainingShining = shiningNum > 0;//这个训练闪没闪
+      CardTrainingEffect eff = p.cardParam.getCardEffect(*this, isThisCardShining, tra, p.friendship, p.cardRecord, headNum, shiningNum);
+
+      for (int i = 0; i < 6; i++)//基础值bonus
+      {
+        if (basicValue[i] > 0)
+          basicValue[i] += int(eff.bonus[i]);
+      }
+      if (isThisCardShining)//闪彩，友情加成和智彩回复
+      {
+        totalYouqingMultiplier *= (1 + 0.01 * eff.youQing);
+        if (tra == T_wiz)
+          vitalCostBasic -= eff.vitalBonus;
+      }
+      totalXunlian += eff.xunLian;
+      totalXunlianUpper += eff.xunLian;
+      totalGanjing += eff.ganJing;
+      totalGanjingUpper += eff.ganJing;
+      vitalCostMultiplier *= (1 - 0.01 * eff.vitalCostDrop);
+      failRateMultiplier *= (1 - 0.01 * eff.failRateDrop);
     }
-    totalXunlian += eff.xunLian;
-    totalGanjing += eff.ganJing;
-    vitalCostMultiplier *= (1 - 0.01 * eff.vitalCostDrop);
-    failRateMultiplier *= (1 - 0.01 * eff.failRateDrop);
 
   }
 
   //体力，失败率
 
+  vitalCostMultiplier *= (1 - 0.01 * lg_bonus.vitalReduce);
   int vitalChangeInt = vitalCostBasic > 0 ? -int(vitalCostBasic * vitalCostMultiplier) : -vitalCostBasic;
   if (vitalChangeInt > maxVital - vital)vitalChangeInt = maxVital - vital;
   if (vitalChangeInt < -vital)vitalChangeInt = -vital;
@@ -1111,22 +1134,21 @@ void Game::calculateTrainingValueSingle(int tra)
 
 
   //人头 * 训练 * 干劲 * 友情    //支援卡倍率
-  double cardMultiplier = (1 + 0.05 * headNum) * (1 + 0.01 * totalXunlian) * (1 + 0.1 * (motivation - 3) * (1 + 0.01 * totalGanjing)) * totalYouqingMultiplier;
+  double motivationFactor = lg_blue_active ? 0.55 : 0.1 * (motivation - 3);
+  double totalYouqingUpperMultiplier = shiningNum > 0 ? (1 + 0.01 * totalYouqingUpper) : 1;
+  double multiplierLower = (1 + 0.05 * headNum) * (1 + 0.01 * totalXunlian) * (1 + motivationFactor * (1 + 0.01 * totalGanjing)) * totalYouqingMultiplier;
+  double multiplierUpper = (1 + 0.05 * headNum) * (1 + 0.01 * totalXunlianUpper) * (1 + motivationFactor * (1 + 0.01 * totalGanjingUpper)) * totalYouqingMultiplier * totalYouqingUpperMultiplier;
   //trainValueCardMultiplier[t] = cardMultiplier;
 
-  //下层可以开始算了
+  //可以开始算了
+  double trainValueTotalTmp[6];
   for (int i = 0; i < 6; i++)
   {
-    bool isRelated = basicValue[i] != 0;
     double bvl = basicValue[i];
     double umaBonus = i < 5 ? 1 + 0.01 * fiveStatusBonus[i] : 1;
-    trainValueLower[tra][i] = bvl * cardMultiplier * umaBonus;
+    trainValueLower[tra][i] = bvl * multiplierLower * umaBonus;
+    trainValueTotalTmp[i] = bvl * multiplierUpper * umaBonus;
   }
-
-  //剧本训练加成
-  double scenarioTrainMultiplier = 1;
-  double skillPtMultiplier = scenarioTrainMultiplier * (1);
-
 
 
   //上层=总数-下层
@@ -1136,10 +1158,11 @@ void Game::calculateTrainingValueSingle(int tra)
     int lower = trainValueLower[tra][i];
     if (lower > 100) lower = 100;
     trainValueLower[tra][i] = lower;
-    double multiplier = i < 5 ? scenarioTrainMultiplier : skillPtMultiplier;
-    int total = int(lower * multiplier);
+
+    int total = int(trainValueTotalTmp[i]);
     int upper = total - lower;
     if (upper > 100)upper = 100;
+    if (upper < 0)upper = 0;
     if (i < 5)
     {
       lower = calculateRealStatusGain(fiveStatus[i], lower);//consider the integer over 1200
@@ -1150,6 +1173,301 @@ void Game::calculateTrainingValueSingle(int tra)
   }
 
 
+}
+
+void Game::addScenarioBuffBonus(int idx)
+{
+  int id = lg_buffs[idx].buffId;
+  if (id < 0)return;
+  if (id == 0 * 19 + 0 || id == 1 * 19 + 0 || id == 2 * 19 + 0)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.deyilv += 30;
+  }
+  else if (id == 0 * 19 + 1|| id == 1 * 19 + 1|| id == 2 * 19 + 1)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.hintProb += 80;
+  }
+  else if (id == 0 * 19 + 2|| id == 1 * 19 + 2|| id == 2 * 19 + 2)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.jibanAdd1 += 2;
+  }
+  else if (id == 0 * 19 + 4|| id == 1 * 19 + 4|| id == 2 * 19 + 4)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.deyilv += 60;
+  }
+  else if (id == 0 * 19 + 6|| id == 1 * 19 + 6|| id == 2 * 19 + 6)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.xunlian += 5;
+  }
+  else if (id == 0 * 19 + 3)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.ganjing += 15;
+  }
+  else if (id == 0 * 19 + 5)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.ganjing += 30;
+  }
+  else if (id == 0 * 19 + 7)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.ganjing += 15;
+    lg_bonus.ganjingPerHead += 8;
+  }
+  else if (id == 0 * 19 + 8)
+  {
+    lg_buffs[idx].isActive = motivation >= 5;
+    if (lg_buffs[idx].isActive)
+      lg_bonus.ganjing += 50;
+  }
+  else if (id == 0 * 19 + 9)
+  {
+    lg_buffs[idx].isActive = motivation >= 5;
+    if (lg_buffs[idx].isActive)
+      lg_bonus.hintProb += 200;
+  }
+  else if (id == 0 * 19 + 10)
+  {
+    lg_buffs[idx].isActive = false; //回合后触发
+  }
+  else if (id == 0 * 19 + 11)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.youqing += 60;
+  }
+  else if (id == 0 * 19 + 12)
+  {
+    lg_buffs[idx].isActive = motivation >= 5;
+    if (lg_buffs[idx].isActive)
+      lg_bonus.alwaysHint;
+
+  }
+  else if (id == 0 * 19 + 13)
+  {
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.xunlian += 60;
+      lg_bonus.moreHint += 1;
+    }
+  }
+  else if (id == 0 * 19 + 14)
+  {
+    lg_buffs[idx].isActive = motivation >= 5;
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.youqing += 15;
+      if(lg_blue_active)
+        lg_bonus.youqing += 20;
+    }
+  }
+  else if (id == 0 * 19 + 15)
+  {
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.ganjing += 200;
+      lg_bonus.vitalReduce += 100;
+    }
+  }
+  else if (id == 0 * 19 + 16)
+  {
+    lg_buffs[idx].isActive = motivation >= 5;
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.ganjing += 120;
+    }
+  }
+  else if (id == 0 * 19 + 17)
+  {
+    lg_buffs[idx].isActive = motivation >= 5;
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.deyilv += 100;
+    }
+  }
+  else if (id == 0 * 19 + 18)
+  {
+    lg_buffs[idx].isActive = motivation >= 5;
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.youqing += 25;
+    }
+  }
+  else if (id == 1 * 19 + 3)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.xunlian += 3;
+  }
+  else if (id == 1 * 19 + 5)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.xunlian += 3;
+    lg_bonus.ganjing += 15;
+  }
+  else if (id == 1 * 19 + 7)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.xunlian += 2;
+    lg_bonus.xunlianPerHead += 2;
+  }
+  else if (id == 1 * 19 + 8)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.xunlian += 7;
+  }
+  else if (id == 1 * 19 + 9)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.moreHint += 1;
+  }
+  else if (id == 1 * 19 + 10)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.vitalReduce += 15;
+  }
+  else if (id == 1 * 19 + 11)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.youqing += 22;
+  }
+  else if (id == 1 * 19 + 12)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.xunlian += 25;
+  }
+  else if (id == 1 * 19 + 13)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.xunlian += 20;
+  }
+  else if (id == 1 * 19 + 14)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.xunlian += 15;
+    if (lg_mainColor == L_green)
+    {
+      throw "绿色未实现";
+    }
+  }
+  else if (id == 1 * 19 + 15)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.extraHead += 3;
+  }
+  else if (id == 1 * 19 + 16)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.ganjing += 120;
+  }
+  else if (id == 1 * 19 + 17)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.hintProb += 250;
+  }
+  else if (id == 1 * 19 + 18)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.youqing += 25;
+  }
+
+  else if (id == 2 * 19 + 3)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.youqing += 5;
+  }
+  else if (id == 2 * 19 + 5)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.youqing += 3;
+    lg_bonus.ganjing += 15;
+  }
+  else if (id == 2 * 19 + 7)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.youqing += 3;
+    lg_bonus.youqingPerShiningHead += 3;
+  }
+  else if (id == 2 * 19 + 8)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.extraHead += 1;
+  }
+  else if (id == 2 * 19 + 9)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.hintLv += 1;
+  }
+  else if (id == 2 * 19 + 10)
+  {
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.youqing += 10;
+      lg_bonus.jibanAdd2 += 3;
+    }
+  }
+  else if (id == 2 * 19 + 11)
+  {
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.xunlian += 15;
+      lg_bonus.extraHead += 3;
+    }
+  }
+  else if (id == 2 * 19 + 12)
+  {
+    if (lg_buffs[idx].isActive)
+      lg_bonus.extraHead += 1;
+  }
+  else if (id == 2 * 19 + 13)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.youqing += 22;
+  }
+  else if (id == 2 * 19 + 14)
+  {
+    lg_buffs[idx].isActive = true;
+    lg_bonus.xunlian += 7;
+    lg_bonus.xunlianPerHead += 7;
+  }
+  else if (id == 2 * 19 + 15)
+  {
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.disappearRateReduce += 25;
+    }
+  }
+  else if (id == 2 * 19 + 16)
+  {
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.ganjing += 150;
+    }
+  }
+  else if (id == 2 * 19 + 17)
+  {
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.deyilv += 100;
+    }
+  }
+  else if (id == 2 * 19 + 18)
+  {
+    if (lg_buffs[idx].isActive)
+    {
+      lg_bonus.xunlian += 20;
+      lg_bonus.youqing += 20;
+    }
+  }
+  else 
+  {
+    throw "未知心得";
+  }
+  
 }
 
 void Game::addYayoiJiBan(int value)
@@ -1515,27 +1833,77 @@ void Game::applyAction(std::mt19937_64& rand, Action action)
 bool Game::isCardShining(int personIdx, int trainIdx) const
 {
   const Person& p = persons[personIdx];
-  if(p.personType==PersonType_card)
-  { 
-    return p.friendship >= 80 && trainIdx == p.cardParam.cardType;
-  }
-  else if (p.personType == PersonType_groupCard)
+  if (personIdx >= 0 && personIdx < 6)
   {
-    throw "other friends or group cards are not supported";
+    if (p.personType == PersonType_card)
+    {
+      return p.friendship >= 80 && trainIdx == p.cardParam.cardType;
+    }
+    else if (p.personType == PersonType_scenarioCard)
+    {
+      return friend_qingre;
+    }
+    else if (p.personType == PersonType_groupCard)
+    {
+      throw "other friends or group cards are not supported";
+    }
+    return false;
+  }
+  else if (personIdx >= PS_npc0 && personIdx <= PS_npc4)//红登npc
+  {
+    int tra = personIdx - PS_npc0;
+    assert(lg_mainColor == L_red);
+    int gauge = lg_red_friendsGauge[personIdx];
+    return tra == trainIdx && gauge == 20;
   }
   return false;
 }
 
 ScenarioBonus::ScenarioBonus()
 {
+  clear();
+}
+
+void ScenarioBonus::clear()
+{
+  hintProb = 0.0f;
+  hintLv = 0;
+  moreHint = 0;
+  alwaysHint = false;
+
+  vitalReduce = 0.0f;
+  jibanAdd1 = 0.0f;
+  jibanAdd2 = 0.0f;
+  deyilv = 0.0f;
+  disappearRateReduce = 0.0f;
+
+  xunlian = 0.0f;
+  ganjing = 0.0f;
+  youqing = 0.0f;
+
+  extraHead = 0;
+
+  xunlianPerHead = 0.0f;
+  ganjingPerHead = 0.0f;
+  youqingPerShiningHead = 0.0f;
 }
 
 GameSettings::GameSettings()
 {
+  playerPrint = false;
+  ptScoreRate = GameConstants::ScorePtRateDefault;
+  hintPtRate = GameConstants::HintLevelPtRateDefault;
+  hintProbTimeConstant= GameConstants::HintProbTimeConstantDefault;
+  eventStrength = GameConstants::EventStrengthDefault;
+  scoringMode = SM_normal;
+  color_priority = L_red;
 }
 
 ScenarioBuffInfo::ScenarioBuffInfo()
 {
+  buffId = -1;
+  isActive = false;
+  coolTime = 0;
 }
 
 int16_t ScenarioBuffInfo::getBuffColor() const
@@ -1556,8 +1924,10 @@ int16_t ScenarioBuffInfo::getBuffStar() const
 
 Action::Action():stage(ST_none),idx(0)
 {
-  stage = ST_none;
-  idx = 0;
+}
+
+Action::Action(int st) :stage(st), idx(0)
+{
 }
 
 Action::Action(int st, int idx):stage(st), idx(idx)
@@ -1571,4 +1941,14 @@ std::string Action::toString() const
 
 ScenarioBuffCondition::ScenarioBuffCondition()
 {
+  clear();
+}
+
+void ScenarioBuffCondition::clear()
+{
+  isRest = false;
+  isTraining = false;;
+  isYouqing = false;
+  trainingSucceed = false;;
+  trainingHead = 0;
 }
