@@ -27,7 +27,7 @@ void Person::setCard(int cardId)
   cardRecord = 0;
 
   int cardType = cardParam.cardType;
-  if (cardType == 5)//友人卡
+  if (cardType == 5 || cardType == 6)//友人团队卡
   {
     int realCardId = cardId / 10;
 
@@ -42,12 +42,6 @@ void Person::setCard(int cardId)
     {
       throw string("不支持带剧本卡以外的友人或团队卡");
     }
-  }
-  else if (cardType == 6)//团队卡
-  {
-    std::vector<int> probs = { 100,100,100,100,100,100 }; //基础概率，速耐力根智鸽
-    distribution = std::discrete_distribution<>(probs.begin(), probs.end());
-    throw string("不支持带剧本卡以外的友人或团队卡");
   }
   else if (cardType >= 0 && cardType <= 4)//速耐力根智卡
   {

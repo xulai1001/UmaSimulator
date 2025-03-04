@@ -21,8 +21,8 @@ public:
   static const int EventStrengthDefault;
 
   //剧本卡相关
-  static const int FriendCardIdSSR = 30207;//SSR秋川
-  static const int FriendCardIdR = 10109;//R秋川
+  static const int FriendCardIdSSR = 30241;//SSR团
+  static const int FriendCardIdR = 19999;//无r卡
   static const double FriendUnlockOutgoingProbEveryTurnLowFriendship;//每回合解锁外出的概率，羁绊小于60
   static const double FriendUnlockOutgoingProbEveryTurnHighFriendship;//每回合解锁外出的概率，羁绊大于等于60
   //static const double FriendEventProb;//友人事件概率//常数0.4写死在对应函数里了

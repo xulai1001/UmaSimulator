@@ -141,6 +141,11 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
   
 }
 
+void Game::calculateScenarioBonus()
+{
+
+}
+
 void Game::randomDistributeCards(std::mt19937_64& rand)
 {
   //比赛回合的人头分配，不需要置零，因为不输入神经网络
@@ -1549,7 +1554,13 @@ int16_t ScenarioBuffInfo::getBuffStar() const
 }
 
 
-Action::Action()
+Action::Action():stage(ST_none),idx(0)
+{
+  stage = ST_none;
+  idx = 0;
+}
+
+Action::Action(int st, int idx):stage(st), idx(idx)
 {
 }
 

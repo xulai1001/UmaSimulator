@@ -104,6 +104,8 @@ bool Game::loadGameFromJson(std::string jsonStr)
       }
       friend_stage = j["friend_stage"];
     }
+    friend_qingre = j["friend_qingre"];
+    friend_qingreTurn = j["friend_qingreTurn"];
 
     lg_mainColor = j["lg_mainColor"];
     for (int i = 0; i < 3; i++) {

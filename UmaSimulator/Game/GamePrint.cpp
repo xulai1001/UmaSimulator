@@ -15,7 +15,7 @@ std::string Person::getPersonName() const
 {
   string s =
     personType == PersonType_unknown ? "未加载" :
-    personType == PersonType_scenarioCard ? "[团]" :
+    personType == PersonType_scenarioCard ? "[团]老登" :
     personType == PersonType_card ? cardParam.cardName.substr(0, 8) :
     personType == PersonType_npc ? "NPC" :
     personType == PersonType_yayoi ? "理事长" :
@@ -95,7 +95,7 @@ std::string Game::getPersonStrColored(int personId, int atTrain) const
     if (personId < 6)//card
     {
       const Person& p = persons[personId];
-      string s = p.getPersonName();
+      s = p.getPersonName();
       if (p.personType != PersonType_npc)
       {
         if (p.friendship < 100)
@@ -260,12 +260,16 @@ void Game::print() const
       cout << termcolor::cyan << "友人出行未解锁" << termcolor::reset << endl;
     else
     {
+      if (friend_qingre)
+      {
+        cout << termcolor::bright_green << "团卡情热状态已持续 " << friend_qingreTurn << " 回合" << termcolor::reset << endl;
+      }
       if (friend_outgoingUsed[4])
         cout << termcolor::cyan << "友人出行已走完" << termcolor::reset << endl;
       else
       {
 
-        cout << termcolor::cyan << "友人出行已走: ";
+        cout << termcolor::cyan << "友人出行剩余: ";
         for (int i = 0; i < 5; i++)
         {
           if (friend_outgoingUsed[i])
@@ -313,7 +317,7 @@ void Game::print() const
   for (int i = 0; i < 10; i++)
   {
     printStrFixedWidth(lg_buffs[i].getColoredState(), 40);
-    if (i % 2 == 0)cout << endl;
+    if (i % 2 == 1)cout << endl;
   }
   
 

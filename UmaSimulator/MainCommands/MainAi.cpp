@@ -252,6 +252,7 @@ void main_ai()
 		}
 
 		cout << endl;
+		game.print();
 		//cout << rpText["name"] << rpText["calc"] << endl;
 		auto printPolicy = [](float p)
 			{
