@@ -268,7 +268,7 @@ void main_playerPlay()
         else if (s == "cheat")//重置卡组分配
         {
           cout << termcolor::bright_cyan << "卡组重新分配！" << termcolor::reset << endl;
-          game.randomDistributeCards(rand);
+          game.randomizeTurn(rand);
           //game.print();
           continue;
         }

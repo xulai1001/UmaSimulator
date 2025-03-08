@@ -13,8 +13,6 @@ Person::Person()
   isHint = false;
   cardRecord = 0;
 
-  std::vector<int> probs = { 1,1,1,1,1,1 }; //速耐力根智鸽
-  distribution = std::discrete_distribution<>(probs.begin(), probs.end());
 }
 
 void Person::setCard(int cardId)
@@ -31,8 +29,6 @@ void Person::setCard(int cardId)
   {
     int realCardId = cardId / 10;
 
-    std::vector<int> probs = { 100,100,100,100,100,100 }; //基础概率，速耐力根智鸽
-    distribution = std::discrete_distribution<>(probs.begin(), probs.end());
 
     if (realCardId == GameConstants::FriendCardIdR || realCardId == GameConstants::FriendCardIdSSR)//剧本友人卡
     {
@@ -46,21 +42,8 @@ void Person::setCard(int cardId)
   else if (cardType >= 0 && cardType <= 4)//速耐力根智卡
   {
     personType = 2;
-    std::vector<int> probs = { 100,100,100,100,100,50 }; //基础概率，速耐力根智鸽
-    probs[cardType] += int(cardParam.deYiLv);
-    distribution = std::discrete_distribution<>(probs.begin(), probs.end());
   }
 
-}
-void Person::setExtraDeyilvBonus(int deyilvBonus)
-{
-  if (personType == PersonType_card)
-  {
-    int newDeyilv = int((100.0 + cardParam.deYiLv) * (1.00 + 0.01 * deyilvBonus) - 100); //我不知道这里应该加还是乘，但设成乘更能模拟胡局
-    std::vector<int> probs = { 100,100,100,100,100,50 }; //基础概率，速耐力根智鸽
-    probs[cardParam.cardType] += newDeyilv;
-    distribution = std::discrete_distribution<>(probs.begin(), probs.end());
-  }
 }
 /*
 void Person::setNonCard(int pType)

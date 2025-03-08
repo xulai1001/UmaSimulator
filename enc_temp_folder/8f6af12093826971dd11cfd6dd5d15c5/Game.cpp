@@ -1875,10 +1875,6 @@ void Game::updateScenarioBuffCondition(int idx)
       }
     }
   }
-  else if (id >= 0 && id < 57)
-  {
-    //不需要处理
-  }
   else 
   {
     throw "未知心得";

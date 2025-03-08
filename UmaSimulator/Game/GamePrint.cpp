@@ -33,19 +33,87 @@ static string getColoredColorName(int color)
     return "\033[1;34m蓝\033[0m";
 }
 
-std::string ScenarioBuffInfo::getName() const
+std::string ScenarioBuffInfo::buffDescriptions[57] = {
+  "（オーラ）得意率+30",
+  "（学びの姿勢）hint+80%",
+  "（社交術）羁绊+2",
+  "（最初の一歩）干劲+15%",
+  "（強者の求心力）得意率+60",
+  "（たゆまぬ鍛錬）干劲+30%",
+  "（時には苛烈に）训练+5%",
+  "（共に頂へ）干劲+15%+人头*8%",
+  "（高潔な矜持）绝好调时，干劲+50%",
+  "（極限の集中）绝好调时，hint+200%",
+  "（Dear friend）友情训练后，干劲+1，3回合CD",
+  "（慈愛の微笑み）休息后，干劲+1，友情+60%",
+  "（心眼）绝好调时，必然发生hint",
+  "（英気を養う）休息后，训练+50%。hint量+1",
+  "（愛しの子よ、共に栄光へ）绝好调时，友情+15%，超绝好调再+20%",
+  "（Off we go）休息后，干劲+200%，体力消耗-100%",
+  "（高潔なる魂）绝好调时，干劲+120%",
+  "（歴史に名を残す覚悟）绝好调时，得意率+100",
+  "（絆が織りなす光）绝好调时，友情+25%",
+  "（協力申請）得意率+30",
+  "（観察眼）hint+80%",
+  "（交渉術）羁绊+2",
+  "（リーダーシップ）训练+3%",
+  "（気配り上手）得意率+60",
+  "（奮励努力）训练+3%，干劲+15%",
+  "（手法の改善提案）训练+5%",
+  "（切磋琢磨）训练+2+人头*2%",
+  "（衰えぬ情熱）训练成功后，训练+7%",
+  "（未来を見据えて）友情训练后，hint量+1",
+  "（磨励自彊）训练成功后，体力消耗-15%",
+  "（君となら、もっと！）友情+22%",
+  "（飽くなき挑戦心）训练成功后，训练+25%",
+  "（日進月歩）训练+20%",
+  "（雲海蒼天）训练成功后，训练+15%，挑战中再+15%",
+  "（共に切り開く未来）训练成功后，人头+3，2回合CD",
+  "（百折不撓）训练成功后，干劲+120%",
+  "（革命の青写真）训练成功后，hint+250%",
+  "（集いし理想）训练成功后，友情+25%",
+  "（アピール上手）得意率+30",
+  "（トレンドチェック）hint+80%",
+  "（トーク術）羁绊+2",
+  "（アイドルステップ）友情+5%",
+  "（個性を伸ばして）得意率+60",
+  "（溢れるバイタリティ）友情+3，干劲+15%",
+  "（レッスンのコツ）训练+5%",
+  "（素敵なハーモニー）友情+3%+彩圈人头*3%",
+  "（リズムを合わせて）友情训练后，人头+1，2回合CD",
+  "（ヒラメキの連鎖）3人以上训练后，hint数+1",
+  "（心繋がるパフォーマンス）3人以上训练后，羁绊+3，友情+10%",
+  "（トレーニングの約束）休息后，训练+15%，人头+3",
+  "（ユニゾンパフォーマンス）3人以上训练后，人头+1",
+  "（一緒に輝きましょう！）友情+22%",
+  "（絆が奏でるハーモニー）训练+7%+人头*7%",
+  "（溢れる魅力）3人以上训练后，出现率+25",
+  "（怪物チャンスマイル♪）友情训练后，干劲+150%",
+  "（アピール大成功！）友情训练后，得意率+100",
+  "（国民的アイドルウマ娘）5人以上训练后，友情+20%，训练+20%",
+};
+
+
+std::string ScenarioBuffInfo::getScenarioBuffName(int16_t buffId)
 {
   if (buffId < 0)return "(空)";
-  int color = getBuffColor();
-  int star = getBuffStar();
+  int color = buffId / 19;
+  int starIdx = buffId % 19;
+  int star = starIdx < 4 ? 1 : starIdx < 10 ? 2 : 3;
   string s = to_string(star);
+  string buffDescr = ScenarioBuffInfo::buffDescriptions[buffId];
   if (color == L_red)
-    s = "\033[1;31m(红" + s + ")" + to_string(buffId) + "\033[0m";
+    s = "\033[1;31m(红" + s + ")" + buffDescr + "\033[0m";
   else if (color == L_green)
-    return "\033[1;32m(绿" + s + ")" + to_string(buffId) + "\033[0m";
+    return "\033[1;32m(绿" + s + ")" + buffDescr + "\033[0m";
   else if (color == L_blue)
-    return "\033[1;34m(蓝" + s + ")" + to_string(buffId) + "\033[0m";
+    return "\033[1;34m(蓝" + s + ")" + buffDescr + "\033[0m";
   return s;
+}
+
+std::string ScenarioBuffInfo::getName() const
+{
+  return getScenarioBuffName(buffId);
 }
 
 std::string ScenarioBuffInfo::getColoredState() const
@@ -57,7 +125,7 @@ std::string ScenarioBuffInfo::getColoredState() const
   {
     name = "\033[1;31m[X]\033[0m" + name;
   }
-  else if (coolTime == 0)
+  else if (coolTime > 0)
   {
     name = "\033[1;35m[" + to_string(coolTime) + "]\033[0m" + name;
   }
@@ -314,8 +382,8 @@ void Game::print() const
   }
   for (int i = 0; i < 10; i++)
   {
-    printStrFixedWidth(lg_buffs[i].getColoredState(), 40);
-    if (i % 2 == 1)cout << endl;
+    printStrFixedWidth(lg_buffs[i].getColoredState(), 80);
+    cout << endl;
   }
   
 
@@ -374,38 +442,81 @@ void Game::print() const
   }
   cout << divLine;
   
+  if (stage == ST_train && !isRacing)
   {
-    string oneRow[5];//表格中一行要显示的内容
-    for (int i = 0; i < 5; i++)
-    {
-      int gaugeGain = trainShiningNum[i] > 0 ? 3 : 1;
-      int gaugeColor = lg_trainingColor[i];
-      int currentLv = lg_gauge[gaugeColor];
-      int lvAfterTrain = currentLv + gaugeGain;
-      if (lvAfterTrain > 8)lvAfterTrain = 8;
-      string s = currentLv == 8 ? "MAX" : to_string(currentLv) + "->" + to_string(lvAfterTrain);
-      oneRow[i] = getColoredColorName(gaugeColor) + ": " + s;
-    }
-    printTableRow(oneRow);
-  }
 
-  cout << divLine;
-
-  //属性值
-  {
-    string oneRow[5];//表格中一行要显示的内容
-    for (int i = 0; i < 5; i++)
     {
-      oneRow[i] = "\033[33m" + to_string(fiveStatus[i]) + "\033[0m" + "/" + to_string(fiveStatusLimit[i]) + "(" + to_string(fiveStatusLimit[i] - fiveStatus[i]) + ")";
+      string oneRow[5];//表格中一行要显示的内容
+      for (int i = 0; i < 5; i++)
+      {
+        int gaugeGain = trainShiningNum[i] > 0 ? 3 : 1;
+        int gaugeColor = lg_trainingColor[i];
+        int currentLv = lg_gauge[gaugeColor];
+        int lvAfterTrain = currentLv + gaugeGain;
+        if (lvAfterTrain > 8)lvAfterTrain = 8;
+        string s = currentLv == 8 ? "MAX" : to_string(currentLv) + "->" + to_string(lvAfterTrain);
+        oneRow[i] = getColoredColorName(gaugeColor) + ": " + s;
+      }
+      printTableRow(oneRow);
     }
-    printTableRow(oneRow);
+
+    cout << divLine;
+
+    //属性值
+    {
+      string oneRow[5];//表格中一行要显示的内容
+      for (int i = 0; i < 5; i++)
+      {
+        oneRow[i] = "\033[33m" + to_string(fiveStatus[i]) + "\033[0m" + "/" + to_string(fiveStatusLimit[i]) + "(" + to_string(fiveStatusLimit[i] - fiveStatus[i]) + ")";
+      }
+      printTableRow(oneRow);
+    }
   }
 
   if (stage != ST_train)
   {
     cout << divLineWhite;
-    cout << termcolor::red << "特殊回合" << termcolor::reset << endl;
-    return;//比赛回合就不显示训练了
+    if (stage == ST_decideEvent)
+    {
+      cout << termcolor::cyan << "选事件阶段" << termcolor::reset << endl;
+      if (decidingEvent == DecidingEvent_three)
+      {
+        cout << termcolor::green << "正在选择团卡三选一事件" << termcolor::reset << endl;
+      }
+      else if (decidingEvent == DecidingEvent_outing)
+      {
+        cout << termcolor::green << "正在选择出行" << termcolor::reset << endl;
+      }
+      else
+        throw("未知的decideEvent");
+    }
+    else if (stage == ST_chooseBuff)
+    {
+      assert(decidingEvent == DecidingEvent_chooseBuff);
+      cout << termcolor::cyan << "选择心得中：" << termcolor::reset << endl;
+      for (int i = 0; i < lg_pickedBuffsNum; i++)
+      {
+        cout << ScenarioBuffInfo::getScenarioBuffName(lg_pickedBuffs[i]) << endl;
+      }
+    }
+    else if (stage == ST_distribute)
+    {
+      cout << termcolor::red << "非操作阶段：正在分配人头" << termcolor::reset << endl;
+    }
+    else if (stage == ST_pickBuff)
+    {
+      cout << termcolor::red << "非操作回合：正在抽取buff" << termcolor::reset << endl;
+    }
+    else if (stage == ST_event)
+    {
+      cout << termcolor::red << "非操作回合：正在处理回合后事件" << termcolor::reset << endl;
+    }
+    else
+    {
+      cout << termcolor::red << "未知stage=" << stage << termcolor::reset << endl;
+    }
+
+    return;//非训练回合就不显示训练表格了
   }
   else if (stage==ST_train && isRacing)
   {

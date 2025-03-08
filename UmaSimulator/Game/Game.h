@@ -29,6 +29,9 @@ struct ScenarioBuffInfo
   int16_t getBuffStar() const;
   std::string getName() const;
   std::string getColoredState() const;
+
+  static std::string buffDescriptions[57];
+  static std::string getScenarioBuffName(int16_t buffId);
 };
 
 //剧本加成   //，只考虑五个训练共有的部分，按人头的不算
@@ -222,7 +225,7 @@ struct Game
   int16_t lg_mainColor;//主色
   int16_t lg_gauge[3];//三种颜色的格数
   int16_t lg_trainingColor[8];//训练的gauge颜色
-  bool lg_trainingColorBoost[8];//训练的gauge是否+3
+  //bool lg_trainingColorBoost[8];//训练的gauge是否+3
 
 
   ScenarioBuffInfo lg_buffs[10];//10个buff，空则buffId=0
@@ -263,6 +266,7 @@ struct Game
   int16_t trainValue[5][6];//训练数值的总数（下层+上层），第一个数是第几个训练，第二个数依次是速耐力根智pt
   int16_t trainVitalChange[5];//训练后的体力变化（负的体力消耗）
   int16_t failRate[5];//训练失败率
+  int16_t trainHeadNum[5];//训练人头个数，不包括理事长记者
   int16_t trainShiningNum[5];//训练闪彩个数
 
 
@@ -311,9 +315,13 @@ public:
 
   //原则上这几个private就行，如果private在某些地方非常不方便那就改成public
   void calculateScenarioBonus();//计算剧本buff的各种加成
-  void randomDistributeCards(std::mt19937_64& rand);//随机分配人头，ST_distribute->ST_train
+  void randomizeTurn(std::mt19937_64& rand);//回合初的随机化，随机分配人头、随机颜色等，ST_distribute->ST_train
+  void randomDistributeHeads(std::mt19937_64& rand);//随机分配人头
+  void randomInviteHeads(std::mt19937_64& rand, int num);//随机摇num个人头
+  void inviteOneHead(std::mt19937_64& rand, int idx);//摇personId=idx这个人头
   void calculateTrainingValue();//计算所有训练分别加多少，并计算失败率、训练等级提升等
   bool applyTraining(std::mt19937_64& rand, int16_t train);//ST_train->ST_decideEvent/ST_pickBuff/ST_event。处理 训练/出行/比赛 本身，不包括友人点击事件，不包括买buff，不包括固定事件和剧本事件。如果不合法，则返回false，且保证不做任何修改
+  void updateScenarioBuffAfterTrain(int16_t trainIdx, bool trainSucceed);//更新各种心得的触发条件
   void decideEvent(int16_t idx);//团卡三选一/出行选择
   void decideEvent_outing(int16_t idx);//团卡出行选择
   void decideEvent_three(int16_t idx);//团卡三选一
@@ -321,8 +329,7 @@ public:
   void chooseBuff(int16_t idx); //ST_chooseBuff->ST_event，选择第几个buff
   
   void checkEvent(std::mt19937_64& rand);//ST_chooseBuff->ST_distribute检查固定事件和随机事件，并进入下一个回合
-
-  void checkFixedEvents(std::mt19937_64& rand);//每回合的固定事件，包括剧本事件和固定比赛和部分马娘事件等
+ void checkFixedEvents(std::mt19937_64& rand);//每回合的固定事件，包括剧本事件和固定比赛和部分马娘事件等
   void checkRandomEvents(std::mt19937_64& rand);//模拟支援卡事件和随机马娘事件（随机加羁绊，体力，心情，掉心情等）
 
   //常用接口-----------------------------------------------------------------------------------------------
@@ -372,6 +379,7 @@ public:
 
   //剧本相关
   void addScenarioBuffBonus(int idx);//添加剧本心得加成到lg_bonus，包含判断部分buff的生效条件（干劲绝好调等）。“训练成功”之类的判定不在这里
+  void updateScenarioBuffCondition(int idx);//更新各种心得的触发条件
 
 
 

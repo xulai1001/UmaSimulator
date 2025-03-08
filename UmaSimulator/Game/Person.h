@@ -42,12 +42,8 @@ struct Person //任何一个可能出现在训练里的人头
 
 
   
-  std::discrete_distribution<> distribution;//distribution(rand)可以根据得意率生成0~5的整数，代表这张卡出现在速耐力根智鸽。ssr佐岳调用两次
-
   Person();//未加载的人头
   void setCard(int cardId);//把此人头设置为某个支援卡，只考虑刚开局的状态，如果是游戏半途，需要手动修改羁绊等
-  void setExtraDeyilvBonus(int deyilvBonus);//额外的得意率加成
-  //void setNonCard(int pType);//把此人头设置为非支援卡人头（理事长记者等），只考虑刚开局的状态，如果是游戏半途，需要手动修改羁绊等
   
 
   void getCardNNInputV1(float* buf, const Game& game, int index) const;//神经网络输入向量，不包括支援卡参数，Game类会把支援卡参数放在对应位置

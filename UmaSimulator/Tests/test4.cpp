@@ -28,7 +28,7 @@ void main_test4()
   game.turn = 50;
   for (int gamenum = 0; gamenum < 10000000; gamenum++)
   {
-    game.randomDistributeCards(rand);
+    game.randomizeTurn(rand);
 
     int maxHead = 0;
     for (int item = 0; item < 5; item++)

@@ -252,6 +252,15 @@ void main_ai()
 		}
 
 		cout << endl;
+		if (game.stage == ST_train)
+		{
+			Game game2 = game;
+			for (int i = 0; i < 5; i++)
+			{
+				game2.randomizeTurn(rand);
+				//game2.print();
+			}
+		}
 		game.print();
 		//cout << rpText["name"] << rpText["calc"] << endl;
 		auto printPolicy = [](float p)

@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "../config.h"
 
-const int TOTAL_TURN = 78;
+const int TOTAL_TURN = 72;
 const int MAX_INFO_PERSON_NUM = 6;//有单独信息的人头个数（此剧本只有支援卡）
 
 class GameConstants
