@@ -67,6 +67,8 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
   isPositiveThinking = false;
   isRefreshMind = false;
 
+  haveCatchedDoll = false;
+
   for (int i = 0; i < 5; i++)
     zhongMaBlueCount[i] = newZhongMaBlueCount[i];
   for (int i = 0; i < 6; i++)
@@ -604,6 +606,7 @@ void Game::addMotivation(int value)
     motivation += value;
     if (motivation > 5)
       motivation = 5;
+    //TODO 蓝登
   }
 }
 void Game::addJiBan(int idx, int value, int type)
@@ -694,9 +697,49 @@ void Game::addVitalFriend(int value)
   addVital(value);
 }
 
-void Game::handleFriendOutgoing(std::mt19937_64& rand)
+void Game::handleOutgoing(std::mt19937_64& rand)
 {
-  throw("todo");
+  if (isXiahesu())
+  {
+    addVital(40);
+    addMotivation(1);
+    if (failureRateBias > 0)failureRateBias = 0;//治练习下手
+    addLgGauge(lg_trainingColor[T_outgoing], 1);
+  }
+  else if (friend_type != 0 &&  //带了友人卡
+    friend_stage == FriendStage_afterUnlockOutgoing &&  //已解锁外出
+    !friend_outgoingUsed[4]  //外出没走完
+    )
+  {
+    //等待选择友人出行
+    stage = ST_decideEvent;
+    decidingEvent = DecidingEvent_outing;
+  }
+  else //普通出行
+  {
+    runNormalOutgoing(rand);
+  }
+}
+
+void Game::runNormalOutgoing(std::mt19937_64& rand)
+{
+  //懒得查概率了，就50%加2心情，50%加1心情10体力
+  if (rand() % 2)
+    addMotivation(2);
+  else
+  {
+    addMotivation(1);
+    addVital(10);
+  }
+
+  //抓娃娃
+  if (turn >= 24 && (!haveCatchedDoll) && (rand() % 3 == 0))
+  {
+    addVital(15);
+    addMotivation(1);
+    haveCatchedDoll = true;
+  }
+  addLgGauge(lg_trainingColor[T_outgoing], 1);
 }
 
 void Game::runFriendOutgoing(std::mt19937_64& rand, int idx)
@@ -875,14 +918,17 @@ void Game::handleFriendFixedEvent()
 bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
 {
   assert(stage == ST_train);
+  stage = ST_event;
+  if (turn % 6 == 5)stage = ST_pickBuff;
+  //如果点击了友人或者选择了出行，stage也可能会被改成ST_decideEvent
+
+  bool trainingSucceed = false;
+
   if (isRacing)
   {
-    //比赛收益在checkEventAfterTrain()里处理，此处只处理菜
-    assert(train == T_none || train == T_race);
-    
-
-    //assert(false && "所有剧本比赛都在checkEventAfterTrain()里处理，不能applyTraining");
-    //return false;//所有剧本比赛都在checkEventAfterTrain()里处理（相当于比赛回合直接跳过），不在这个函数
+    //固定比赛收益在checkEventAfterTrain()里处理
+    assert(train == T_race);
+    addLgGauge(lg_trainingColor[T_race], 1);
   }
   else
   {
@@ -902,6 +948,7 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
         else
           addVital(30);
       }
+      addLgGauge(lg_trainingColor[T_rest], 1);
     }
     else if (train == T_race)//比赛
     {
@@ -915,180 +962,26 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
 
       //扣体固定15
       addVital(-15);
-      if (rand() % 10 == 0)
+      if (rand() % 5 == 0)
         addMotivation(1);
+
+      addLgGauge(lg_trainingColor[T_race], 1);
     }
     else if (train == T_outgoing)//外出
     {
-      if (isXiahesu())
-      {
-        addVital(40);
-        addMotivation(1);
-      }
-      else if (friend_type != 0 &&  //带了友人卡
-        friend_stage == FriendStage_afterUnlockOutgoing &&  //已解锁外出
-        !friend_outgoingUsed[4]  //外出没走完
-        )
-      {
-        //友人出行
-        handleFriendOutgoing(rand);
-      }
-      else //普通出行
-      {
-        //懒得查概率了，就50%加2心情，50%加1心情10体力
-        if (rand() % 2)
-          addMotivation(2);
-        else
-        {
-          addMotivation(1);
-          addVital(10);
-        }
-      }
+      handleOutgoing(rand);
     }
     else if (train <= 4 && train >= 0)//常规训练
     {
       if (rand() % 100 < failRate[train])//训练失败
       {
-        if (failRate[train] >= 20 && (rand() % 100 < failRate[train]))//训练大失败，概率是瞎猜的
-        {
-          printEvents("训练大失败！");
-          addStatus(train, -10);
-          if (fiveStatus[train] > 1200)
-            addStatus(train, -10);//游戏里1200以上扣属性不折半，在此模拟器里对应1200以上翻倍
-          //随机扣2个10，不妨改成全属性-4降低随机性
-          for (int i = 0; i < 5; i++)
-          {
-            addStatus(i, -4);
-            if (fiveStatus[i] > 1200)
-              addStatus(i, -4);//游戏里1200以上扣属性不折半，在此模拟器里对应1200以上翻倍
-          }
-          addMotivation(-3);
-          addVital(10);
-        }
-        else//小失败
-        {
-          printEvents("训练小失败！");
-          addStatus(train, -5);
-          if (fiveStatus[train] > 1200)
-            addStatus(train, -5);//游戏里1200以上扣属性不折半，在此模拟器里对应1200以上翻倍
-          addMotivation(-1);
-        }
+        trainingSucceed = false;
+        applyNormalTraining(rand, train, trainingSucceed);
       }
       else
       {
-        //先加上训练值
-        for (int i = 0; i < 5; i++)
-          addStatus(i, trainValue[train][i]);
-        skillPt += trainValue[train][5];
-        addVital(trainVitalChange[train]);
-
-        int friendshipExtra = 0;//如果带了SSR友人卡，+1。如果友人卡在这个训练，再+2。爱娇不在这里处理
-        if (friend_type == 1)
-          friendshipExtra += 1;
-
-        vector<int> hintCards;//有哪几个卡出红感叹号了
-        bool clickFriend = false;//这个训练有没有友人
-        //检查SSR友人在不在这里
-        for (int i = 0; i < 5; i++)
-        {
-          int p = personDistribution[train][i];
-          if (p == PS_none)break;//没人
-          if (friend_type == 1 && p == friend_personId)
-          {
-            friendshipExtra += 2;
-            break;
-          }
-        }
-        for (int i = 0; i < 5; i++)
-        {
-          int p = personDistribution[train][i];
-          if (p < 0)break;//没人
-
-          if (p == friend_personId && friend_type != 0)//友人卡
-          {
-            assert(persons[p].personType == PersonType_scenarioCard);
-            addJiBan(p, 4 + friendshipExtra, false);
-            clickFriend = true;
-          }
-          else if (p < 6)//普通卡
-          {
-            addJiBan(p, 7 + friendshipExtra, false);
-            if (persons[p].isHint)
-              hintCards.push_back(p);
-          }
-          else if (p == PS_npc)//npc
-          {
-            //nothing
-          }
-          else if (p == PS_noncardYayoi)//非卡理事长
-          {
-            int jiban = friendship_noncard_yayoi;
-            int g = jiban < 40 ? 2 : jiban < 60 ? 3 : jiban < 80 ? 4 : 5;
-            skillPt += g;
-            addJiBan(PS_noncardYayoi, 7, false);
-          }
-          else if (p == PS_noncardReporter)//记者
-          {
-            int jiban = friendship_noncard_reporter;
-            int g = jiban < 40 ? 2 : jiban < 60 ? 3 : jiban < 80 ? 4 : 5;
-            addStatus(train, g);
-            addJiBan(PS_noncardReporter, 7, false);
-          }
-          else
-          {
-            //其他友人/团卡暂不支持
-            assert(false);
-          }
-        }
-
-        if (hintCards.size() > 0)
-        {
-          int hintCard = hintCards[rand() % hintCards.size()];//随机一张卡出hint
-
-          addJiBan(hintCard, 5, false);
-          int hintLevel = persons[hintCard].cardParam.hintLevel;
-          if (hintLevel > 0)
-          {
-            skillPt += int(hintLevel * gameSettings.hintPtRate);
-          }
-          else //根乌拉拉这种，只给属性
-          {
-            if (train == 0)
-            {
-              addStatus(0, 6);
-              addStatus(2, 2);
-            }
-            else if (train == 1)
-            {
-              addStatus(1, 6);
-              addStatus(3, 2);
-            }
-            else if (train == 2)
-            {
-              addStatus(2, 6);
-              addStatus(1, 2);
-            }
-            else if (train == 3)
-            {
-              addStatus(3, 6);
-              addStatus(0, 1);
-              addStatus(2, 1);
-            }
-            else if (train == 4)
-            {
-              addStatus(4, 6);
-              skillPt += 5;
-            }
-          }
-        }
-
-        if (clickFriend)
-          handleFriendClickEvent(rand, train);
-
-
-        //训练等级提升
-        addTrainingLevelCount(train, 1);
-
+        trainingSucceed = true;
+        applyNormalTraining(rand, train, trainingSucceed);
       }
 
     }
@@ -1099,10 +992,167 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
     }
   }
 
+  updateScenarioBuffAfterTrain(train, trainingSucceed);
+
 
   return true;
 }
 
+void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool success)
+{
+  if (!success)
+  {
+    if (failRate[train] >= 20 && (rand() % 100 < failRate[train]))//训练大失败，概率是瞎猜的
+    {
+      printEvents("训练大失败！");
+      addStatus(train, -10);
+      if (fiveStatus[train] > 1200)
+        addStatus(train, -10);//游戏里1200以上扣属性不折半，在此模拟器里对应1200以上翻倍
+      //随机扣2个10，不妨改成全属性-4降低随机性
+      for (int i = 0; i < 5; i++)
+      {
+        addStatus(i, -4);
+        if (fiveStatus[i] > 1200)
+          addStatus(i, -4);//游戏里1200以上扣属性不折半，在此模拟器里对应1200以上翻倍
+      }
+      addMotivation(-3);
+      addVital(10);
+    }
+    else//小失败
+    {
+      printEvents("训练小失败！");
+      addStatus(train, -5);
+      if (fiveStatus[train] > 1200)
+        addStatus(train, -5);//游戏里1200以上扣属性不折半，在此模拟器里对应1200以上翻倍
+      addMotivation(-1);
+    }
+    addLgGauge(lg_trainingColor[T_race], 1);
+  }
+  else
+  {
+    //先加上训练值
+    for (int i = 0; i < 5; i++)
+      addStatus(i, trainValue[train][i]);
+    skillPt += trainValue[train][5];
+    addVital(trainVitalChange[train]);
+
+    bool clickFriend = false;
+    vector<int> hintCards;//有哪几个卡出红感叹号了
+    
+    for (int i = 0; i < 5; i++)
+    {
+      int p = personDistribution[train][i];
+      if (p < 0)break;//没人
+
+      if (p == friend_personId && friend_type != 0)//友人卡
+      {
+        assert(persons[p].personType == PersonType_scenarioCard);
+        addJiBan(p, 4, 0);
+        clickFriend = true;
+      }
+      else if (p < 6)//普通卡
+      {
+        addJiBan(p, 7, 0);
+        if (persons[p].isHint)
+          hintCards.push_back(p);
+      }
+      else if (p >= PS_npc0 && p <= PS_npc4)//npc
+      {
+        addJiBan(p, 7, 0);
+      }
+      else if (p == PS_noncardYayoi)//非卡理事长
+      {
+        int jiban = friendship_noncard_yayoi;
+        int g = jiban < 40 ? 2 : jiban < 60 ? 3 : jiban < 80 ? 4 : 5;
+        skillPt += g;
+        addJiBan(PS_noncardYayoi, 7, false);
+      }
+      else if (p == PS_noncardReporter)//记者
+      {
+        int jiban = friendship_noncard_reporter;
+        int g = jiban < 40 ? 2 : jiban < 60 ? 3 : jiban < 80 ? 4 : 5;
+        addStatus(train, g);
+        addJiBan(PS_noncardReporter, 7, false);
+      }
+      else
+      {
+        //其他友人/团卡暂不支持
+        assert(false);
+      }
+    }
+
+    if (hintCards.size() > 0)
+    {
+      int hintCard = hintCards[rand() % hintCards.size()];//随机一张卡出hint
+
+      addJiBan(hintCard, 5, 1);
+
+      int hintNum = lg_bonus.moreHint + 1;
+      for (int i = 0; i < hintNum; i++)
+        addHintWithoutJiban(rand, hintCard);
+
+    }
+
+
+    //训练等级提升
+    if (!isXiahesu())
+      addTrainingLevelCount(train, 1);
+
+    int gaugeGain = trainShiningNum[train] > 0 ? 3 : 1;
+    addLgGauge(lg_trainingColor[train], gaugeGain);
+
+
+    if (clickFriend)
+      handleFriendClickEvent(rand, train);
+
+  }
+}
+void Game::addHintWithoutJiban(std::mt19937_64& rand, int idx)
+{
+  int hintLevel = persons[idx].cardParam.hintLevel;
+  int cardType = persons[idx].cardParam.cardType;
+  assert(cardType < 5 && cardType >= 0);
+  double skillProb = 0.9 * (1 - exp(-exp(2 - hintSkillLvCount / gameSettings.hintProbTimeConstant)));//有多大概率是给技能而不是属性
+  if (hintLevel == 0)skillProb = 0;//根乌拉拉这种，只给属性
+
+  if (randBool(rand, skillProb))
+  {
+    hintSkillLvCount += hintLevel;
+
+    skillPt += int(hintLevel * gameSettings.hintPtRate);
+  }
+  else 
+  {
+    if (cardType == 0)
+    {
+      addStatus(0, 6);
+      addStatus(2, 2);
+    }
+    else if (cardType == 1)
+    {
+      addStatus(1, 6);
+      addStatus(3, 2);
+    }
+    else if (cardType == 2)
+    {
+      addStatus(2, 6);
+      addStatus(1, 2);
+    }
+    else if (cardType == 3)
+    {
+      addStatus(3, 6);
+      addStatus(0, 1);
+      addStatus(2, 1);
+    }
+    else if (cardType == 4)
+    {
+      addStatus(4, 6);
+      skillPt += 5;
+    }
+    else
+      throw "友人团队卡不能hint";
+  }
+}
 void Game::updateScenarioBuffAfterTrain(int16_t trainIdx, bool trainSucceed)
 {
   lg_buffCondition.clear();
@@ -1886,6 +1936,12 @@ void Game::updateScenarioBuffCondition(int idx)
   
 }
 
+void Game::addLgGauge(int16_t color, int num)
+{
+  lg_gauge[color] += num;
+  if (lg_gauge[color] > 8)lg_gauge[color] = 8;
+}
+
 
 void Game::addYayoiJiBan(int value)
 {
@@ -1901,6 +1957,11 @@ int Game::getYayoiJiBan() const
     return persons[friend_personId].friendship;
   else
     return friendship_noncard_yayoi;
+}
+
+void Game::randomPickBuff(std::mt19937_64& rand)
+{
+
 }
 
 void Game::checkEvent(std::mt19937_64& rand)

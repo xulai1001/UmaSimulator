@@ -54,6 +54,8 @@ bool Game::loadGameFromJson(std::string jsonStr)
     isPositiveThinking = j["isPositiveThinking"];
     isRefreshMind = j["isRefreshMind"];
 
+    haveCatchedDoll = j.contains("haveCatchedDoll") ? bool(j["haveCatchedDoll"]) : false;
+
     stage = j["stage"];
     decidingEvent = j["decidingEvent"];
     isRacing = j["isRacing"];

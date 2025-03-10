@@ -203,6 +203,8 @@ struct Game
   bool isPositiveThinking;//ポジティブ思考，友人第三段出行选上的buff，可以防一次掉心情
   bool isRefreshMind;//+5 vital every turn
 
+  bool haveCatchedDoll;//是否抓过娃娃
+
   int16_t zhongMaBlueCount[5];//种马的蓝因子个数，假设只有3星
   int16_t zhongMaExtraBonus[6];//种马的剧本因子以及技能白因子（等效成pt），每次继承加多少。全大师杯因子典型值大约是30速30力200pt
 
@@ -369,6 +371,8 @@ public:
   void addVitalFriend(int value);//友人卡事件，增加体力，考虑回复量加成
   void runRace(int basicFiveStatusBonus, int basicPtBonus);//把比赛奖励加到属性和pt上，输入是不计赛后加成的基础值
   void addTrainingLevelCount(int trainIdx, int n);//为某个训练增加n次计数
+  void applyNormalTraining(std::mt19937_64& rand, int16_t train, bool success);//处理五种训练
+  void addHintWithoutJiban(std::mt19937_64& rand, int idx);
 
   int getTrainingLevel(int trainIdx) const;//计算训练等级
   int calculateFailureRate(int trainType, double failRateMultiply) const;//计算训练失败率，failRateMultiply是训练失败率乘数=(1-支援卡1的失败率下降)*(1-支援卡2的失败率下降)*...
@@ -380,15 +384,16 @@ public:
   //剧本相关
   void addScenarioBuffBonus(int idx);//添加剧本心得加成到lg_bonus，包含判断部分buff的生效条件（干劲绝好调等）。“训练成功”之类的判定不在这里
   void updateScenarioBuffCondition(int idx);//更新各种心得的触发条件
-
+  void addLgGauge(int16_t color, int num);//给color加num格，去掉大于8溢出部分
 
 
   //友人卡相关事件
   void handleFriendUnlock(std::mt19937_64& rand);//友人外出解锁
-  void handleFriendOutgoing(std::mt19937_64& rand);//友人外出
+  void handleOutgoing(std::mt19937_64& rand);//外出
   void handleFriendClickEvent(std::mt19937_64& rand, int atTrain);//友人点击事件
   void handleFriendFixedEvent();//友人固定事件，拜年+结算
 
+  void runNormalOutgoing(std::mt19937_64& rand);//常规外出
   void runFriendOutgoing(std::mt19937_64& rand, int idx);//友人外出
   void runFriendClickEvent(std::mt19937_64& rand, int idx);//友人点击事件
   
