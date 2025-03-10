@@ -328,4 +328,9 @@
     <None Include="packages.config" />
     <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\onnxruntime.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="UmaAi.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
 </Project>
