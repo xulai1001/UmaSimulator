@@ -7322,5 +7322,40 @@
       69
     ],
     "star": 5
+  },
+  "113101": {
+    "bonusData": [],
+    "fiveStatusBonus": [
+      0,
+      0,
+      10,
+      20,
+      0
+    ],
+    "fiveStatusInitial": [
+      116,
+      96,
+      124,
+      116,
+      98
+    ],
+    "freeRaces": [],
+    "gameId": 113101,
+    "name": "[すまいる・まい・うぇい！]グランアレグリア",
+    "preferRaces": [],
+    "preferReds": [],
+    "races": [
+      11,
+      22,
+      30,
+      32,
+      47,
+      53,
+      58,
+      65,
+      67,
+      69
+    ],
+    "star": 5
   }
 }
