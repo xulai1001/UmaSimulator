@@ -252,15 +252,32 @@ void main_ai()
 		}
 
 		cout << endl;
-		if (game.stage == ST_train)
-		{
-			Game game2 = game;
-			for (int i = 0; i < 5; i++)
-			{
-				game2.randomizeTurn(rand);
+		
+		//if (game.stage == ST_train)
+		//{
+		//	Game game2 = game;
+		//	for (int i = 0; i < 5; i++)
+		//	{
+		//		game2.randomizeTurn(rand);
 				//game2.print();
+		//	}
+		//}
+		{
+			auto allActions = game.getAllLegalActions();
+			for (int i = 0; i < allActions.size(); i++)
+			{
+				Action a = allActions[i];
+				cout << i << " of " << allActions.size() << " " << a.stage << " " << a.idx << endl;
+				Game game2 = game;
+				game2.gameSettings.playerPrint = true;
+				game2.applyActionUntilNextDecision(rand, a);
+				game2.print();
+				cout << endl;
 			}
 		}
+
+
+
 		game.print();
 		//cout << rpText["name"] << rpText["calc"] << endl;
 		auto printPolicy = [](float p)

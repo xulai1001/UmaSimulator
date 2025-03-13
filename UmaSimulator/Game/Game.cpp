@@ -232,8 +232,8 @@ void Game::randomizeTurn(std::mt19937_64& rand)
     lg_trainingColor[i] = rand() % 3;
   }
 
-
   calculateTrainingValue();
+  stage = ST_train;
 }
 
 void Game::randomDistributeHeads(std::mt19937_64& rand)
@@ -609,7 +609,7 @@ void Game::addMotivation(int value)
     //TODO 蓝登
   }
 }
-void Game::addJiBan(int idx, int value, int type)
+void Game::addJiBan(int idx, int value, int type) //type0是点击，type1是事件，type2是没有任何羁绊加成
 {
   if(idx==PS_noncardYayoi)
     friendship_noncard_yayoi += value;
@@ -621,12 +621,13 @@ void Game::addJiBan(int idx, int value, int type)
     if (type == 0)
     {
       gain += lg_bonus.jibanAdd1;
+      gain += lg_bonus.jibanAdd2;
       if (isAiJiao)
         gain += 2;
     }
     else if(type == 1)
     {
-      gain += lg_bonus.jibanAdd2;
+      gain += lg_bonus.jibanAdd1;
       if (isAiJiao)
         gain += 2;
     }
@@ -699,8 +700,10 @@ void Game::addVitalFriend(int value)
 
 void Game::handleOutgoing(std::mt19937_64& rand)
 {
+  assert(stage == ST_train);
   if (isXiahesu())
   {
+    stage = ST_pickBuff;
     addVital(40);
     addMotivation(1);
     if (failureRateBias > 0)failureRateBias = 0;//治练习下手
@@ -717,6 +720,7 @@ void Game::handleOutgoing(std::mt19937_64& rand)
   }
   else //普通出行
   {
+    stage = ST_pickBuff;
     runNormalOutgoing(rand);
   }
 }
@@ -742,84 +746,177 @@ void Game::runNormalOutgoing(std::mt19937_64& rand)
   addLgGauge(lg_trainingColor[T_outgoing], 1);
 }
 
-void Game::runFriendOutgoing(std::mt19937_64& rand, int idx)
+void Game::runFriendOutgoing(std::mt19937_64& rand, int idx, int subIdx = -1)
 {
   assert(friend_type!=0 && friend_stage >= FriendStage_afterUnlockOutgoing && !friend_outgoingUsed[idx]);
   int pid = friend_personId;
   if (idx == 0)
   {
-    addVitalFriend(30);
+    addVitalMax(4);
+    addVitalFriend(45);
     addMotivation(1);
-    addStatusFriend(3, 20);
-    addJiBan(pid, 5, false);
+    addStatusFriend(1, 15);
+    addStatusFriend(2, 10);
+    addStatusFriend(3, 10);
+    addStatusFriend(5, 20);
+    addJiBan(pid, 5, 1);
+    addLgGauge(0, 3);
+    addLgGauge(1, 3);
+    addLgGauge(2, 3);
   }
   else if (idx == 1)
   {
-    addVitalFriend(30);
+    addVitalFriend(35);
     addMotivation(1);
     addStatusFriend(0, 10);
+    addStatusFriend(1, 10);
+    addStatusFriend(2, 10);
     addStatusFriend(3, 10);
-    isRefreshMind = true;
-    addJiBan(pid, 5, false);
+    addStatusFriend(4, 10);
+    addStatusFriend(5, 25);
+    addJiBan(pid, 5, 1);
+    addLgGauge(0, 3);
+    addLgGauge(1, 3);
+    addLgGauge(2, 3);
   }
   else if (idx == 2)
   {
-    int remainVital = maxVital - vital;
-    if (remainVital >= 20)//选上
-      addVitalFriend(43);
-    else//选下
-      addStatusFriend(3, 29);
+    addVitalFriend(45);
     addMotivation(1);
-    addJiBan(pid, 5, false);
+    addStatusFriend(0, 15);
+    addStatusFriend(4, 10);
+    addStatusFriend(5, 30);
+    addJiBan(pid, 5, 1);
+    addLgGauge(0, 3);
+    addLgGauge(1, 3);
+    addLgGauge(2, 3);
   }
   else if (idx == 3)
   {
-    addVitalFriend(30);
+    if (subIdx < 0 || subIdx >= 3)
+      throw "第四段出行需要指定颜色";
+
+    addVitalFriend(45);
     addMotivation(1);
-    addStatusFriend(3, 25);
-    addJiBan(pid, 5, false);
+    addJiBan(pid, 5, 1);
+    addLgGauge(subIdx, 8);
+    if (subIdx == 0)
+    {
+      addStatusFriend(0, 5);
+      addStatusFriend(1, 5);
+      addStatusFriend(2, 5);
+      addStatusFriend(3, 5);
+      addStatusFriend(4, 5);
+    }
+    else if (subIdx == 1)
+    {
+      addStatusFriend(1, 15);
+      addStatusFriend(2, 10);
+    }
+    else if (subIdx == 2)
+    {
+      addStatusFriend(0, 10);
+      addStatusFriend(3, 15);
+    }
+
   }
   else if (idx == 4)
   {
-    //有大成功和成功
-    if (rand() % 4 != 0)//粗略估计，75%大成功
+    addVitalFriend(50);
+    addMotivation(1);
+    addStatusFriend(0, 8);
+    addStatusFriend(1, 8);
+    addStatusFriend(2, 8);
+    addStatusFriend(3, 8);
+    addStatusFriend(4, 8);
+    addStatusFriend(5, 30);
+    addJiBan(pid, 5, 1);
+    addLgGauge(0, 3);
+    addLgGauge(1, 3);
+    addLgGauge(2, 3);
+    skillPt += 50;//金技能
+    friend_qingre = true;
+    friend_qingreTurn = 0;
+
+  }
+  else throw "未知的出行";
+
+}
+void Game::runFriendClickEvent(std::mt19937_64& rand, int idx)
+{
+  addJiBan(friend_personId, 5, 1);
+  addLgGauge(idx, 1);
+  if (friend_qingre)
+    skillPt += 6;
+  if (!friend_qingre && friend_stage == FriendStage_afterUnlockOutgoing)
+  {
+    friend_qingre = true;
+    friend_qingreTurn = 0;
+  }
+
+  if (idx == 0)
+  {
+    addStatusFriend(0, 5);
+  }
+  else if (idx == 1)
+  {
+    addVital(3);
+    skillPt += 3;
+  }
+  else if (idx == 2)
+  {
+    addStatusFriend(4, 3);
+
+    //给羁绊最低的人加1羁绊
+    int minJiBan = 10000;
+    for (int i = 0; i < 6; i++)
     {
-      addVitalFriend(30);
-      addStatusFriend(3, 36);
-      skillPt += 72;//金技能等价
+      if (persons[i].personType == PersonType_card)
+      {
+        if (persons[i].friendship < minJiBan)
+        {
+          minJiBan = persons[i].friendship;
+        }
+      }
+    }
+
+    //如果有多个羁绊相同的人头（尤其是粉登后期），随机抽一个加羁绊
+    std::vector<int> candidates;
+    for (int i = 0; i < 6; ++i) {
+      if (persons[i].personType == PersonType_card)
+      {
+        if (persons[i].friendship == minJiBan)
+          candidates.push_back(i);
+      }
+    }
+
+    if (candidates.size() > 0)
+    {
+      int minJiBanId = candidates[rand() % candidates.size()];
+      addJiBan(minJiBanId, 1, 1);
+      printEvents("友人点击事件:" + persons[minJiBanId].getPersonName() + " 羁绊+1");
     }
     else
-    {
-      addVitalFriend(26);
-      addStatusFriend(3, 24);
-      skillPt += 40;//金技能等价
-    }
-    addMotivation(1);
-    addJiBan(pid, 5, false);
-    isRefreshMind = true;
+      throw "没有可以加羁绊的人头，6张友人？";
   }
-  else assert(false && "未知的出行");
 
 }
 void Game::handleFriendUnlock(std::mt19937_64& rand)
 {
   assert(friend_stage == FriendStage_beforeUnlockOutgoing);
-  if (maxVital - vital >= 40)
-  {
-    addVitalFriend(25);
-    printEvents("友人外出解锁！选上");
-  }
-  else
-  {
-    addStatusFriend(0, 8);
-    addStatusFriend(3, 8);
-    skillPt += 10;//直线巧者+5
-    printEvents("友人外出解锁！选下");
-  }
-  addMotivation(1);
-  isRefreshMind = true;
-  addJiBan(friend_personId, 5, false);
+  addVitalFriend(35);
+  addStatusFriend(5, 10);
   friend_stage = FriendStage_afterUnlockOutgoing;
+  isPositiveThinking = true;
+  addJiBan(friend_personId, 5, 1);
+  for (int i = 0; i < 3; i++)
+    addLgGauge(i, 3);
+  friend_qingre = true;
+  friend_qingreTurn = 0;
+
+
+  printEvents("友人外出解锁！");
+  
 }
 void Game::handleFriendClickEvent(std::mt19937_64& rand, int atTrain)
 {
@@ -829,56 +926,21 @@ void Game::handleFriendClickEvent(std::mt19937_64& rand, int atTrain)
     printEvents("第一次点友人");
     friend_stage = FriendStage_beforeUnlockOutgoing;
     
-    addStatusFriend(0, 14);
-    addJiBan(friend_personId, 10, false);
+    for (int i = 0; i < 5; i++)
+      addStatusFriend(i, 5);
+    addJiBan(friend_personId, 10, 1);
     addMotivation(1);
+
+    for (int i = 0; i < 3; i++)
+      addLgGauge(i, 3);
   }
   else
   {
-    if (rand() % 5 < 3)return;//40%概率出事件，60%概率不出
+    if ((!friend_qingre) && rand() % 5 < 3)return;//非情热时40%概率出事件，60%概率不出
 
-    if (rand() % 10 == 0)
-    {
-      if (motivation != 5)
-        printEvents("友人点击事件:心情+1");
-      addMotivation(1);//10%概率加心情
-    }
+    stage = ST_decideEvent;
+    decidingEvent=DecidingEvent_three;
 
-    if (turn < 24)
-    {
-      //给羁绊最低的人加3羁绊
-      int minJiBan = 10000;
-      int minJiBanId = -1;
-      for (int i = 0; i < 6; i++)
-      {
-        if (persons[i].personType == PersonType_card)
-        {
-          if (persons[i].friendship < minJiBan)
-          {
-            minJiBan = persons[i].friendship;
-            minJiBanId = i;
-          }
-        }
-      }
-      if (minJiBanId != -1)
-      {
-        addJiBan(minJiBanId, 3, false);
-      }
-      addJiBan(friend_personId, 5, false);
-      printEvents("友人点击事件:" + persons[minJiBanId].getPersonName() + " 羁绊+3, 理事长羁绊+5");
-
-     
-    }
-    else if (turn < 48)
-    {
-      addStatusFriend(0, 12);
-      addJiBan(friend_personId, 5, false);
-    }
-    else
-    {
-      addStatusFriend(3, 12);
-      addJiBan(friend_personId, 5, false);
-    }
   }
 
 }
@@ -888,27 +950,28 @@ void Game::handleFriendFixedEvent()
   if (friend_stage < FriendStage_beforeUnlockOutgoing)return;//出行没解锁就没事件
   if (turn == 23)
   {
+    addVitalMax(4);
     addMotivation(1);
-    addStatusFriend(0, 24);
-    addJiBan(friend_personId, 5, false);
-    skillPt += 40;//三级中盘巧者，而且有进化，因此这个hint是有效的
+    for (int i = 0; i < 5; i++)
+      addStatusFriend(i, 4);
+    addStatusFriend(5, 5);
+    addJiBan(friend_personId, 5, 1);
+    skillPt += 40;//三级技能，而且有进化，因此这个hint是有效的
+    for (int i = 0; i < 3; i++)
+      addLgGauge(i, 2);
   }
-  else if (turn == 77)
+  else if (turn == TOTAL_TURN - 1)
   {
-    if (friend_outgoingUsed[4])//走完出行
+    if (friend_outgoingUsed[4])
     {
-      addStatusFriend(0, 20);
-      addStatusFriend(3, 20);
-      addStatusFriend(5, 56);
+      for (int i = 0; i < 6; i++)
+        addStatusFriend(i, 12);
     }
     else
     {
-      //just guess, to be filled
-      addStatusFriend(0, 16);
-      addStatusFriend(3, 16);
-      addStatusFriend(5, 43);
+      for (int i = 0; i < 6; i++)
+        addStatusFriend(i, 8);
     }
-
   }
   else
   {
@@ -918,15 +981,13 @@ void Game::handleFriendFixedEvent()
 bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
 {
   assert(stage == ST_train);
-  stage = ST_event;
-  if (turn % 6 == 5)stage = ST_pickBuff;
-  //如果点击了友人或者选择了出行，stage也可能会被改成ST_decideEvent
 
   bool trainingSucceed = false;
 
   if (isRacing)
   {
     //固定比赛收益在checkEventAfterTrain()里处理
+    stage = ST_pickBuff;
     assert(train == T_race);
     addLgGauge(lg_trainingColor[T_race], 1);
   }
@@ -934,6 +995,7 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
   {
     if (train == T_rest)//休息
     {
+      stage = ST_pickBuff;
       if (isXiahesu())//合宿只能外出
       {
         return false;
@@ -952,6 +1014,7 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
     }
     else if (train == T_race)//比赛
     {
+      stage = ST_pickBuff;
       if (turn <= 12 || turn >= 72)
       {
         printEvents("Cannot race now.");
@@ -994,12 +1057,16 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
 
   updateScenarioBuffAfterTrain(train, trainingSucceed);
 
+  if (stage == ST_pickBuff)
+    maybeSkipPickBuffStage();//假如没有其他事件（团卡三选一，或外出），则检查是否该进入选buff环节，否则先处理事件再检查。
 
   return true;
 }
 
 void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool success)
 {
+  assert(stage == ST_train);
+  stage = ST_pickBuff;//有可能被handleFriendClickEvent(rand, train)修改
   if (!success)
   {
     if (failRate[train] >= 20 && (rand() % 100 < failRate[train]))//训练大失败，概率是瞎猜的
@@ -1065,14 +1132,14 @@ void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool succes
         int jiban = friendship_noncard_yayoi;
         int g = jiban < 40 ? 2 : jiban < 60 ? 3 : jiban < 80 ? 4 : 5;
         skillPt += g;
-        addJiBan(PS_noncardYayoi, 7, false);
+        addJiBan(PS_noncardYayoi, 7, 0);
       }
       else if (p == PS_noncardReporter)//记者
       {
         int jiban = friendship_noncard_reporter;
         int g = jiban < 40 ? 2 : jiban < 60 ? 3 : jiban < 80 ? 4 : 5;
         addStatus(train, g);
-        addJiBan(PS_noncardReporter, 7, false);
+        addJiBan(PS_noncardReporter, 7, 0);
       }
       else
       {
@@ -1153,6 +1220,23 @@ void Game::addHintWithoutJiban(std::mt19937_64& rand, int idx)
       throw "友人团队卡不能hint";
   }
 }
+void Game::jicheng(std::mt19937_64& rand)
+{
+  for (int i = 0; i < 5; i++)
+    addStatus(i, zhongMaBlueCount[i] * 6); //蓝因子典型值
+
+  double factor = double(rand() % 65536) / 65536 * 2;//剧本因子随机0~2倍
+  for (int i = 0; i < 5; i++)
+    addStatus(i, int(factor * zhongMaExtraBonus[i])); //剧本因子
+  skillPt += int((0.5 + 0.5 * factor) * zhongMaExtraBonus[5]);//乱七八糟技能的等效pt
+
+  for (int i = 0; i < 5; i++)
+    fiveStatusLimit[i] += zhongMaBlueCount[i] * 2; //属性上限--种马基础值。18蓝两次继承共加大约36上限，每次每个蓝因子+1上限，1200折半再乘2
+
+  for (int i = 0; i < 5; i++)
+    fiveStatusLimit[i] += rand() % 8; //属性上限--后两次继承随机增加
+
+}
 void Game::updateScenarioBuffAfterTrain(int16_t trainIdx, bool trainSucceed)
 {
   lg_buffCondition.clear();
@@ -1174,6 +1258,69 @@ void Game::updateScenarioBuffAfterTrain(int16_t trainIdx, bool trainSucceed)
   {
     updateScenarioBuffCondition(i);
   }
+}
+
+
+void Game::maybeSkipPickBuffStage()
+{
+  assert(stage == ST_pickBuff);
+  if (turn % 6 == 5 && turn <= 65)
+  {
+    //randomPickBuff(rand);
+    //stage = ST_chooseBuff;
+  }
+  else
+    stage = ST_event;
+}
+
+void Game::decideEvent(std::mt19937_64& rand, int16_t idx)
+{
+  if (decidingEvent == DecidingEvent_three)
+  {
+    decideEvent_three(rand, idx);
+  }
+  else if (decidingEvent == DecidingEvent_outing)
+  {
+    decideEvent_outing(rand, idx);
+  }
+  else throw "unknown decidingEvent";
+
+
+
+  stage = ST_pickBuff;
+  maybeSkipPickBuffStage();
+}
+
+//idx 01234567依次是普通外出，友人外出123，友人外出4的三个选项，友人外出5
+void Game::decideEvent_outing(std::mt19937_64& rand, int16_t idx)
+{
+  if (!friend_type == 1 || friend_outgoingUsed[4] || isXiahesu())
+  {
+    throw "decideEvent_outing友人外出不可用";
+  }
+  if (idx == 0)
+    runNormalOutgoing(rand);
+  else if (idx == 1)
+    runFriendOutgoing(rand, 0);
+  else if (idx == 2)
+    runFriendOutgoing(rand, 1);
+  else if (idx == 3)
+    runFriendOutgoing(rand, 2);
+  else if (idx == 4)
+    runFriendOutgoing(rand, 3, 0);
+  else if (idx == 5)
+    runFriendOutgoing(rand, 3, 1);
+  else if (idx == 6)
+    runFriendOutgoing(rand, 3, 2);
+  else if (idx == 7)
+    runFriendOutgoing(rand, 4);
+}
+
+void Game::decideEvent_three(std::mt19937_64& rand, int16_t idx)
+{
+  if (friend_stage != FriendStage_beforeUnlockOutgoing && friend_stage != FriendStage_afterUnlockOutgoing)
+    throw "第一次点击不会触发三选一事件";
+  runFriendClickEvent(rand, idx);
 }
 
 
@@ -1942,26 +2089,149 @@ void Game::addLgGauge(int16_t color, int num)
   if (lg_gauge[color] > 8)lg_gauge[color] = 8;
 }
 
-
-void Game::addYayoiJiBan(int value)
+void Game::setMainColorTurn36(std::mt19937_64& rand)
 {
-  if (friend_type != 0)
-    addJiBan(friend_personId, value, true);
-  else
-    addJiBan(PS_noncardYayoi, value, true);
+  int count[3] = { 0, 0, 0 };
+  for (int i = 0; i < 6; ++i) {
+    int color = lg_buffs[i].buffId / 19;
+    ++count[color];
+  }
+
+  int max_count = *std::max_element(std::begin(count), std::end(count));
+  std::vector<int> candidates;
+  for (int c = 0; c < 3; ++c) {
+    if (count[c] == max_count) {
+      candidates.push_back(c);
+    }
+  }
+
+  if (candidates.size() == 1) {
+    lg_mainColor = candidates[0];
+  }
+  else {
+    std::uniform_int_distribution<int> dist(0, candidates.size() - 1);
+    int idx = dist(rand);
+    lg_mainColor = candidates[idx];
+  }
+
+  if (gameSettings.color_priority != -1 && gameSettings.color_priority != lg_mainColor)
+  {
+    lg_mainColor = gameSettings.color_priority;
+    skillScore -= 3000;//没选到期望的颜色，假装扣3000分，且按照预定的颜色继续进行
+  }
+  if (lg_mainColor == L_red)
+  {
+    for (int i = 0; i < 6; i++)
+    {
+      if (persons[i].personType == PersonType_card)
+      {
+        lg_red_friendsLv[i] = 1;
+        lg_red_friendsGauge[i] = 20;
+      }
+    }
+  }
+  else if (lg_mainColor == L_blue)
+  {
+    throw "todo";
+  }
+  else if (lg_mainColor == L_green)
+  {
+    throw "todo";
+  }
+
 }
 
-int Game::getYayoiJiBan() const
-{
-  if (friend_type != 0)
-    return persons[friend_personId].friendship;
-  else
-    return friendship_noncard_yayoi;
-}
 
 void Game::randomPickBuff(std::mt19937_64& rand)
 {
+  if (stage != ST_pickBuff && stage != ST_chooseBuff)
+    throw "当前stage不允许randomPickBuff"; 
+  stage = ST_chooseBuff;
+  lg_pickedBuffsNum = 0;
+  int maxStar = turn <= 12 ? 1 : turn <= 24 ? 2 : 3;
+  for (int color = 0; color < 3; color++)
+  {
+    int toPickNum = lg_gauge[color] == 8 ? 3 : lg_gauge[color] >= 4 ? 2 : lg_gauge[color] >= 2 ? 1 : 0;
+    int toPickMaxStarNum = toPickNum == 3 ? (friend_type == 1 ? 2 : 1) : 0;//满8格有2个最高星的（不带团卡是1个）
+    int toPickRandomStarNum = toPickNum - toPickMaxStarNum;
+    while (toPickMaxStarNum > 0)
+    {
+      int p = pickSingleBuff(rand, color, maxStar);
+      if (p >= 0)
+      {
+        lg_pickedBuffs[lg_pickedBuffsNum] = p;
+        lg_pickedBuffsNum += 1;
+        toPickMaxStarNum -= 1;
+      }
+    }
+    while (toPickRandomStarNum > 0)
+    {
+      int star = 1;
+      if (maxStar == 2)
+        star = rand() % 2 + 1;//50%一星，50%二星
+      else if (maxStar == 3)
+      {
+        int s = rand() % 10;
+        star = s < 3 ? 1 : s < 8 ? 2 : 3;//30%一星，50%二星，20%三星
+      }
+      int p = pickSingleBuff(rand, color, star);
+      if (p >= 0)
+      {
+        lg_pickedBuffs[lg_pickedBuffsNum] = p;
+        lg_pickedBuffsNum += 1;
+        toPickRandomStarNum -= 1;
+      }
+    }
+  }
+}
 
+int Game::pickSingleBuff(std::mt19937_64& rand, int16_t color, int16_t star)
+{
+  int num = star == 1 ? 4 : star == 2 ? 6 : 9;
+  int idx = star == 1 ? 0 : star == 2 ? 4 : 10;
+  idx += color * 19;
+
+  int maxTry = 20;
+  while (maxTry > 0)
+  {
+    int t = idx + rand() % num;
+    if (!lg_haveBuff[t])return t;
+    maxTry--;
+  }
+  return -1;//大概率是抽完了，小概率是运气，但影响不大，会重新抽取
+}
+
+void Game::chooseBuff(int16_t idx)
+{
+  if (stage != ST_chooseBuff)
+    throw "不是选buff的阶段";
+  if (turn % 6 != 5 || turn > 65)
+    throw "不是选心得的回合";
+  if (turn != 65)
+  {
+    if (idx < 0 || idx >= lg_pickedBuffsNum)
+      throw "不合法选择";
+    int loc = turn / 6;
+    lg_buffs[loc].buffId = lg_pickedBuffs[idx];
+    lg_buffs[loc].isActive = false;
+    lg_buffs[loc].coolTime = 0;
+  }
+  else if (idx != 0) //对于65回合（第11个心得），idx=0代表不选，idx=10*(位置+1)+第几个选项
+  {
+    int loc = (idx / 10) - 1;//放在第几个位置。第66个回合需要替换一个buff
+    idx = idx % 10;
+    if (loc < 0 || loc >= 10)
+      throw "第66个回合需要替换一个buff，10*(位置+1)+第几个选项";
+    if (idx < 0 || idx >= lg_pickedBuffsNum)
+      throw "不合法选择";
+    lg_buffs[loc].buffId = lg_pickedBuffs[idx];
+    lg_buffs[loc].isActive = false;
+    lg_buffs[loc].coolTime = 0;
+  }
+  lg_pickedBuffsNum = 0;
+  for (int i = 0; i < 9; i++)
+    lg_pickedBuffs[i] = -1;
+  stage = ST_event;
 }
 
 void Game::checkEvent(std::mt19937_64& rand)
@@ -1973,6 +2243,7 @@ void Game::checkEvent(std::mt19937_64& rand)
 
   //回合数+1
   turn++;
+  stage = ST_distribute;
   
   if (turn >= TOTAL_TURN)
   {
@@ -1999,18 +2270,21 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
     if (turn < 72)
     {
       runRace(3, 45);
-      addYayoiJiBan(4);
+      addJiBan(PS_noncardYayoi, 4, 1);
     }
     else if (turn == 73)//ura1
     {
+      throw "this scenario does not have URA";
       runRace(10, 40);
     }
     else if (turn == 75)//ura1
     {
+      throw "this scenario does not have URA";
       runRace(10, 60);
     }
     else if (turn == 77)//ura3
     {
+      throw "this scenario does not have URA";
       runRace(10, 80);
     }
 
@@ -2022,114 +2296,82 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
   }
   else if (turn == 23)//第一年年底
   {
-    //年底事件，体力低选择体力，否则选属性
-    {
-      int vitalSpace = maxVital - vital;//还差多少体力满
-      handleFriendFixedEvent();
-      if (vitalSpace >= 20)
-        addVital(20);
-      else
-        addAllStatus(5);
-    }
+    runRace(30, 125);
+    addVital(25);
+    for (int i = 0; i < 5; i++)
+      addTrainingLevelCount(i, 4);
+
+    handleFriendFixedEvent();
     printEvents("第一年结束");
   }
   else if (turn == 29)//第二年继承
   {
-
-    for (int i = 0; i < 5; i++)
-      addStatus(i, zhongMaBlueCount[i] * 6); //蓝因子典型值
-
-    double factor = double(rand() % 65536) / 65536 * 2;//剧本因子随机0~2倍
-    for (int i = 0; i < 5; i++)
-      addStatus(i, int(factor*zhongMaExtraBonus[i])); //剧本因子
-    skillPt += int((0.5 + 0.5 * factor) * zhongMaExtraBonus[5]);//乱七八糟技能的等效pt
-
-    for (int i = 0; i < 5; i++)
-      fiveStatusLimit[i] += zhongMaBlueCount[i] * 2; //属性上限--种马基础值。18蓝两次继承共加大约36上限，每次每个蓝因子+1上限，1200折半再乘2
-
-    for (int i = 0; i < 5; i++)
-      fiveStatusLimit[i] += rand() % 8; //属性上限--后两次继承随机增加
-
+    jicheng(rand);
     printEvents("第二年继承");
   }
   else if (turn == 35)
   {
+
+    for (int i = 0; i < 5; i++)
+      addTrainingLevelCount(i, 4);
+    setMainColorTurn36(rand);
     printEvents("第二年合宿开始");
   }
   else if (turn == 47)//第二年年底
   {
-    //年底事件，体力低选择体力，否则选属性
-    {
-      int vitalSpace = maxVital - vital;//还差多少体力满
-      if (vitalSpace >= 30)
-        addVital(30);
-      else
-        addAllStatus(8);
-    }
+    runRace(45, 210);
+    addVital(35);
+    for (int i = 0; i < 5; i++)
+      addTrainingLevelCount(i, 4);
     printEvents("第二年结束");
   }
   else if (turn == 48)//抽奖
   {
-    int rd = rand() % 100;
-    if (rd < 16)//温泉或一等奖
-    {
-      addVital(30);
-      addAllStatus(10);
-      addMotivation(2);
+  //  int rd = rand() % 100;
+  //  if (rd < 16)//温泉或一等奖
+  //  {
+  //    addVital(30);
+  //    addAllStatus(10);
+  //    addMotivation(2);
 
-      printEvents("抽奖：你抽中了温泉/一等奖");
-    }
-    else if (rd < 16 + 27)//二等奖
-    {
-      addVital(20);
-      addAllStatus(5);
-      addMotivation(1);
-      printEvents("抽奖：你抽中了二等奖");
-    }
-    else if (rd < 16 + 27 + 46)//三等奖
-    {
-      addVital(20);
-      printEvents("抽奖：你抽中了三等奖");
-    }
-    else//厕纸
-    {
-      addMotivation(-1);
-      printEvents("抽奖：你抽中了厕纸");
-    }
+  //    printEvents("抽奖：你抽中了温泉/一等奖");
+  //  }
+  //  else if (rd < 16 + 27)//二等奖
+  //  {
+  //    addVital(20);
+  //    addAllStatus(5);
+  //    addMotivation(1);
+  //    printEvents("抽奖：你抽中了二等奖");
+  //  }
+  //  else if (rd < 16 + 27 + 46)//三等奖
+  //  {
+  //    addVital(20);
+  //    printEvents("抽奖：你抽中了三等奖");
+  //  }
+  //  else//厕纸
+  //  {
+  //    addMotivation(-1);
+  //    printEvents("抽奖：你抽中了厕纸");
+  //  }
   }
   else if (turn == 49)
   {
-    skillScore += 170;
-    printEvents("固有等级+1");
   }
   else if (turn == 53)//第三年继承
   {
-    for (int i = 0; i < 5; i++)
-      addStatus(i, zhongMaBlueCount[i] * 6); //蓝因子典型值
-
-    double factor = double(rand() % 65536) / 65536 * 2;//剧本因子随机0~2倍
-    for (int i = 0; i < 5; i++)
-      addStatus(i, int(factor * zhongMaExtraBonus[i])); //剧本因子
-    skillPt += int((0.5 + 0.5 * factor) * zhongMaExtraBonus[5]);//乱七八糟技能的等效pt
-
-    for (int i = 0; i < 5; i++)
-      fiveStatusLimit[i] += zhongMaBlueCount[i] * 2; //属性上限--种马基础值。18蓝两次继承共加大约36上限，每次每个蓝因子+1上限，1200折半再乘2
-
-    for (int i = 0; i < 5; i++)
-      fiveStatusLimit[i] += rand() % 8; //属性上限--后两次继承随机增加
-
+    jicheng(rand);
     printEvents("第三年继承");
 
-    if (getYayoiJiBan() >= 60)
-    {
-      skillScore += 170;//固有技能等级+1
-      addMotivation(1);
-    }
-    else
-    {
-      addVital(-5);
-      skillPt += 25;
-    }
+    //if (getYayoiJiBan() >= 60)
+    //{
+    //  skillScore += 170;//固有技能等级+1
+    //  addMotivation(1);
+    //}
+    //else
+    //{
+    //  addVital(-5);
+    //  skillPt += 25;
+    //}
   }
   else if (turn == 59)
   {
@@ -2137,11 +2379,17 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
   }
   else if (turn == 70)
   {
-    skillScore += 170;//固有技能等级+1
   }
-  else if (turn == 77)//ura3，游戏结束
+  else if (turn == TOTAL_TURN - 1)//游戏结束
   {
-    //比赛已经在前面处理了
+    //巨大广告，完成
+    addAllStatus(25);
+    skillPt += 125;
+
+
+    runRace(55, 300);
+    skillScore += 170;//固有技能等级+1
+
     //记者
     if (friendship_noncard_reporter >= 80)
     {
@@ -2162,28 +2410,26 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
       skillPt += 5;
     }
 
-    bool allWin = true;
 
+    bool allWin = true;
     if (allWin)
     {
-      skillPt += 40;//剧本金
-      addAllStatus(60);
-      skillPt += 150;
+      addAllStatus(45);
+      skillPt += 245;
     }
-    else 
+    else
     {
       addAllStatus(25);
       //there should be something, but not important
     }
 
-
     //友人卡事件
     handleFriendFixedEvent();
 
-    addAllStatus(5);
-    skillPt += 20;
+    //addAllStatus(5);
+    //skillPt += 20;
 
-    printEvents("ura3结束，游戏结算");
+    printEvents("结束，游戏结算");
   }
 }
 
@@ -2207,6 +2453,19 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
         handleFriendUnlock(rand);
       }
     }
+
+    if (friend_qingre)//情热状态随机结束
+    {
+      if (friend_qingreTurn > 9)friend_qingreTurn = 9;
+      double stopProb = GameConstants::FriendQingreStopProb[friend_qingreTurn];
+      if (randBool(rand, stopProb))
+      {
+        friend_qingre = false;
+        friend_qingreTurn = 0;
+        printEvents("团卡情热结束");
+      }
+    }
+
   }
 
   //模拟各种随机事件
@@ -2215,7 +2474,7 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
   if (randBool(rand, GameConstants::EventProb))
   {
     int card = rand() % 6;
-    addJiBan(card, 5, false);
+    addJiBan(card, 5, 1);
     //addAllStatus(4);
     addStatus(rand() % 5, gameSettings.eventStrength);
     skillPt += gameSettings.eventStrength;
@@ -2280,32 +2539,161 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
   }
 
 }
+std::vector<Action> Game::getAllLegalActions() const
+{
+  std::vector<Action> allActions;
+
+  if (isEnd()) return allActions;
+
+  if (stage == ST_distribute)
+  {
+    allActions.push_back(Action(ST_distribute)); 
+  }
+  else if (stage == ST_train)
+  {
+    if (isRacing)
+    {
+      allActions.push_back(Action(ST_train, T_race));
+      return allActions;
+    }
+    for (int i = 0; i < 5; i++)
+      allActions.push_back(Action(ST_train, i));
+    if(!isXiahesu())
+      allActions.push_back(Action(ST_train, T_rest));
+    allActions.push_back(Action(ST_train, T_outgoing));
+    if (isRaceAvailable())
+      allActions.push_back(Action(ST_train, T_race));
+  }
+  else if (stage == ST_decideEvent)
+  {
+    if (decidingEvent == DecidingEvent_outing)
+    {
+      if(!(friend_stage == FriendStage_afterUnlockOutgoing && !friend_outgoingUsed[4]))
+        throw "无法友人出行";
+      allActions.push_back(Action(ST_decideEvent, 0));//普通出行
+      if (friend_outgoingUsed[0] && friend_outgoingUsed[1] && friend_outgoingUsed[2])
+      {
+        if (friend_outgoingUsed[3])
+        {
+          allActions.push_back(Action(ST_decideEvent, 7));//第5段
+        }
+        else
+        {
+          allActions.push_back(Action(ST_decideEvent, 4));//第4段
+          allActions.push_back(Action(ST_decideEvent, 5));//第4段
+          allActions.push_back(Action(ST_decideEvent, 6));//第4段
+        }
+      }
+      else
+      {
+        if (!friend_outgoingUsed[0])
+          allActions.push_back(Action(ST_decideEvent, 1));//第1段
+        if (!friend_outgoingUsed[1])
+          allActions.push_back(Action(ST_decideEvent, 2));//第2段
+        if (!friend_outgoingUsed[2])
+          allActions.push_back(Action(ST_decideEvent, 3));//第3段
+      }
+
+    }
+    else if (decidingEvent == DecidingEvent_three)
+    {
+      allActions.push_back(Action(ST_decideEvent, 0));
+      allActions.push_back(Action(ST_decideEvent, 1));
+      allActions.push_back(Action(ST_decideEvent, 2));
+    }
+    else throw "未知decidingEvent";
+
+  }
+  else if (stage == ST_pickBuff)
+  {
+    allActions.push_back(Action(ST_pickBuff));
+
+  }
+  else if (stage == ST_chooseBuff)
+  {
+    if (lg_pickedBuffsNum <= 0)
+      throw "没有抽到buff？";
+    if (turn == 65)
+    {
+      allActions.push_back(Action(ST_chooseBuff, 0));
+      for (int place = 0; place < 10; place++)
+        for (int i = 0; i < lg_pickedBuffsNum; i++)
+          allActions.push_back(Action(ST_chooseBuff, 10 * (place + 1) + i));
+
+    }
+    else
+    {
+      for (int i = 0; i < lg_pickedBuffsNum; i++)
+        allActions.push_back(Action(ST_chooseBuff, i));
+    }
+  }
+  else if (stage == ST_event)
+  {
+    allActions.push_back(Action(ST_event));
+  }
+  else
+    throw "未知stage";
+  return allActions;
+}
 void Game::applyAction(std::mt19937_64& rand, Action action)
 {
   if (isEnd()) return;
-  //assert(turn < TOTAL_TURN && "Game::applyTrainingAndNextTurn游戏已结束");
-  //assert(!(isRacing && !isUraRace) && "非ura的比赛回合都在checkEventAfterTrain里跳过了");
-  if (action.idx != T_none || isRacing)
+  if (stage != action.stage)
+    throw "Game::applyAction的stage不匹配";
+
+  if (stage == ST_distribute)
+  {
+    randomizeTurn(rand);
+  }
+  else if (stage == ST_train)
   {
     bool suc = applyTraining(rand, action.idx);
     assert(suc && "Game::applyAction选择了不合法的训练");
-    
-    checkEvent(rand);
-    if (isEnd()) return;
 
-    randomizeTurn(rand);
-
-
-    //非ura的比赛回合也可能吃菜，用来刷pt，所以不跳过
-    
-    //if (isRacing && !isUraRace)//非ura的比赛回合，直接跳到下一个回合
-    //{
-    //  Action emptyAction;
-    //  emptyAction.train = TRA_none;
-    //  emptyAction.dishType = DISH_none;
-    //  applyAction(rand, emptyAction);
-    //}
   }
+  else if (stage == ST_decideEvent)
+  {
+    decideEvent(rand, action.idx);
+
+  }
+  else if (stage == ST_pickBuff)
+  {
+    randomPickBuff(rand);
+
+  }
+  else if (stage == ST_chooseBuff)
+  {
+    chooseBuff(action.idx);
+
+  }
+  else if (stage == ST_event)
+  {
+    checkEvent(rand);
+  }
+  else
+    throw "未知stage";
+}
+
+void Game::continueUntilNextDecision(std::mt19937_64& rand)
+{
+  auto allActions = getAllLegalActions();
+  if (allActions.size() == 0)
+  {
+    assert(isEnd());
+    return;
+  }
+  else if (allActions.size() == 1)
+  {
+    applyAction(rand, allActions[0]);
+    continueUntilNextDecision(rand);
+  }
+  else return;
+}
+
+void Game::applyActionUntilNextDecision(std::mt19937_64& rand, Action action)
+{
+  applyAction(rand, action);
+  continueUntilNextDecision(rand);
 }
 
 bool Game::isCardShining(int personIdx, int trainIdx) const

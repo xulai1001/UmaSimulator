@@ -149,7 +149,7 @@ Game GameGenerator::randomOpening()
     if (rand() % 2)
     {
       int delta = int(expDistr(rand) * 5);
-      game.addJiBan(cardPerson, delta, true);
+      game.addJiBan(cardPerson, delta, 2);
     }
   }
 

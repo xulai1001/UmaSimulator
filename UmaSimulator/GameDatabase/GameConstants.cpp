@@ -11,15 +11,17 @@ const int GameConstants::BasicFiveStatusLimit[5] = { 2500,2000,2000,1800,1700 };
 //const int GameConstants::NormalRaceFiveStatusBonus = 3;//常规比赛属性加成=3
 //const int GameConstants::NormalRacePtBonus = 45;//常规比赛pt加成,G1=45
 const double GameConstants::EventProb = 0.4;
-const int GameConstants::EventStrengthDefault = 20;
+const int GameConstants::EventStrengthDefault = 30;
 
-const double GameConstants::FriendUnlockOutgoingProbEveryTurnLowFriendship = 0.1;
-const double GameConstants::FriendUnlockOutgoingProbEveryTurnHighFriendship = 0.2;
+const double GameConstants::FriendUnlockOutgoingProbEveryTurnLowFriendship = 0.07;
+const double GameConstants::FriendUnlockOutgoingProbEveryTurnHighFriendship = 0.07;
 
 const double GameConstants::FriendVitalBonusSSR[5] = { 1.2,1.23,1.26,1.3,1.3 };//友人SSR卡的回复量倍数（满破1.8）
 const double GameConstants::FriendVitalBonusR[5] = { 1,1,1,1,1 };//友人R卡的回复量倍数
 const double GameConstants::FriendStatusBonusSSR[5] = { 1.15,1.16,1.18,1.2,1.2 };//友人SSR卡的事件效果倍数（满破1.25）
 const double GameConstants::FriendStatusBonusR[5] = { 1,1,1,1,1 };//友人R卡的事件效果倍数
+
+const double GameConstants::FriendQingreStopProb[10]={ 0, 0, 0.3, 0.3, 0.3, 1.0, 1.0, 1.0, 1.0, 1.0};//团卡已经情热x回合后，本回合有多大概率终止
 
 const std::vector<int> GameConstants::LinkCharas = { 9046 };
 

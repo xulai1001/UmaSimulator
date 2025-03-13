@@ -137,7 +137,7 @@ enum StageEnum :int16_t
 enum DecidingEventEnum :int16_t
 {
   DecidingEvent_none,
-  DecidingEvent_chooseBuff,//选buff
+  DecidingEvent_RESERVED,
   DecidingEvent_outing,//团卡出行
   DecidingEvent_three,//团卡三选一
 };
@@ -208,7 +208,7 @@ struct Game
   int16_t zhongMaBlueCount[5];//种马的蓝因子个数，假设只有3星
   int16_t zhongMaExtraBonus[6];//种马的剧本因子以及技能白因子（等效成pt），每次继承加多少。全大师杯因子典型值大约是30速30力200pt
 
-  int16_t stage;//int16_t stage;//分配人头前1，分配人头后c2，训练后有团卡事件（选出行或三选一）3，抽取心得前4（如果有），选心得5（如果有），固定与随机事件前6，6之后进入stage1
+  int16_t stage;//int16_t stage;//分配人头前1，分配人头后2，训练后有团卡事件（选出行或三选一）3，抽取心得前4（如果有），选心得5（如果有），固定与随机事件前6，6之后进入stage1
   int16_t decidingEvent;//需要处理的含选择项的事件。选buff 1，团卡出行 2，团卡三选一 3
   bool isRacing;//这个回合是否在比赛
 
@@ -299,10 +299,20 @@ public:
   //这个操作是否允许且合理
   bool isLegal(Action action) const;
 
+
+  std::vector<Action> getAllLegalActions() const;
   //无论什么stage，都往下进行一步，若action不合法则返回false
   void applyAction(
     std::mt19937_64& rand,
-    Action action);
+    Action action); 
+
+  void continueUntilNextDecision(  //跳过不需要玩家选择的stage，直到下次需要选择
+    std::mt19937_64& rand);
+
+  void applyActionUntilNextDecision(
+      std::mt19937_64& rand,
+      Action action);
+
 
 
 
@@ -324,14 +334,16 @@ public:
   void calculateTrainingValue();//计算所有训练分别加多少，并计算失败率、训练等级提升等
   bool applyTraining(std::mt19937_64& rand, int16_t train);//ST_train->ST_decideEvent/ST_pickBuff/ST_event。处理 训练/出行/比赛 本身，不包括友人点击事件，不包括买buff，不包括固定事件和剧本事件。如果不合法，则返回false，且保证不做任何修改
   void updateScenarioBuffAfterTrain(int16_t trainIdx, bool trainSucceed);//更新各种心得的触发条件
-  void decideEvent(int16_t idx);//团卡三选一/出行选择
-  void decideEvent_outing(int16_t idx);//团卡出行选择
-  void decideEvent_three(int16_t idx);//团卡三选一
+  void maybeSkipPickBuffStage();//训练结束后检查是否应当进入选buff阶段。每个回合必须调用，如果不是选buff回合会直接修改stage
+  void decideEvent(std::mt19937_64& rand, int16_t idx);//团卡三选一/出行选择
+  void decideEvent_outing(std::mt19937_64& rand, int16_t idx);//团卡出行选择
+  void decideEvent_three(std::mt19937_64& rand, int16_t idx);//团卡三选一
   void randomPickBuff(std::mt19937_64& rand);//ST_pickBuff->ST_chooseBuff，从buff(心得)池里随机抽取buff
+  int pickSingleBuff(std::mt19937_64& rand, int16_t color, int16_t star);//尝试随机抽取color颜色star星数的心得，如果全被抽完则返回-1
   void chooseBuff(int16_t idx); //ST_chooseBuff->ST_event，选择第几个buff
   
   void checkEvent(std::mt19937_64& rand);//ST_chooseBuff->ST_distribute检查固定事件和随机事件，并进入下一个回合
- void checkFixedEvents(std::mt19937_64& rand);//每回合的固定事件，包括剧本事件和固定比赛和部分马娘事件等
+  void checkFixedEvents(std::mt19937_64& rand);//每回合的固定事件，包括剧本事件和固定比赛和部分马娘事件等
   void checkRandomEvents(std::mt19937_64& rand);//模拟支援卡事件和随机马娘事件（随机加羁绊，体力，心情，掉心情等）
 
   //常用接口-----------------------------------------------------------------------------------------------
@@ -365,14 +377,13 @@ public:
   void addVitalMax(int value);//增加体力上限，限制120
   void addMotivation(int value);//增加或减少心情，同时考虑“isPositiveThinking和蓝登
   void addJiBan(int idx,int value,int type);//增加羁绊，并考虑爱娇和buff，也考虑红登充电。type0是点击，type1是hint，type2是不吃任何加成的
-  void addYayoiJiBan(int value);//增加理事长羁绊，剧本比赛等情况
-  int getYayoiJiBan() const;//获得理事长羁绊
   void addStatusFriend(int idx, int value);//友人卡事件，增加属性值或者pt（idx=5），考虑事件加成
   void addVitalFriend(int value);//友人卡事件，增加体力，考虑回复量加成
   void runRace(int basicFiveStatusBonus, int basicPtBonus);//把比赛奖励加到属性和pt上，输入是不计赛后加成的基础值
   void addTrainingLevelCount(int trainIdx, int n);//为某个训练增加n次计数
   void applyNormalTraining(std::mt19937_64& rand, int16_t train, bool success);//处理五种训练
   void addHintWithoutJiban(std::mt19937_64& rand, int idx);
+  void jicheng(std::mt19937_64& rand);//第二三年的继承
 
   int getTrainingLevel(int trainIdx) const;//计算训练等级
   int calculateFailureRate(int trainType, double failRateMultiply) const;//计算训练失败率，failRateMultiply是训练失败率乘数=(1-支援卡1的失败率下降)*(1-支援卡2的失败率下降)*...
@@ -385,6 +396,7 @@ public:
   void addScenarioBuffBonus(int idx);//添加剧本心得加成到lg_bonus，包含判断部分buff的生效条件（干劲绝好调等）。“训练成功”之类的判定不在这里
   void updateScenarioBuffCondition(int idx);//更新各种心得的触发条件
   void addLgGauge(int16_t color, int num);//给color加num格，去掉大于8溢出部分
+  void setMainColorTurn36(std::mt19937_64& rand);//36回合时确定主色，color_priority不为空时强制指定这个颜色，但如果原颜色与指定颜色不同则扣3000分
 
 
   //友人卡相关事件
@@ -394,7 +406,7 @@ public:
   void handleFriendFixedEvent();//友人固定事件，拜年+结算
 
   void runNormalOutgoing(std::mt19937_64& rand);//常规外出
-  void runFriendOutgoing(std::mt19937_64& rand, int idx);//友人外出
+  void runFriendOutgoing(std::mt19937_64& rand, int idx, int subIdx);//友人外出
   void runFriendClickEvent(std::mt19937_64& rand, int idx);//友人点击事件
   
 

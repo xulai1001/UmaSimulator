@@ -492,7 +492,6 @@ void Game::print() const
     }
     else if (stage == ST_chooseBuff)
     {
-      assert(decidingEvent == DecidingEvent_chooseBuff);
       cout << termcolor::cyan << "选择心得中：" << termcolor::reset << endl;
       for (int i = 0; i < lg_pickedBuffsNum; i++)
       {

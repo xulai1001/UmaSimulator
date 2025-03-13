@@ -30,6 +30,8 @@ public:
   static const double FriendVitalBonusR[5];//友人R卡的回复量倍数
   static const double FriendStatusBonusSSR[5];//友人SSR卡的事件效果倍数（满破1.25）
   static const double FriendStatusBonusR[5];//友人R卡的事件效果倍数
+
+  static const double FriendQingreStopProb[10];//团卡已经情热x回合后，本回合有多大概率终止
   
 
   //剧本相关
