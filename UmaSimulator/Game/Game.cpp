@@ -2194,9 +2194,19 @@ int Game::pickSingleBuff(std::mt19937_64& rand, int16_t color, int16_t star)
   int maxTry = 20;
   while (maxTry > 0)
   {
-    int t = idx + rand() % num;
-    if (!lg_haveBuff[t])return t;
     maxTry--;
+    int t = idx + rand() % num;
+    if (lg_haveBuff[t])continue;
+    bool alreadyPicked = false;
+    for (int i = 0; i < lg_pickedBuffsNum; i++)
+    {
+      if (lg_pickedBuffs[i] == t) {
+        alreadyPicked = true;
+        break;
+      }
+    }
+    if (alreadyPicked)continue;
+    return t;
   }
   return -1;//大概率是抽完了，小概率是运气，但影响不大，会重新抽取
 }
@@ -2212,6 +2222,7 @@ void Game::chooseBuff(int16_t idx)
     if (idx < 0 || idx >= lg_pickedBuffsNum)
       throw "不合法选择";
     int loc = turn / 6;
+    lg_haveBuff[lg_pickedBuffs[idx]] = true;
     lg_buffs[loc].buffId = lg_pickedBuffs[idx];
     lg_buffs[loc].isActive = false;
     lg_buffs[loc].coolTime = 0;
@@ -2224,6 +2235,8 @@ void Game::chooseBuff(int16_t idx)
       throw "第66个回合需要替换一个buff，10*(位置+1)+第几个选项";
     if (idx < 0 || idx >= lg_pickedBuffsNum)
       throw "不合法选择";
+    lg_haveBuff[lg_buffs[loc].buffId] = false;
+    lg_haveBuff[lg_pickedBuffs[idx]] = true;
     lg_buffs[loc].buffId = lg_pickedBuffs[idx];
     lg_buffs[loc].isActive = false;
     lg_buffs[loc].coolTime = 0;
@@ -2252,6 +2265,7 @@ void Game::checkEvent(std::mt19937_64& rand)
   }
   else {
     isRacing = isRacingTurn[turn];
+    calculateScenarioBonus();
   }
   return;
 
@@ -2802,7 +2816,71 @@ Action::Action(int st, int idx):stage(st), idx(idx)
 
 std::string Action::toString() const
 {
-  return std::string();
+  return "Stage"+to_string(stage) + "_Idx" + to_string(idx);
+}
+
+std::string Action::toString(const Game& game) const
+{
+  if (idx < 0)
+    return toString();
+  if (stage == ST_train)
+  {
+    return trainingName[idx];
+  }
+  else if (stage == ST_decideEvent)
+  {
+    if (game.decidingEvent == DecidingEvent_outing)
+    {
+      if (idx == 0)
+        return "普通外出";
+      else if (idx == 1)
+        return "团队外出1";
+      else if (idx == 2)
+        return "团队外出2";
+      else if (idx == 3)
+        return "团队外出3";
+      else if (idx == 4)
+        return "团队外出4选蓝";
+      else if (idx == 5)
+        return "团队外出4选绿";
+      else if (idx == 6)
+        return "团队外出4选红";
+      else if (idx == 7)
+        return "团队外出5";
+      else
+        assert(false);
+    }
+    else if (game.decidingEvent == DecidingEvent_three)
+    {
+      if (idx == 0)
+        return "选蓝";
+      else if (idx == 1)
+        return "选绿";
+      else if (idx == 2)
+        return "选红";
+      else
+        assert(false);
+    }
+    else
+      assert(false);
+  }
+  else if (stage == ST_chooseBuff)
+  {
+    if (game.turn == 65)
+    {
+      if (idx == 0)
+        return "不选";
+      int loc = idx / 10;
+      int idx2 = idx % 10;
+      return "选第" + to_string(idx2+1) + "个替换掉第" + to_string(loc) + "个";
+    }
+    else
+    {
+      return "选第" + to_string(idx+1) + "个";
+    }
+  }
+  else
+    return toString();
 }
 
 ScenarioBuffCondition::ScenarioBuffCondition()

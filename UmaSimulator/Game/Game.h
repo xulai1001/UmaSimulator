@@ -7,6 +7,7 @@
 
 struct SearchParam;
 
+struct Game;
 
 enum LegendColorEnum :int16_t
 {
@@ -172,6 +173,7 @@ struct Action
   //bool isActionStandard() const;
   //int toInt() const;
   std::string toString() const;
+  std::string toString(const Game& game) const;
   //static Action intToAction(int i);
 };
 

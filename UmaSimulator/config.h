@@ -10,8 +10,8 @@
 //#define UMAAI_TESTSCORESEARCH //测试蒙特卡洛强度
 //#define UMAAI_TESTSCORENOSEARCH //测试神经网络/手写逻辑policy强度
 
-#if defined UMAAI_TESTSCORE || defined UMAAI_SIMULATOR 
 #define PRINT_GAME_EVENT
+#if defined UMAAI_TESTSCORE || defined UMAAI_SIMULATOR 
 #endif
 
 const bool PrintHandwrittenLogicValueForDebug = false;

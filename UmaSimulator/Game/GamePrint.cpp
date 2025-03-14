@@ -216,7 +216,7 @@ std::string Game::getPersonStrColored(int personId, int atTrain) const
 void Game::printEvents(string s) const
 {
 #ifdef PRINT_GAME_EVENT
-  if (playerPrint) //这个不删是因为模拟器里可能也要进行ai计算
+  if (gameSettings.playerPrint) //这个不删是因为模拟器里可能也要进行ai计算
     cout << "\033[32m" + s + "\033[0m" << endl;
 #endif
 }
@@ -280,6 +280,8 @@ void Game::print() const
 {
   
   cout<<"\033[31m-------------------------------------------------------------------------------------------\033[0m"<<endl;
+  if (isEnd())
+    cout << "游戏已结束，评分 = " << to_string(finalScore()) << endl;
   cout << "当前马娘：" << GameDatabase::AllUmas[umaId].name << endl;
   cout << termcolor::green << "回合数：" << turn + 1 << "/" << TOTAL_TURN << ", 第" << turn / 24 + 1 << "年" << (turn % 24) / 2 + 1 << "月" << (turn % 2 ? "后" : "前") << "半" << termcolor::reset << endl;
   //还有几个回合比赛
@@ -354,7 +356,11 @@ void Game::print() const
     int nextGetBuff = (turn / 6 + 1) * 6;
     cout << "距离下次选心得还有 " << nextGetBuff - turn << " 回合" << endl;
   }
-
+  for (int c = 0; c < 3; c++)
+  {
+    cout << getColoredColorName(c) << "=" << lg_gauge[c] << "/8   ";
+  }
+  cout << endl;
 
   {
     string vitalColor;

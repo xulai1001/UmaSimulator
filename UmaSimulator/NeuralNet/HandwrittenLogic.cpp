@@ -17,17 +17,8 @@ const double bigFailValue = -500;
 const double outgoingBonusIfNotFullMotivation = 150;//掉心情时提高外出分数
 const double raceBonus = 150;//比赛收益，不考虑体力
 
-//const double materialValue[5] = { 0.5,0.2,0.5,0.5,0.3 };//每个料理原料的估值
-//const double materialValueScale = 1.0;//料理原料的估值乘以这个系数，方便一起改
-const double greenBonusBasicYear1 = 100;//绿色料理的加成，羁绊没满时降低系数，第一年
-const double greenBonusBasicYear2 = 100;//绿色料理的加成，第二年
-const double greenBonusBasicYear3 = 100;//绿色料理的加成，第三年
+const double lg_controlColorFactor = 35;
 
-const double cookingThreholdFactorLv2 = 0.5;//越大第二三年吃菜越激进（2级菜）
-const double cookingThreholdFactorLv3 = 1.0;//越大第三年吃菜越激进（3级菜）
-
-
-//const double xiangtanExhaustLossMax = 800;//相谈耗尽且没达标的估值扣分
 
 //一个分段函数，用来控属性
 inline double statusSoftFunction(double x, double reserve, double reserveInvX2)//reserve是控属性保留空间（降低权重），reserveInvX2是1/(2*reserve)
@@ -82,7 +73,6 @@ static void statusGainEvaluation(const Game& g, double* result) { //result依次是
 
 
 
-
 static double calculateMaxVitalEquvalant(const Game& g)
 {
   int t = g.turn;
@@ -117,382 +107,400 @@ static double vitalEvaluation(int vital, int maxVital)
     return vitalEvaluation(maxVital, maxVital);
 }
 
-static double materialEvaluation(int turn, int count) //评估吃菜的开销，决定第二三年吃不吃菜
+const double LgBuffValuesForRed[3 * 19] = { //不考虑颜色，不考虑羁绊，不考虑绿登蓝登限定加成
+  4,3,2,5, 7,6,4,7,8,7, 4,14,8,12,15,18,21,10,25,
+  4,3,2,5, 7,6,4,7,6,6, 15,22,20,17,12,20,21,10,24,
+  4,3,2,5, 7,6,4,8,5,6, 12,16,17,22,26,7,24,10,13
+};
+
+double getLgBuffColorWrongProb(int c0, int c1, int c2)
 {
-  double bias =
-    turn < 48 ? 100 :
-    turn < 60 ? 100 :
-    turn < 68 ? 60 :
-    10;
+  int total = c0 + c1 + c2;
+  assert(total <= 6);
+  if (c0 >= 4 || (c0 >= 3 && c1 > 0 && c2 > 0))
+    return 0;//百分百确定颜色
+  if (c1 >= 4 || (c1 >= 3 && c0 > 0 && c2 > 0))
+    return 1;//百分百确定颜色
+  if (c2 >= 4 || (c2 >= 3 && c0 > 0 && c1 > 0))
+    return 1;//百分百确定颜色
 
-  double scale =
-    turn < 48 ? 20 :
-    turn < 60 ? 30 :
-    turn < 68 ? 40 :
-    40;
+  if (c1 < c2)
+  {
+    int t = c1;
+    c1 = c2;
+    c2 = t;
+  }
+  if (total == 6)
+  {
+    if (c0 == 3 && c1 == 3 && c2 == 0)
+      return 0.5;
+    else if (c0 == 2 && c1 == 2 && c2 == 2)
+      return 0.667;
+    else if (c0 == 0 && c1 == 3 && c2 == 3)
+      return 1;
+    else assert(false);
+  }
+  else if (total == 5)
+  {
+    if (c0 == 3 && c1 == 2 && c2 == 0)
+      return 0.05;
+    else if (c0 == 2 && c1 == 3 && c2 == 0)
+      return 0.7;
+    else if (c0 == 2 && c1 == 2 && c2 == 1)
+      return 0.3;//不是0.5，要考虑主观能动性
+    else if (c0 == 1 && c1 == 2 && c2 == 2)
+      return 0.8;
+    else if (c0 == 0 && c1 == 3 && c2 == 2)
+      return 1;
+    else assert(false);
+  }
+  else if (total == 4)
+  {
+    if (c0 == 3 && c1 == 1 && c2 == 0)
+      return 0.01;
+    else if (c0 == 2 && c1 == 2 && c2 == 0)
+      return 0.15;
+    else if (c0 == 2 && c1 == 1 && c2 == 1)
+      return 0.1;
+    else if (c0 == 1 && c1 == 3 && c2 == 0)
+      return 0.8;
+    else if (c0 == 1 && c1 == 2 && c2 == 1)
+      return 0.5;
+    else if (c0 == 0 && c1 == 3 && c2 == 1)
+      return 1;
+    else if (c0 == 0 && c1 == 2 && c2 == 2)
+      return 0.85;
+    else assert(false);
+  }
+  else if (total == 3)
+  {
+    if (c0 == 3 && c1 == 0 && c2 == 0)
+      return 0.001;
+    else if (c0 == 2 && c1 == 1 && c2 == 0)
+      return 0.05;
+    else if (c0 == 1 && c1 == 2 && c2 == 0)
+      return 0.15;
+    else if (c0 == 1 && c1 == 1 && c2 == 1)
+      return 0.1;
+    else if (c0 == 0 && c1 == 3 && c2 == 0)
+      return 0.9;
+    else if (c0 == 0 && c1 == 2 && c2 == 1)
+      return 0.7;
+    else assert(false);
+  }
+  else if (total == 2)
+  {
+    if (c0 == 2 && c1 == 0 && c2 == 0)
+      return 0.01;
+    else if (c0 == 1 && c1 == 1 && c2 == 0)
+      return 0.1;
+    else if (c0 == 0 && c1 == 2 && c2 == 0)
+      return 0.2;
+    else assert(false);
+  }
+  else if (total == 1)
+  {
+    if (c0 == 1 && c1 == 0 && c2 == 0)
+      return 0.1;
+    else if (c0 == 0 && c1 == 1 && c2 == 0)
+      return 0.2;
+    else assert(false);
+  }
+  else if (total == 0)
+    return 0.0;
 
-  return sqrt(count + bias) * scale;
+  return 9999;
 }
 
+double getLgBuffEva(const Game& game, int idx)
+{
+  double v = LgBuffValuesForRed[idx];
+  //红登双羁绊
+  if (idx == 0 * 19 + 2 || idx == 1 * 19 + 2 || idx == 2 * 19 + 2 || idx == 2 * 19 + 10)
+  {
+    int extraJiban = game.lg_bonus.jibanAdd1 + game.lg_bonus.jibanAdd2 + (game.isAiJiao ? 2 : 0);
+    if (extraJiban < 3)
+    {
+      v += 8;
+    }
+  }
+  //控色
+  if (game.turn < 36 && game.gameSettings.color_priority >= 0)
+  {
+    int counts[3] = { 0,0,0 };
+    for (int i = 0; i < game.turn / 6; i++)
+    {
+      int16_t color = game.lg_buffs[i].getBuffColor();
+      assert(color >= 0);
+      counts[color] += 1;
+    }
+    int16_t newColor = idx / 19;
+    counts[newColor] += 1;
+
+    int count0 = counts[game.gameSettings.color_priority];
+    int count1 = counts[(game.gameSettings.color_priority + 1) % 3];
+    int count2 = counts[(game.gameSettings.color_priority + 2) % 3];
+    v -= 35 * getLgBuffColorWrongProb(count0, count1, count2);
+  }
+  return v;
+}
 
 Action Evaluator::handWrittenStrategy(const Game& game)
 {
-  return Action();
-  /*
-  Action bestAction;
-  bestAction.dishType = DISH_none;
-  bestAction.train = TRA_none;
+  auto allActions = game.getAllLegalActions();
+  if (allActions.size() == 1)
+    return allActions[0];
+  if (allActions.size() == 0)
+    return Action();
 
-  if (game.isEnd())return bestAction;
-  //比赛
-  if (game.isRacing)
+  if (game.stage == ST_decideEvent)
   {
-    if (game.turn < 72)//常规比赛不吃菜
+    if (game.decidingEvent == DecidingEvent_outing)
     {
-      bestAction.train = TRA_race;
-      return bestAction;
-    }
-    if (game.turn == TOTAL_TURN - 1)//ura最后一回合，能吃什么就吃什么
-    {
-      //从后往前挨个试
-      for (int i = DISH_g1plate; i >= 1; i--)
+      if (!game.friend_outgoingUsed[0])
+        return Action(ST_decideEvent, 1);
+      else if (!game.friend_outgoingUsed[1])
+        return Action(ST_decideEvent, 2);
+      else if (!game.friend_outgoingUsed[2])
+        return Action(ST_decideEvent, 3);
+      else if (!game.friend_outgoingUsed[3])
       {
-        bestAction.dishType = i;
-        if (game.isLegal(bestAction))return bestAction;
-      }
-      //什么都吃不了
-      bestAction.dishType = DISH_none;
-      bestAction.train = TRA_race;
-      return bestAction;
-    }
+        //第4段出行，选择格数最少的
 
+        if (game.turn < 36 && game.gameSettings.color_priority >= 0 && game.lg_gauge[game.gameSettings.color_priority] < 8)
+          return Action(ST_decideEvent, game.gameSettings.color_priority);
 
-    //ura1和ura2，算一下能不能吃g1plate
-    int g1plateCost = game.cook_win_history[4] == 2 ? 80 : 100;
-
-    bool haveG1Plate = true;
-    for (int matType = 0; matType < 5; matType++)
-    {
-      int matGain = 1.5001 * GameConstants::Cook_HarvestBasic[game.cook_farm_level[matType]] / 2;
-      if (matType == game.cook_main_race_material_type)
-        matGain += 1.5001 * GameConstants::Cook_HarvestExtra[game.cook_farm_level[matType]];
-      int reserveMin = game.turn == 73 ?
-        2 * g1plateCost + 80 - 3 * 1.5001 * GameConstants::Cook_HarvestBasic[game.cook_farm_level[matType]] / 2 :
-        2 * g1plateCost;//要保证后续的训练回合一直可以吃到g1plate
-      if (game.cook_material[matType] < g1plateCost || game.cook_material[matType] + matGain < reserveMin)
-      {
-        haveG1Plate = false;
-        break;
-      }
-    }
-    if (haveG1Plate)
-    {
-      bestAction.dishType = DISH_g1plate;
-      return bestAction;
-    }
-    else
-    {
-      //吃了下回合训练没法吃了
-      bestAction.train = TRA_race;
-      return bestAction;
-    }
-  }
-
-  //ura期间如果能吃G1Plate就直接吃，否则不吃
-  if (game.turn >= 72 && game.cook_dish==DISH_none)
-  {
-    if (game.isDishLegal(DISH_g1plate))
-    {
-      bestAction.dishType = DISH_g1plate;
-      return bestAction;
-    }
-    //否则是吃过了或者吃不了，寻找最优训练
-  }
-
-
-  //常规训练回合
-  
-  //如果吃了2级3级菜，直接选择对应训练
-  if (game.cook_dish != DISH_none)
-  {
-    int dishLevel = GameConstants::Cook_DishLevel[game.cook_dish];
-    if (dishLevel == 2 || dishLevel == 3)
-    {
-      int tra = GameConstants::Cook_DishMainTraining[game.cook_dish];
-      bestAction.dishType = DISH_none;
-      bestAction.train = tra;
-      return bestAction;
-    }
-  }
-
-
-
-
-  double bestValue = -1e4;
-
-
-  double vitalFactor = vitalFactorStart + (game.turn / double(TOTAL_TURN)) * (vitalFactorEnd - vitalFactorStart);
-
-  int maxVitalEquvalant = calculateMaxVitalEquvalant(game);
-  double vitalEvalBeforeTrain = vitalEvaluation(std::min(maxVitalEquvalant, int(game.vital)), game.maxVital);
-
-  double greenBonus =
-    game.turn < 24 ? greenBonusBasicYear1 :
-    game.turn < 48 ? greenBonusBasicYear2 :
-    greenBonusBasicYear3;
-  //羁绊没满时降低绿色料理加成
-  for (int i = 0; i < 6; i++)
-    if (game.persons[i].friendship < 80)
-      greenBonus *= 0.85;
-
-  //外出/休息
-  {
-    bool isFriendOutgoingAvailable =
-      game.friend_type != 0 &&
-      game.friend_stage >= 2 &&
-      game.friend_outgoingUsed < 5 &&
-      (!game.isXiahesu());
-    Action action;
-    action.dishType = DISH_none;
-    action.train = TRA_rest;
-    if (isFriendOutgoingAvailable || game.isXiahesu())action.train = TRA_outgoing;//有友人外出优先外出，否则休息
-
-    int vitalGain = isFriendOutgoingAvailable ? 50 : game.isXiahesu() ? 40 : 50;
-    bool addMotivation = game.motivation < 5 && action.train == TRA_outgoing;
-
-    int vitalAfterRest = std::min(maxVitalEquvalant, vitalGain + game.vital);
-    double value = vitalFactor * (vitalEvaluation(vitalAfterRest, game.maxVital) - vitalEvalBeforeTrain);
-    if (addMotivation)value += outgoingBonusIfNotFullMotivation;
-
-    bool isGreen = game.cook_train_green[action.train];
-    if (isFriendOutgoingAvailable && action.train == TRA_outgoing)
-      isGreen = true;
-    if (isGreen)value += greenBonus;
-
-    if (PrintHandwrittenLogicValueForDebug)
-      std::cout << action.toString() << " " << value << std::endl;
-    if (value > bestValue)
-    {
-      bestValue = value;
-      bestAction = action;
-    }
-  }
-  //比赛
-  Action raceAction;
-  raceAction.dishType = DISH_none;
-  raceAction.train = TRA_race;
-  if(game.isLegal(raceAction))
-  {
-    double value = raceBonus;
-
-
-    int vitalAfterRace = std::min(maxVitalEquvalant, -15 + game.vital);
-    value += vitalFactor * (vitalEvaluation(vitalAfterRace, game.maxVital) - vitalEvalBeforeTrain);
-
-    if (game.cook_train_green[TRA_race])
-      value += greenBonus;
-
-    if (PrintHandwrittenLogicValueForDebug)
-      std::cout << raceAction.toString() << " " << value << std::endl;
-    if (value > bestValue)
-    {
-      bestValue = value;
-      bestAction = raceAction;
-    }
-  }
-
-
-  //训练
-
-  //先找到最好的训练，然后计算要不要吃菜
-  {
-    double statusGainE[5];
-    statusGainEvaluation(game, statusGainE);
-
-
-    for (int tra = 0; tra < 5; tra++)
-    {
-      double value = statusGainE[tra];
-
-
-      //处理hint和羁绊
-      int cardHintNum = 0;//所有hint随机取一个，所以打分的时候取平均
-      for (int j = 0; j < 5; j++)
-      {
-        int p = game.personDistribution[tra][j];
-        if (p < 0)break;//没人
-        if (p >= 6)continue;//不是卡
-        if (game.persons[p].isHint)
-          cardHintNum += 1;
-      }
-      double hintProb = 1.0 / cardHintNum;
-      bool haveFriend = false;
-      for (int j = 0; j < 5; j++)
-      {
-        int pi = game.personDistribution[tra][j];
-        if (pi < 0)break;//没人
-        if (pi >= 6)continue;//不是卡
-        const Person& p = game.persons[pi];
-        if (p.personType == PersonType_scenarioCard)//友人卡
+        int minGauge = 100;
+        int minGaugeIdx = -1;
+        for (int i = 0; i < 3; i++)
         {
-          haveFriend = true;
-          if (game.friend_stage == FriendStage_notClicked)
-            value += 150;
-          else if(p.friendship < 60)
-            value += 100;
-          else value += 40;
-        }
-        else if (p.personType == PersonType_card)
-        {
-          if (p.friendship < 80)
+          if (game.lg_gauge[i] < minGauge)
           {
-            double jibanAdd = 7;
-            if (game.friend_type == 1)
-              jibanAdd += 1;
-            if (haveFriend && game.friend_type == 1)
-              jibanAdd += 2;
-            if (game.isAiJiao)jibanAdd += 2;
-            if (p.isHint)
-            {
-              jibanAdd += 5 * hintProb;
-              if (game.isAiJiao)jibanAdd += 2 * hintProb;
-            }
-            jibanAdd = std::min(double(80 - p.friendship), jibanAdd);
-
-            value += jibanAdd * jibanValue;
-          }
-
-          if (p.isHint)
-          {
-            double hintBonus = p.cardParam.hintLevel==0?
-              (1.6 * (statusWeights[0] + statusWeights[1] + statusWeights[2] + statusWeights[3] + statusWeights[4])) :
-              game.hintPtRate*game.ptScoreRate*p.cardParam.hintLevel;
-            value += hintBonus * hintProb;
+            minGauge = game.lg_gauge[i];
+            minGaugeIdx = i;
           }
         }
-
+        return Action(ST_decideEvent, minGaugeIdx);
       }
-
-      int bestDish = 0;
-      //考虑吃各种菜
-      //第一年：自己相应训练只有一种菜
-      //第二年：只考虑lv2菜
-      //第三年：lv2和lv3都考虑
-      //ura：大概率已经吃过g1plate了，这里不考虑吃菜
-      if (game.cook_dish == DISH_none)
+      else if (!game.friend_outgoingUsed[4])
+        return Action(ST_decideEvent, 7);
+      else throw "handWrittenStrategy友人出行已用完";
+    }
+    else if (game.decidingEvent == DecidingEvent_three)//优先补足8格
+    {
+      if (game.lg_gauge[2] == 7)
+        return Action(ST_decideEvent, 2);
+      if (game.lg_gauge[1] == 7)
+        return Action(ST_decideEvent, 1);
+      if (game.lg_gauge[0] == 7)
+        return Action(ST_decideEvent, 0);
+      if (game.lg_gauge[2] < 8)
+        return Action(ST_decideEvent, 2);
+      if (game.lg_gauge[1] < 8)
+        return Action(ST_decideEvent, 1);
+      if (game.lg_gauge[0] < 8)
+        return Action(ST_decideEvent, 0);
+      return Action(ST_decideEvent, 2);
+    }
+    else throw "handWrittenStrategy未知decidingEvent";
+  }
+  else if (game.stage == ST_chooseBuff)
+  {
+    double bestValue = -1e9;
+    int bestBuff = -1;
+    for (int i = 0; i < game.lg_pickedBuffsNum; i++)
+    {
+      double v = getLgBuffEva(game, game.lg_pickedBuffs[i]);
+      if (v > bestValue)
       {
-        if (game.turn < 24)//第一年
-        {
-          if (game.cook_dish_pt < 3000)//吃到2500pt
-          {
-            if (tra == 0)
-            {
-              if (game.isDishLegal(DISH_curry))
-                bestDish = DISH_curry;
-              else if (game.isDishLegal(DISH_sandwich))
-                bestDish = DISH_sandwich;
-            }
-            else if (tra == 1 || tra == 3)
-            {
-              if (game.isDishLegal(DISH_curry))
-                bestDish = DISH_curry;
-            }
-            else if (tra == 2 || tra == 4)
-            {
-              if (game.isDishLegal(DISH_sandwich))
-                bestDish = DISH_sandwich;
-            }
-          }
-        }
-        else if (game.turn < 72)//第二三年
-        {
-          int dish1 = DISH_speed1 + tra;
-          int dish2 = DISH_speed2 + tra;
-          assert(GameConstants::Cook_DishMainTraining[dish1] == tra);
-          assert(GameConstants::Cook_DishMainTraining[dish2] == tra);
-
-          if (game.isDishLegal(dish1))
-          {
-            int mat0 = game.cook_material[tra];
-            assert(mat0 >= 150);
-            double matEval0 = materialEvaluation(game.turn, mat0);
-            double matEval1 = materialEvaluation(game.turn, mat0 - 150);
-            double matEval2 = (game.turn >= 48 && mat0 >= 250) ? materialEvaluation(game.turn, mat0 - 250) : -99999;
-            double trValue = statusGainE[tra];
-
-            double gain1 = trValue * cookingThreholdFactorLv2 - matEval0 + matEval1;
-            double gain2 = trValue * cookingThreholdFactorLv3 - matEval0 + matEval2;
-            //std::cout << game.turn << " " << gain1 << std::endl;
-
-
-            if (gain1 > 0)
-            {
-              bestDish = dish1;
-            }
-
-            if (gain2 > 0 && gain2 > gain1)
-            {
-              bestDish = dish2;
-            }
-
-          }
-          
-        } 
+        bestValue = v;
+        bestBuff = i;
       }
+    }
+    if (game.turn == 65)
+    {
+      bestBuff = bestBuff + 10;//替换掉第一个buff
+    }
+    return Action(ST_chooseBuff, bestBuff);
+  }
+  else if (game.stage == ST_train)
+  {
+    Action bestAction;
+    bestAction.stage = ST_train;
+    bestAction.idx = -1;
 
-      //理论上，估值需要乘上菜的训练加成然后减去菜的开销，但过于复杂，懒得考虑了
-      int vitalAfterTrain = std::min(maxVitalEquvalant, game.trainVitalChange[tra] + game.vital);
-      value += vitalScaleTraining * vitalFactor * (vitalEvaluation(vitalAfterTrain, game.maxVital) - vitalEvalBeforeTrain);
-
-      //到目前为止都是训练成功的value
-      //计算吃菜之后的体力，重新计算失败率
-      double failRate = game.failRate[tra];
-      if (bestDish != 0 && failRate > 0)
-      {
-        int dishLevel = GameConstants::Cook_DishLevel[bestDish];
-        int dishMainTraining = GameConstants::Cook_DishMainTraining[bestDish];
-        int vitalGainDish = dishLevel==1?0:
-          dishLevel == 2 ? (game.cook_farm_level[dishMainTraining] >= 3 ? 5 : 0):
-          dishLevel == 3 ? (game.cook_farm_level[dishMainTraining] >= 3 ? 20 : 15): //假设一半大成功加体力
-          25;
-        failRate -= 1.7 * vitalGainDish;//粗糙估计
-        if (failRate < 0)failRate = 0;
-      }
+    if (game.isEnd())return bestAction;
+    //比赛
+    if (game.isRacing)
+    {
+      bestAction.idx = T_race;
+      return bestAction;
+    }
 
 
-      if (failRate > 0)
-      {
-        double bigFailProb = failRate;
-        if (failRate < 20)bigFailProb = 0;
-        double failValueAvg = 0.01 * bigFailProb * bigFailValue + (1 - 0.01 * bigFailProb) * smallFailValue;
-        
-        value = 0.01 * failRate * failValueAvg + (1 - 0.01 * failRate) * value;
-      }
 
-      Action action;
-      if (bestDish != DISH_none)//先吃菜，下一次再训练
-      {
-        action.dishType = bestDish;
-        action.train = TRA_none;
-      }
-      else
-      {
-        action.dishType = DISH_none;
-        action.train = tra;
-      }
 
+    double bestValue = -1e4;
+
+
+    double vitalFactor = vitalFactorStart + (game.turn / double(TOTAL_TURN)) * (vitalFactorEnd - vitalFactorStart);
+
+    int maxVitalEquvalant = calculateMaxVitalEquvalant(game);
+    double vitalEvalBeforeTrain = vitalEvaluation(std::min(maxVitalEquvalant, int(game.vital)), game.maxVital);
+
+
+    //外出/休息
+    {
+      bool isFriendOutgoingAvailable =
+        game.friend_type != 0 &&
+        game.friend_stage >= 2 &&
+        !game.friend_outgoingUsed[4] &&
+        (!game.isXiahesu());
+      Action action(ST_train,T_rest);
+      if (isFriendOutgoingAvailable || game.isXiahesu())action.idx = T_outgoing;//有友人外出优先外出，否则休息
+
+      int vitalGain = isFriendOutgoingAvailable ? 50 : game.isXiahesu() ? 40 : 50;
+      bool addMotivation = game.motivation < 5 && action.idx == T_outgoing;
+
+      int vitalAfterRest = std::min(maxVitalEquvalant, vitalGain + game.vital);
+      double value = vitalFactor * (vitalEvaluation(vitalAfterRest, game.maxVital) - vitalEvalBeforeTrain);
+      if (addMotivation)value += outgoingBonusIfNotFullMotivation;
+
+
+      if (PrintHandwrittenLogicValueForDebug)
+        std::cout << action.toString() << " " << value << std::endl;
       if (value > bestValue)
       {
         bestValue = value;
         bestAction = action;
       }
+    }
+    //比赛
+    if (game.isRaceAvailable())
+    {
+      double value = raceBonus;
+
+
+      int vitalAfterRace = std::min(maxVitalEquvalant, -15 + game.vital);
+      value += vitalFactor * (vitalEvaluation(vitalAfterRace, game.maxVital) - vitalEvalBeforeTrain);
+
+
       if (PrintHandwrittenLogicValueForDebug)
-        std::cout << action.toString() << " " << value << std::endl;
+        std::cout << " " << value << std::endl;
+      if (value > bestValue)
+      {
+        bestValue = value;
+        bestAction.idx = T_race;
+      }
     }
 
 
+    //训练
+
+    //先找到最好的训练，然后计算要不要吃菜
+    {
+      double statusGainE[5];
+      statusGainEvaluation(game, statusGainE);
+
+
+      for (int tra = 0; tra < 5; tra++)
+      {
+        double value = statusGainE[tra];
+
+
+        //处理hint和羁绊
+        int cardHintNum = 0;//所有hint随机取一个，所以打分的时候取平均
+        for (int j = 0; j < 5; j++)
+        {
+          int p = game.personDistribution[tra][j];
+          if (p < 0)break;//没人
+          if (p >= 6)continue;//不是卡
+          if (game.persons[p].isHint)
+            cardHintNum += 1;
+        }
+        double hintProb = 1.0 / cardHintNum;
+        bool haveFriend = false;
+        for (int j = 0; j < 5; j++)
+        {
+          int pi = game.personDistribution[tra][j];
+          if (pi < 0)break;//没人
+          if (pi >= 6)continue;//不是卡
+          const Person& p = game.persons[pi];
+          if (p.personType == PersonType_scenarioCard)//友人卡
+          {
+            haveFriend = true;
+            if (game.friend_stage == FriendStage_notClicked)
+              value += 150;
+            else if (p.friendship < 60)
+              value += 100;
+            else value += 40;
+          }
+          else if (p.personType == PersonType_card)
+          {
+            if (p.friendship < 80)
+            {
+              double jibanAdd = 7;
+              if (game.friend_type == 1)
+                jibanAdd += 1;
+              if (haveFriend && game.friend_type == 1)
+                jibanAdd += 2;
+              if (game.isAiJiao)jibanAdd += 2;
+              if (p.isHint)
+              {
+                jibanAdd += 5 * hintProb;
+                if (game.isAiJiao)jibanAdd += 2 * hintProb;
+              }
+              jibanAdd = std::min(double(80 - p.friendship), jibanAdd);
+
+              value += jibanAdd * jibanValue;
+            }
+
+            if (p.isHint)
+            {
+              double hintBonus = p.cardParam.hintLevel == 0 ?
+                (1.6 * (statusWeights[0] + statusWeights[1] + statusWeights[2] + statusWeights[3] + statusWeights[4])) :
+                game.gameSettings.hintPtRate * game.gameSettings.ptScoreRate * p.cardParam.hintLevel;
+              value += hintBonus * hintProb;
+            }
+          }
+
+        }
+
+
+        //理论上，估值需要乘上菜的训练加成然后减去菜的开销，但过于复杂，懒得考虑了
+        int vitalAfterTrain = std::min(maxVitalEquvalant, game.trainVitalChange[tra] + game.vital);
+        value += vitalScaleTraining * vitalFactor * (vitalEvaluation(vitalAfterTrain, game.maxVital) - vitalEvalBeforeTrain);
+
+        //到目前为止都是训练成功的value
+        //计算吃菜之后的体力，重新计算失败率
+        double failRate = game.failRate[tra];
+        
+
+        if (failRate > 0)
+        {
+          double bigFailProb = failRate;
+          if (failRate < 20)bigFailProb = 0;
+          double failValueAvg = 0.01 * bigFailProb * bigFailValue + (1 - 0.01 * bigFailProb) * smallFailValue;
+
+          value = 0.01 * failRate * failValueAvg + (1 - 0.01 * failRate) * value;
+        }
+
+        Action action(ST_train,tra);
+
+        if (value > bestValue)
+        {
+          bestValue = value;
+          bestAction = action;
+        }
+        if (PrintHandwrittenLogicValueForDebug)
+          std::cout << action.toString() << " " << value << std::endl;
+      }
+
+
+    }
+    return bestAction;
   }
-  return bestAction;
-  */
+  else throw "未知stage";
+  return Action();
 }
 

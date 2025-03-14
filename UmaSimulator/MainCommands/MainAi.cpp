@@ -262,7 +262,7 @@ void main_ai()
 				//game2.print();
 		//	}
 		//}
-		{
+		/*{
 			auto allActions = game.getAllLegalActions();
 			for (int i = 0; i < allActions.size(); i++)
 			{
@@ -274,11 +274,19 @@ void main_ai()
 				game2.print();
 				cout << endl;
 			}
-		}
+		}*/
 
 
 
 		game.print();
+		Action hw = Evaluator::handWrittenStrategy(game);
+		cout << hw.toString(game) << endl;
+		Game game2 = game;
+		game2.gameSettings.playerPrint = true;
+		game2.applyActionUntilNextDecision(rand, hw);
+		game2.print();
+
+
 		//cout << rpText["name"] << rpText["calc"] << endl;
 		auto printPolicy = [](float p)
 			{
