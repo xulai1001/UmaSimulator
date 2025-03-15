@@ -45,6 +45,47 @@ static double adjustRadicalFactor(double maxRf, int turn)
   return factor * maxRf;
 }
 
+MonteCarloSingle::MonteCarloSingle():rootGame(), stopAtTurn(-1), finished(false)
+{
+}
+
+void MonteCarloSingle::setGame(Game g, int st)
+{
+  rootGame = g;
+  stopAtTurn = st;
+  finished = false;
+}
+
+void MonteCarloSingle::step(std::mt19937_64& rand)
+{
+#if USE_BACKEND == BACKEND_NONE
+  while (true)
+  {
+    Action a = Evaluator::handWrittenStrategy(rootGame);
+    rootGame.applyActionUntilNextDecision(rand, a);
+    if (rootGame.isEnd())break;
+  }
+  finished = true;
+#else
+  TODO
+#endif
+  
+}
+
+ModelOutputValueV1 MonteCarloSingle::getFinalValue() const
+{
+  assert(finished);
+#if USE_BACKEND == BACKEND_NONE
+  assert(rootGame.isEnd());
+  ModelOutputValueV1 v;
+  v.value = rootGame.finalScore();
+  v.scoreMean = v.value;
+  v.scoreStdev = 0;
+  return v; 
+#else
+    TODO
+#endif
+}
 
 Search::Search(Model* model, int batchSize, int threadNumInGame):threadNumInGame(threadNumInGame), batchSize(batchSize)
 {
@@ -224,18 +265,28 @@ void Search::printSearchResult(bool showSearchNum)
 ModelOutputValueV1 Search::evaluateNewGame(const Game& game, std::mt19937_64& rand)
 {
 
-  throw("TODO");
-  /*
   rootGame = game;
-  //param.maxDepth = TOTAL_TURN;
-  //param.maxRadicalFactor = radicalFactor;
-  //param.samplingNum = searchN;
+  rootGame.undoRandomize();
+
+  auto actions = rootGame.getAllLegalActions();
+  assert(actions.size() == 1);
+
   double radicalFactor = adjustRadicalFactor(param.maxRadicalFactor, game.turn);
   allActionResults[0].clear();
   allActionResults[0].isLegal = true;
-  searchSingleAction(param.searchSingleMax, rand, allActionResults[0], Action::Action_RedistributeCardsForTest);
+  searchSingleAction(param.searchSingleMax, rand, allActionResults[0], actions[0]);
   return allActionResults[0].getWeightedMeanScore(adjustRadicalFactor(radicalFactor,game.turn));
-  */
+}
+
+ModelOutputValueV1 Search::evaluateAction(const Game& game, Action action, std::mt19937_64& rand)
+{
+  rootGame = game;
+
+  double radicalFactor = adjustRadicalFactor(param.maxRadicalFactor, game.turn);
+  allActionResults[0].clear();
+  allActionResults[0].isLegal = true;
+  searchSingleAction(param.searchSingleMax, rand, allActionResults[0], action);
+  return allActionResults[0].getWeightedMeanScore(adjustRadicalFactor(radicalFactor, game.turn));
 }
 
 
@@ -245,11 +296,7 @@ void Search::searchSingleAction(
   SearchResult& searchResult,
   Action action)
 {
-  /*
-  //先检查action是否合法
-  assert(action.train == TRA_redistributeCardsForTest || rootGame.isLegal(action)
-    || (rootGame.isLegal(Action(action.dishType, TRA_none)) && rootGame.isLegal(Action(DISH_none, action.train))));
-
+  
   int batchNumEachThread = calculateBatchNumEachThread(searchN);
   searchN = calculateRealSearchN(searchN);
   if (NNresultBuf.size() < searchN) NNresultBuf.resize(searchN);
@@ -295,13 +342,11 @@ void Search::searchSingleAction(
   }
 
 
-
-
   for (int i = 0; i < searchN; i++)
   {
     searchResult.addResult(NNresultBuf[i]);
   }
-  */
+  
 }
 
 void Search::searchSingleActionThread(
@@ -313,8 +358,38 @@ void Search::searchSingleActionThread(
   Action action
 )
 {
+  vector<MonteCarloSingle> mcThreads;
+  mcThreads.resize(batchSize);
+  for (int batch = 0; batch < batchNum; batch++)
+  {
+    for (int g = 0; g < batchSize; g++)
+    {
+      mcThreads[g].setGame(rootGame, -1);
+      mcThreads[g].rootGame.applyActionUntilNextDecision(rand, action);
+    }
 
-  throw("TODO");
+    while (true)
+    {
+      bool anyUnfinished = false;
+      for (int g = 0; g < batchSize; g++)
+      {
+        if (!mcThreads[g].finished)
+        {
+          mcThreads[g].step(rand);
+          anyUnfinished = true;
+        }
+      }
+      if (!anyUnfinished)break;
+    }
+
+    for (int i = 0; i < batchSize; i++)
+    {
+      resultBuf[batch * batchSize + i] = mcThreads[i].getFinalValue();
+    }
+  }
+
+
+  //throw("TODO");
   /*
   Evaluator& eva = evaluators[threadIdx];
   assert(eva.maxBatchsize == batchSize);
@@ -453,3 +528,4 @@ int Search::calculateRealSearchN(int searchN) const
 {
   return calculateBatchNumEachThread(searchN) * threadNumInGame * batchSize;
 }
+

@@ -106,6 +106,11 @@ bool Game::loadGameFromJson(std::string jsonStr)
       }
       friend_stage = j["friend_stage"];
     }
+    if (stage == ST_decideEvent && decidingEvent == DecidingEvent_three && friend_stage == FriendStage_notClicked)
+    {
+      cout << "警告：读取json时，有三选一事件但未记录第一次点击，可能小黑板是半途开启的" << endl;
+      friend_stage = FriendStage_beforeUnlockOutgoing;
+    }
     friend_qingre = j["friend_qingre"];
     friend_qingreTurn = j["friend_qingreTurn"];
 
@@ -126,6 +131,10 @@ bool Game::loadGameFromJson(std::string jsonStr)
     for (int i = 0; i < 9; i++) {
       lg_pickedBuffs[i] = j["lg_pickedBuffs"][i];
     }
+
+
+    //游戏里的显示是按顺序的
+    std::sort(lg_pickedBuffs, lg_pickedBuffs + lg_pickedBuffsNum, ScenarioBuffInfo::defaultOrder);
 
     lg_blue_active = j["lg_blue_active"];
     lg_blue_remainCount = j["lg_blue_remainCount"];

@@ -24,6 +24,17 @@ struct SearchResult
   double lastRadicalFactor;//上次计算的radicalFactor
 };
 
+struct MonteCarloSingle
+{
+  Game rootGame;
+  int stopAtTurn;
+  bool finished;
+  MonteCarloSingle();
+  void setGame(Game g, int st);
+
+  void step(std::mt19937_64& rand);
+  ModelOutputValueV1 getFinalValue() const;
+};
 
 //一局游戏是一个search
 class Search
@@ -72,6 +83,8 @@ public:
   void printSearchResult(bool showSearchNum);//打印搜索结果
 
   ModelOutputValueV1 evaluateNewGame(const Game& game,
+    std::mt19937_64& rand);//直接从第一回合开始蒙特卡洛，用于测试卡组强度或者ai强度
+  ModelOutputValueV1 evaluateAction(const Game& game, Action action,
     std::mt19937_64& rand);//直接从第一回合开始蒙特卡洛，用于测试卡组强度或者ai强度
 
   //对单个action进行蒙特卡洛，并将结果加到allActionResults里

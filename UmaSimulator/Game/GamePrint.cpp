@@ -111,6 +111,15 @@ std::string ScenarioBuffInfo::getScenarioBuffName(int16_t buffId)
   return s;
 }
 
+bool ScenarioBuffInfo::defaultOrder(int16_t a, int16_t b)
+{
+  if (a / 19 < b / 19)return true;
+  if (a / 19 > b / 19)return false;
+  if (getBuffStarStatic(a) > getBuffStarStatic(b))return true;
+  if (getBuffStarStatic(a) < getBuffStarStatic(b))return false;
+  return a < b;
+}
+
 std::string ScenarioBuffInfo::getName() const
 {
   return getScenarioBuffName(buffId);
@@ -131,6 +140,15 @@ std::string ScenarioBuffInfo::getColoredState() const
   }
 
   return name;
+}
+
+int16_t ScenarioBuffInfo::getBuffStarStatic(int16_t id)
+{
+  if (id < 0)return -1;
+  int idx = id % 19;
+  if (idx < 4)return 1;
+  else if (idx < 10)return 2;
+  else return 3;
 }
 
 std::string Game::getPersonStrColored(int personId, int atTrain) const

@@ -78,7 +78,7 @@ struct UmaData
 		  }
 		  else // is int
 		  {
-				me.races[TOTAL_TURN - 1] = true;//Grand Master（最后一战）
+				//me.races[TOTAL_TURN - 1] = true;//Grand Master（最后一战）
 
 				for (auto turn : j["races"])
 				{

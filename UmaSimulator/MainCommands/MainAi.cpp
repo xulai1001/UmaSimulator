@@ -146,8 +146,8 @@ void main_ai()
 		GameConfig::radicalFactor
 	);
 	Search search(modelptr, GameConfig::batchSize, GameConfig::threadNum, searchParam);
-	Search search2(modelptr, GameConfig::batchSize, GameConfig::threadNum, searchParam);
-	Evaluator evaSingle(modelSingleptr, 1);
+	//Search search2(modelptr, GameConfig::batchSize, GameConfig::threadNum, searchParam);
+	//Evaluator evaSingle(modelSingleptr, 1);
 
 	bool useWebsocket = GameConfig::communicationMode == "websocket";
 	websocket ws(useWebsocket ? "http://127.0.0.1:4693" : "");
@@ -252,7 +252,7 @@ void main_ai()
 		}
 
 		cout << endl;
-		
+
 		//if (game.stage == ST_train)
 		//{
 		//	Game game2 = game;
@@ -278,13 +278,7 @@ void main_ai()
 
 
 
-		game.print();
-		Action hw = Evaluator::handWrittenStrategy(game);
-		cout << hw.toString(game) << endl;
-		Game game2 = game;
-		game2.gameSettings.playerPrint = true;
-		game2.applyActionUntilNextDecision(rand, hw);
-		game2.print();
+		//game.print();
 
 
 		//cout << rpText["name"] << rpText["calc"] << endl;
@@ -326,14 +320,15 @@ void main_ai()
 			};
 
 		//search.runSearch(game, GameConfig::searchN, TOTAL_TURN, 0, rand);
-		if (game.turn < TOTAL_TURN )
+		*/
+		if (game.turn < TOTAL_TURN)
 		{
 
 			//备份回合信息用于debug
 			try
 			{
 				std::filesystem::create_directories("log");
-				string fname = "log/turn" + to_string(game.turn) + (game.cook_dish == DISH_none ? "a" : "b") + ".json";
+				string fname = "log/turn" + to_string(game.turn) + "_" + to_string(game.stage) + ".json";
 				auto ofs = ofstream(fname);
 				ofs.write(jsonStr.data(), jsonStr.size());
 				ofs.close();
@@ -348,136 +343,232 @@ void main_ai()
 			//game2.print();
 			//game = game2;
 
-			evaSingle.gameInput[0] = game;
-			evaSingle.evaluateSelf(1, searchParam);
-			Action hl = evaSingle.actionResults[0];
-			if (GameConfig::modelPath == "")
-				cout << "手写逻辑: " << hl.toString() << endl;
-			else
-				cout << "纯神经网络: " << hl.toString() << endl;
+			Action hw = Evaluator::handWrittenStrategy(game);
+			//cout << "手写逻辑: " << hw.toString(game) << endl;
+			//Game game2 = game;
+			//game2.gameSettings.playerPrint = true;
+			//game2.applyActionUntilNextDecision(rand, hw);
+			//game2.print();
 
-			search.param.maxDepth = game.turn < 70 - GameConfig::maxDepth ? GameConfig::maxDepth : 2 * TOTAL_TURN;
-			Action bestAction = search.runSearch(game, rand);
-			cout << "蒙特卡洛: " << bestAction.toString() << endl;
-
-
-			//如果重新分配卡组，平均分是多少，与当前回合对比可以获得运气情况
-			ModelOutputValueV1 trainAvgScore = { -1,-1,-1 };
-			double trainLuckRate = -1;
-
-			if (game.cook_dish == DISH_none)
+			auto allAction = game.getAllLegalActions();
+			vector<ModelOutputValueV1> actionValues;
+			int bestIdx = -1;
+			double bestValue = -1e9;
+			for (int i = 0; i < allAction.size(); i++)
 			{
-				trainAvgScore = search2.evaluateNewGame(game, rand);
-
-				//重新分配卡组，有多大概率比这回合好
-				if (modelptr != NULL)//只有神经网络版支持此功能
+				Action act = allAction[i];
+				cout << act.toString(game) << " : ";
+				auto v = search.evaluateAction(game, act, rand);
+				cout << v.value << endl;
+				actionValues.push_back(v);
+				if (v.value > bestValue)
 				{
-					int64_t count = 0;
-					int64_t luckCount = 0;
-					auto& eva = search2.evaluators[0];
-					eva.gameInput.assign(eva.maxBatchsize, game);
-					eva.evaluateSelf(0, search2.param);
-					double refValue = eva.valueResults[0].scoreMean;//当前训练的平均分
-
-					int batchN = 1 + 4 * GameConfig::searchSingleMax / eva.maxBatchsize;
-					for (int b = 0; b < batchN; b++)
-					{
-						for (int i = 0; i < eva.maxBatchsize; i++)
-						{
-							eva.gameInput[i] = game;
-							eva.gameInput[i].randomDistributeCards(rand);
-						}
-						eva.evaluateSelf(0, search2.param);
-						for (int i = 0; i < eva.maxBatchsize; i++)
-						{
-							count++;
-							if (eva.valueResults[i].scoreMean < refValue)
-								luckCount++;
-						}
-
-					}
-					trainLuckRate = double(luckCount) / count;
-				}
-			}
-			double maxMean = -1e7;
-			double maxValue = -1e7;
-			for (int i = 0; i < Action::MAX_ACTION_TYPE; i++)
-			{
-				if (!search.allActionResults[i].isLegal)continue;
-				auto v = search.allActionResults[i].lastCalculate;
-				if (v.value > maxValue)
-					maxValue = v.value;
-				if (v.scoreMean > maxMean)
-					maxMean = v.scoreMean;
-			}
-
-			Action restAction;
-			restAction.dishType = DISH_none;
-			restAction.train = TRA_rest;
-			Action outgoingAction;
-			outgoingAction.dishType = DISH_none;
-			outgoingAction.train = TRA_outgoing;
-			//休息和外出里面分最高的那个。这个数字作为显示参考
-			double restValue = search.allActionResults[restAction.toInt()].lastCalculate.value;
-			double outgoingValue = search.allActionResults[outgoingAction.toInt()].lastCalculate.value;
-			if (outgoingValue > restValue)
-				restValue = outgoingValue;
-
-
-			wstring strToSendURA = L"UMAAI_COOK";
-			strToSendURA += L" " + to_wstring(game.turn) + L" " + to_wstring(maxMean) + L" " + to_wstring(scoreFirstTurn) + L" " + to_wstring(scoreLastTurn) + L" " + to_wstring(maxValue);
-			if (game.turn == 0 || scoreFirstTurn == 0)
-			{
-				//cout << "评分预测: 平均\033[1;32m" << int(maxMean) << "\033[0m" << "，乐观\033[1;36m+" << int(maxValue - maxMean) << "\033[0m" << endl;
-				scoreFirstTurn = search.allActionResults[outgoingAction.toInt()].lastCalculate.scoreMean;
-			}
-			//else
-			{
-				cout << "运气指标：" << " | 本局：";
-				print_luck(maxMean - scoreFirstTurn);
-				cout << " | 本回合：" << maxMean - scoreLastTurn;
-				if (trainAvgScore.value >= 0) {
-					cout << "（训练：\033[1;36m" << int(maxMean - trainAvgScore.scoreMean) << "\033[0m";
-
-					if (trainLuckRate >= 0)
-					{
-						cout << fixed << setprecision(2) << " 超过了\033[1;36m" << trainLuckRate * 100 << "%\033[0m";
-					}
-					cout << "）";
-				}
-				cout	<< " | 评分预测: \033[1;32m" << maxMean << "\033[0m"
-					<< "（乐观\033[1;36m+" << int(maxValue - maxMean) << "\033[0m）" << endl;
-
-			}
-			cout.flush();
-			scoreLastTurn = maxMean;
-
-			for (int tr = 0; tr < 8; tr++)
-			{
-				Action a;
-				a.dishType = DISH_none;
-				a.train = tr;
-				double value = search.allActionResults[a.toInt()].lastCalculate.value;
-				strToSendURA += L" " + to_wstring(tr) + L" " + to_wstring(value - restValue) + L" " + to_wstring(maxValue - restValue);
-				printValue(a.toInt(), value - restValue, maxValue - restValue);
-				//cout << "(" << search.allActionResults[a.toInt()].num << ")";
-				//cout << "(±" << 2 * int(Search::expectedSearchStdev / sqrt(search.allActionResults[a.toInt()].num)) << ")";
-				if (tr == TRA_race && game.isLegal(a))
-				{
-					cout << "(比赛亏损:\033[1;36m" << maxValue - value << "\033[0m）";
+					bestValue = v.value;
+					bestIdx = i;
 				}
 			}
 			cout << endl;
-
-
-			//strToSendURA = L"0.1234567 5.4321";
-			if (useWebsocket)
+			Action bestAction = allAction[bestIdx];
+			cout << "AI建议：" << bestAction.toString(game) << endl;
+			if (bestAction.stage == ST_train && bestAction.idx == T_outgoing)
 			{
-				wstring s = L"{\"CommandType\":1,\"Command\":\"PrintUmaAiResult\",\"Parameters\":[\"" + strToSendURA + L"\"]}";
-				//ws.send(s);
+				Game game2 = game;
+				game2.applyActionUntilNextDecision(rand, bestAction);
+				if (game2.stage == ST_decideEvent && game2.decidingEvent == DecidingEvent_outing)
+				{
+					auto allAction2 = game2.getAllLegalActions();
+					vector<ModelOutputValueV1> actionValues2;
+					int bestIdx2 = -1;
+					double bestValue2 = -1e9;
+					for (int i = 0; i < allAction2.size(); i++)
+					{
+						Action act2 = allAction2[i];
+						cout << act2.toString(game2) << " : ";
+						auto v = search.evaluateAction(game2, act2, rand);
+						cout << v.value << endl;
+						actionValues2.push_back(v);
+						if (v.value > bestValue2)
+						{
+							bestValue2 = v.value;
+							bestIdx2 = i;
+						}
+					}
+					Action bestAction2 = allAction2[bestIdx2];
+					cout << "AI建议：" << bestAction2.toString(game2) << endl;
+				}
 			}
-			
+
+
+
+			auto maxV = actionValues[bestIdx];
+
+
+
+			if (game.turn == 0 || scoreFirstTurn == 0)
+			{
+				cout << "评分预测: 平均\033[1;32m" << int(maxV.scoreMean) << "\033[0m" << "，乐观\033[1;36m+" << int(maxV.value - maxV.scoreMean) << "\033[0m" << endl;
+				scoreFirstTurn = maxV.scoreMean;
+			}
+			else
+			{
+				cout << "运气指标：" << " | 本局：";
+				print_luck(maxV.scoreMean - scoreFirstTurn);
+				cout << " | 本回合：" << maxV.scoreMean - scoreLastTurn;
+				if (game.stage==ST_train) {
+					Game game3 = game;
+					game3.undoRandomize();
+					auto v3= search.evaluateNewGame(game3, rand);
+					cout << "（训练：\033[1;36m" << int(maxV.scoreMean - v3.scoreMean) << "\033[0m";
+				//
+				//	if (trainLuckRate >= 0)
+				//	{
+				//		cout << fixed << setprecision(2) << " 超过了\033[1;36m" << trainLuckRate * 100 << "%\033[0m";
+				//	}
+				//	cout << "）";
+				}
+				cout << " | 评分预测: \033[1;32m" << maxV.scoreMean << "\033[0m"
+					<< "（乐观\033[1;36m+" << int(maxV.value - maxV.scoreMean) << "\033[0m）" << endl;
+
+			}
+			scoreLastTurn = maxV.scoreMean;
+
+			//Game game4 = game;
+			//game4.gameSettings.playerPrint = true;
+			//game4.applyActionUntilNextDecision(rand, bestAction);
+			//game4.print();
+
+			/*
+
+		evaSingle.gameInput[0] = game;
+		evaSingle.evaluateSelf(1, searchParam);
+		Action hl = evaSingle.actionResults[0];
+		if (GameConfig::modelPath == "")
+			cout << "手写逻辑: " << hl.toString() << endl;
+		else
+			cout << "纯神经网络: " << hl.toString() << endl;
+
+		search.param.maxDepth = game.turn < 70 - GameConfig::maxDepth ? GameConfig::maxDepth : 2 * TOTAL_TURN;
+		Action bestAction = search.runSearch(game, rand);
+		cout << "蒙特卡洛: " << bestAction.toString() << endl;
+
+
+		//如果重新分配卡组，平均分是多少，与当前回合对比可以获得运气情况
+		ModelOutputValueV1 trainAvgScore = { -1,-1,-1 };
+		double trainLuckRate = -1;
+
+		if (game.cook_dish == DISH_none)
+		{
+			trainAvgScore = search2.evaluateNewGame(game, rand);
+
+			//重新分配卡组，有多大概率比这回合好
+			if (modelptr != NULL)//只有神经网络版支持此功能
+			{
+				int64_t count = 0;
+				int64_t luckCount = 0;
+				auto& eva = search2.evaluators[0];
+				eva.gameInput.assign(eva.maxBatchsize, game);
+				eva.evaluateSelf(0, search2.param);
+				double refValue = eva.valueResults[0].scoreMean;//当前训练的平均分
+
+				int batchN = 1 + 4 * GameConfig::searchSingleMax / eva.maxBatchsize;
+				for (int b = 0; b < batchN; b++)
+				{
+					for (int i = 0; i < eva.maxBatchsize; i++)
+					{
+						eva.gameInput[i] = game;
+						eva.gameInput[i].randomDistributeCards(rand);
+					}
+					eva.evaluateSelf(0, search2.param);
+					for (int i = 0; i < eva.maxBatchsize; i++)
+					{
+						count++;
+						if (eva.valueResults[i].scoreMean < refValue)
+							luckCount++;
+					}
+
+				}
+				trainLuckRate = double(luckCount) / count;
+			}
 		}
-		*/
+		double maxMean = -1e7;
+		double maxValue = -1e7;
+		for (int i = 0; i < Action::MAX_ACTION_TYPE; i++)
+		{
+			if (!search.allActionResults[i].isLegal)continue;
+			auto v = search.allActionResults[i].lastCalculate;
+			if (v.value > maxValue)
+				maxValue = v.value;
+			if (v.scoreMean > maxMean)
+				maxMean = v.scoreMean;
+		}
+
+		Action restAction;
+		restAction.dishType = DISH_none;
+		restAction.train = TRA_rest;
+		Action outgoingAction;
+		outgoingAction.dishType = DISH_none;
+		outgoingAction.train = TRA_outgoing;
+		//休息和外出里面分最高的那个。这个数字作为显示参考
+		double restValue = search.allActionResults[restAction.toInt()].lastCalculate.value;
+		double outgoingValue = search.allActionResults[outgoingAction.toInt()].lastCalculate.value;
+		if (outgoingValue > restValue)
+			restValue = outgoingValue;
+
+
+		wstring strToSendURA = L"UMAAI_COOK";
+		strToSendURA += L" " + to_wstring(game.turn) + L" " + to_wstring(maxMean) + L" " + to_wstring(scoreFirstTurn) + L" " + to_wstring(scoreLastTurn) + L" " + to_wstring(maxValue);
+		if (game.turn == 0 || scoreFirstTurn == 0)
+		{
+			//cout << "评分预测: 平均\033[1;32m" << int(maxMean) << "\033[0m" << "，乐观\033[1;36m+" << int(maxValue - maxMean) << "\033[0m" << endl;
+			scoreFirstTurn = search.allActionResults[outgoingAction.toInt()].lastCalculate.scoreMean;
+		}
+		//else
+		{
+			cout << "运气指标：" << " | 本局：";
+			print_luck(maxMean - scoreFirstTurn);
+			cout << " | 本回合：" << maxMean - scoreLastTurn;
+			if (trainAvgScore.value >= 0) {
+				cout << "（训练：\033[1;36m" << int(maxMean - trainAvgScore.scoreMean) << "\033[0m";
+
+				if (trainLuckRate >= 0)
+				{
+					cout << fixed << setprecision(2) << " 超过了\033[1;36m" << trainLuckRate * 100 << "%\033[0m";
+				}
+				cout << "）";
+			}
+			cout	<< " | 评分预测: \033[1;32m" << maxMean << "\033[0m"
+				<< "（乐观\033[1;36m+" << int(maxValue - maxMean) << "\033[0m）" << endl;
+
+		}
+		cout.flush();
+		scoreLastTurn = maxMean;
+
+		for (int tr = 0; tr < 8; tr++)
+		{
+			Action a;
+			a.dishType = DISH_none;
+			a.train = tr;
+			double value = search.allActionResults[a.toInt()].lastCalculate.value;
+			strToSendURA += L" " + to_wstring(tr) + L" " + to_wstring(value - restValue) + L" " + to_wstring(maxValue - restValue);
+			printValue(a.toInt(), value - restValue, maxValue - restValue);
+			//cout << "(" << search.allActionResults[a.toInt()].num << ")";
+			//cout << "(±" << 2 * int(Search::expectedSearchStdev / sqrt(search.allActionResults[a.toInt()].num)) << ")";
+			if (tr == TRA_race && game.isLegal(a))
+			{
+				cout << "(比赛亏损:\033[1;36m" << maxValue - value << "\033[0m）";
+			}
+		}
+		cout << endl;
+
+
+		//strToSendURA = L"0.1234567 5.4321";
+		if (useWebsocket)
+		{
+			wstring s = L"{\"CommandType\":1,\"Command\":\"PrintUmaAiResult\",\"Parameters\":[\"" + strToSendURA + L"\"]}";
+			//ws.send(s);
+		}*/
+
+		}
+	
 	}
 }

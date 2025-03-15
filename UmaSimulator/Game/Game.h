@@ -31,8 +31,10 @@ struct ScenarioBuffInfo
   std::string getName() const;
   std::string getColoredState() const;
 
+  static int16_t getBuffStarStatic(int16_t id);
   static std::string buffDescriptions[57];
   static std::string getScenarioBuffName(int16_t buffId);
+  static bool defaultOrder(int16_t a, int16_t b);
 };
 
 //剧本加成   //，只考虑五个训练共有的部分，按人头的不算
@@ -330,6 +332,7 @@ public:
   //原则上这几个private就行，如果private在某些地方非常不方便那就改成public
   void calculateScenarioBonus();//计算剧本buff的各种加成
   void randomizeTurn(std::mt19937_64& rand);//回合初的随机化，随机分配人头、随机颜色等，ST_distribute->ST_train
+  void undoRandomize();//准备重新分配，ST_train->ST_distribute或ST_chooseBuff->ST_pickBuff
   void randomDistributeHeads(std::mt19937_64& rand);//随机分配人头
   void randomInviteHeads(std::mt19937_64& rand, int num);//随机摇num个人头
   void inviteOneHead(std::mt19937_64& rand, int idx);//摇personId=idx这个人头

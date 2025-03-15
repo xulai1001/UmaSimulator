@@ -34,9 +34,9 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
   for (int i = 0; i < TOTAL_TURN; i++)
     isRacingTurn[i] = GameDatabase::AllUmas[umaId].races[i] == TURN_RACE;
   assert(isRacingTurn[11] == true);//出道赛
-  isRacingTurn[TOTAL_TURN - 5] = true;//ura1
-  isRacingTurn[TOTAL_TURN - 3] = true;//ura2
-  isRacingTurn[TOTAL_TURN - 1] = true;//ura3
+  //isRacingTurn[TOTAL_TURN - 5] = true;//ura1
+  //isRacingTurn[TOTAL_TURN - 3] = true;//ura2
+  //isRacingTurn[TOTAL_TURN - 1] = true;//ura3
 
   for (int i = 0; i < 5; i++)
     fiveStatusBonus[i] = GameDatabase::AllUmas[umaId].fiveStatusBonus[i];
@@ -180,8 +180,8 @@ void Game::calculateScenarioBonus()
 
 void Game::randomizeTurn(std::mt19937_64& rand)
 {
-  if (stage != ST_distribute && stage != ST_train)
-    throw "随机分配卡组应当在ST_distribute或ST_train时进行";
+  if (stage != ST_distribute)
+    throw "随机分配卡组应当在ST_distribute";
   randomDistributeHeads(rand);
   randomInviteHeads(rand, lg_bonus.extraHead);
 
@@ -234,6 +234,14 @@ void Game::randomizeTurn(std::mt19937_64& rand)
 
   calculateTrainingValue();
   stage = ST_train;
+}
+
+void Game::undoRandomize()
+{
+  if (stage == ST_train)
+    stage = ST_distribute;
+  else if (stage == ST_chooseBuff)
+    stage = ST_pickBuff;
 }
 
 void Game::randomDistributeHeads(std::mt19937_64& rand)
@@ -497,7 +505,12 @@ void Game::inviteOneHead(std::mt19937_64& rand, int idx)
   {
     triedTimes++;
     if (triedTimes > 1000)
-      throw "inviteOneHead尝试1000次失败";
+    {
+      //非常极端的情况：摇6个头，需要摇团卡，但是2个训练满人，2个训练理事长记者，1个训练是团卡自己
+      //约50万局一遇
+      return;
+      //throw "inviteOneHead尝试1000次失败";
+    }
     int atTrain = rand() % 5;
     //检查是否合规
     bool isOK = true;
@@ -750,6 +763,7 @@ void Game::runFriendOutgoing(std::mt19937_64& rand, int idx, int subIdx = -1)
 {
   assert(friend_type!=0 && friend_stage >= FriendStage_afterUnlockOutgoing && !friend_outgoingUsed[idx]);
   int pid = friend_personId;
+  friend_outgoingUsed[idx] = true;
   if (idx == 0)
   {
     addVitalMax(4);
@@ -1122,10 +1136,25 @@ void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool succes
         addJiBan(p, 7, 0);
         if (persons[p].isHint)
           hintCards.push_back(p);
+
+        //清空闪彩人头的羁绊
+        if (lg_mainColor == L_red && isCardShining(p, train) && lg_red_friendsGauge[p] == 20)
+        {
+          lg_red_friendsGauge[p] = 0;
+          if (lg_red_friendsLv[p] < 9)
+            lg_red_friendsLv[p] += 1;
+        }
       }
       else if (p >= PS_npc0 && p <= PS_npc4)//npc
       {
         addJiBan(p, 7, 0);
+        //清空闪彩人头的羁绊
+        if (lg_mainColor == L_red && isCardShining(p, train) && lg_red_friendsGauge[p] == 20)
+        {
+          lg_red_friendsGauge[p] = 0;
+          if (lg_red_friendsLv[p] < 9)
+            lg_red_friendsLv[p] += 1;
+        }
       }
       else if (p == PS_noncardYayoi)//非卡理事长
       {
@@ -1147,6 +1176,8 @@ void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool succes
         assert(false);
       }
     }
+
+
 
     if (hintCards.size() > 0)
     {
@@ -2129,6 +2160,11 @@ void Game::setMainColorTurn36(std::mt19937_64& rand)
         lg_red_friendsGauge[i] = 20;
       }
     }
+    for (int i = PS_npc0; i <= PS_npc4; i++)
+    {
+      lg_red_friendsLv[i] = 1;
+      lg_red_friendsGauge[i] = 20;
+    }
   }
   else if (lg_mainColor == L_blue)
   {
@@ -2144,10 +2180,12 @@ void Game::setMainColorTurn36(std::mt19937_64& rand)
 
 void Game::randomPickBuff(std::mt19937_64& rand)
 {
-  if (stage != ST_pickBuff && stage != ST_chooseBuff)
+  if (stage != ST_pickBuff)
     throw "当前stage不允许randomPickBuff"; 
   stage = ST_chooseBuff;
   lg_pickedBuffsNum = 0;
+  for (int i = 0; i < 9; i++)
+    lg_pickedBuffs[i] = -1;
   int maxStar = turn <= 12 ? 1 : turn <= 24 ? 2 : 3;
   for (int color = 0; color < 3; color++)
   {
@@ -2244,6 +2282,8 @@ void Game::chooseBuff(int16_t idx)
   lg_pickedBuffsNum = 0;
   for (int i = 0; i < 9; i++)
     lg_pickedBuffs[i] = -1;
+  for (int i = 0; i < 3; i++)
+    lg_gauge[i] = 0;
   stage = ST_event;
 }
 
@@ -2478,6 +2518,8 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
         friend_qingreTurn = 0;
         printEvents("团卡情热结束");
       }
+      else
+        friend_qingreTurn += 1;
     }
 
   }
@@ -2510,7 +2552,7 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
       addVital(-10);
       printEvents("模拟支援卡随机事件：体力-10");
     }
-    if (randBool(rand, 0.03))
+    if (randBool(rand, 0.003))
     {
       isPositiveThinking = true;
       printEvents("模拟支援卡随机事件：获得“正向思考”");
@@ -2546,7 +2588,7 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
   }
 
   //掉心情
-  if (turn >= 12 && randBool(rand, 0.04))
+  if (turn >= 12 && randBool(rand, 0.05))
   {
     addMotivation(-1);
     printEvents("模拟随机事件：\033[0m\033[33m心情-1\033[0m\033[32m");
@@ -2794,11 +2836,7 @@ int16_t ScenarioBuffInfo::getBuffColor() const
 
 int16_t ScenarioBuffInfo::getBuffStar() const
 {
-  if (buffId < 0)return -1;
-  int idx = buffId % 19;
-  if (idx < 4)return 1;
-  else if (idx < 10)return 2;
-  else return 3;
+  return getBuffStarStatic(buffId);
 }
 
 
@@ -2817,6 +2855,16 @@ Action::Action(int st, int idx):stage(st), idx(idx)
 std::string Action::toString() const
 {
   return "Stage"+to_string(stage) + "_Idx" + to_string(idx);
+}
+
+static string getColoredColorName(int color)
+{
+  if (color == L_red)
+    return "\033[1;31m红\033[0m";
+  else if (color == L_green)
+    return "\033[1;32m绿\033[0m";
+  else if (color == L_blue)
+    return "\033[1;34m蓝\033[0m";
 }
 
 std::string Action::toString(const Game& game) const
@@ -2870,13 +2918,23 @@ std::string Action::toString(const Game& game) const
     {
       if (idx == 0)
         return "不选";
-      int loc = idx / 10;
-      int idx2 = idx % 10;
-      return "选第" + to_string(idx2+1) + "个替换掉第" + to_string(loc) + "个";
+    }
+
+    int t = game.turn == 65 ? idx % 10 : idx;
+    int c = game.lg_pickedBuffs[t] / 19;//颜色
+    int ord = 0;
+    for (int i = 0; i < t; i++)
+    {
+      if (game.lg_pickedBuffs[i] / 19 == c)
+        ord += 1;
+    }
+    if (game.turn == 65)
+    {
+      return "选" + getColoredColorName(c) + "色第" + to_string(ord+1) + "个替换掉第" + to_string(idx/10) + "个";
     }
     else
     {
-      return "选第" + to_string(idx+1) + "个";
+      return "选" + getColoredColorName(c) + "色第" + to_string(ord + 1) + "个";
     }
   }
   else

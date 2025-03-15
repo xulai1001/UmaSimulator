@@ -4,20 +4,20 @@
 #include "../Search/Search.h"
 
 
-const double statusWeights[5] = { 5,5,7,6,6 };
-const double jibanValue = 3.5;
-const double vitalFactorStart = 2;
-const double vitalFactorEnd = 4;
-const double vitalScaleTraining = 1;
+const double statusWeights[5] = { 6,6,6,6,6 };
+const double jibanValue = 3;
+const double vitalFactorStart = 3;
+const double vitalFactorEnd = 10;
+const double vitalScaleTraining = 1.0;
 
-const double reserveStatusFactor = 40;//控属性时给每回合预留多少，从0逐渐增加到这个数字
+const double reserveStatusFactor = 50;//控属性时给每回合预留多少，从0逐渐增加到这个数字
 
-const double smallFailValue = -150;
-const double bigFailValue = -500;
-const double outgoingBonusIfNotFullMotivation = 150;//掉心情时提高外出分数
+const double smallFailValue = -300;
+const double bigFailValue = -800;
+const double outgoingBonusIfNotFullMotivation = 300;//掉心情时提高外出分数
 const double raceBonus = 150;//比赛收益，不考虑体力
 
-const double lg_controlColorFactor = 35;
+const double lg_controlColorFactor = 50;
 
 
 //一个分段函数，用来控属性
@@ -76,19 +76,15 @@ static void statusGainEvaluation(const Game& g, double* result) { //result依次是
 static double calculateMaxVitalEquvalant(const Game& g)
 {
   int t = g.turn;
-  if (g.turn >= 76)
-    return 0;//最后一回合不需要体力
-  if (g.turn > 71)
-    return 10;//ura期间可以吃菜
-  if (g.turn == 71)
-    return 30;//ura前最后一回合，30体力进就行
+  if (g.turn == 72)
+    return 0;//最后一回合
   int nonRaceTurn = 0;//71回合前，每个训练回合按消耗15体力计算
-  for (int i = 71; i > g.turn; i--)
+  for (int i = 72; i > g.turn; i--)
   {
     if (!g.isRacingTurn[i])nonRaceTurn++;
     if (nonRaceTurn >= 6)break;
   }
-  int maxVitalEq = 30 + 15 * nonRaceTurn;
+  int maxVitalEq = 28 + 25 * nonRaceTurn;
   if(maxVitalEq>g.maxVital)
     maxVitalEq = g.maxVital;
   return maxVitalEq;
@@ -108,9 +104,9 @@ static double vitalEvaluation(int vital, int maxVital)
 }
 
 const double LgBuffValuesForRed[3 * 19] = { //不考虑颜色，不考虑羁绊，不考虑绿登蓝登限定加成
-  4,3,2,5, 7,6,4,7,8,7, 4,14,8,12,15,18,21,10,25,
-  4,3,2,5, 7,6,4,7,6,6, 15,22,20,17,12,20,21,10,24,
-  4,3,2,5, 7,6,4,8,5,6, 12,16,17,22,26,7,24,10,13
+  1,3,2,4, 7,6,4,7,8,7, 4,10,6,9,15,14,21,8,25,
+  1,3,2,4, 7,6,4,8,6,4, 15,22,20,17,12,16,21,10,24,
+  1,3,2,6, 7,6,4,8,4,5, 12,14,15,22,26,7,24,10,13
 };
 
 double getLgBuffColorWrongProb(int c0, int c1, int c2)
@@ -181,7 +177,7 @@ double getLgBuffColorWrongProb(int c0, int c1, int c2)
     else if (c0 == 1 && c1 == 2 && c2 == 0)
       return 0.15;
     else if (c0 == 1 && c1 == 1 && c2 == 1)
-      return 0.1;
+      return 0.13;
     else if (c0 == 0 && c1 == 3 && c2 == 0)
       return 0.9;
     else if (c0 == 0 && c1 == 2 && c2 == 1)
@@ -196,6 +192,8 @@ double getLgBuffColorWrongProb(int c0, int c1, int c2)
       return 0.1;
     else if (c0 == 0 && c1 == 2 && c2 == 0)
       return 0.2;
+    else if (c0 == 0 && c1 == 1 && c2 == 1)
+      return 0.15;
     else assert(false);
   }
   else if (total == 1)
@@ -221,7 +219,7 @@ double getLgBuffEva(const Game& game, int idx)
     int extraJiban = game.lg_bonus.jibanAdd1 + game.lg_bonus.jibanAdd2 + (game.isAiJiao ? 2 : 0);
     if (extraJiban < 3)
     {
-      v += 8;
+      v += 3.5;
     }
   }
   //控色
@@ -240,7 +238,7 @@ double getLgBuffEva(const Game& game, int idx)
     int count0 = counts[game.gameSettings.color_priority];
     int count1 = counts[(game.gameSettings.color_priority + 1) % 3];
     int count2 = counts[(game.gameSettings.color_priority + 2) % 3];
-    v -= 35 * getLgBuffColorWrongProb(count0, count1, count2);
+    v -= lg_controlColorFactor * getLgBuffColorWrongProb(count0, count1, count2);
   }
   return v;
 }
@@ -268,7 +266,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
         //第4段出行，选择格数最少的
 
         if (game.turn < 36 && game.gameSettings.color_priority >= 0 && game.lg_gauge[game.gameSettings.color_priority] < 8)
-          return Action(ST_decideEvent, game.gameSettings.color_priority);
+          return Action(ST_decideEvent, 4 + game.gameSettings.color_priority);
 
         int minGauge = 100;
         int minGaugeIdx = -1;
@@ -280,7 +278,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
             minGaugeIdx = i;
           }
         }
-        return Action(ST_decideEvent, minGaugeIdx);
+        return Action(ST_decideEvent, 4 + minGaugeIdx);
       }
       else if (!game.friend_outgoingUsed[4])
         return Action(ST_decideEvent, 7);
@@ -431,9 +429,12 @@ Action Evaluator::handWrittenStrategy(const Game& game)
             haveFriend = true;
             if (game.friend_stage == FriendStage_notClicked)
               value += 150;
-            else if (p.friendship < 60)
+            else if (game.friend_qingre)
+              value += 30;
+            else if (game.friend_stage == FriendStage_afterUnlockOutgoing)
               value += 100;
-            else value += 40;
+            else 
+              value += 20;
           }
           else if (p.personType == PersonType_card)
           {
