@@ -1034,8 +1034,8 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
         printEvents("Cannot race now.");
         return false;
       }
-      addAllStatus(1);//武者振
-      runRace(2, 40);//粗略的近似
+      //addAllStatus(1);//武者振
+      runRace(2, 30);//粗略的近似
 
       //扣体固定15
       addVital(-15);
@@ -2351,6 +2351,7 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
   else if (turn == 23)//第一年年底
   {
     runRace(30, 125);
+    skillScore += 170;//固有技能等级+1
     addVital(25);
     for (int i = 0; i < 5; i++)
       addTrainingLevelCount(i, 4);
@@ -2371,9 +2372,15 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
     setMainColorTurn36(rand);
     printEvents("第二年合宿开始");
   }
+  else if (turn == 42)
+  {
+    addAllStatus(5);
+    skillPt += 50;
+  }
   else if (turn == 47)//第二年年底
   {
     runRace(45, 210);
+    skillScore += 170;//固有技能等级+1
     addVital(35);
     for (int i = 0; i < 5; i++)
       addTrainingLevelCount(i, 4);
@@ -2429,6 +2436,9 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
   }
   else if (turn == 59)
   {
+    //addAllStatus(10);
+    //skillPt += 100;
+  
     printEvents("第三年合宿开始");
   }
   else if (turn == 70)
@@ -2502,6 +2512,7 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
       double unlockOutgoingProb = p.friendship >= 60 ?
         GameConstants::FriendUnlockOutgoingProbEveryTurnHighFriendship :
         GameConstants::FriendUnlockOutgoingProbEveryTurnLowFriendship;
+      //unlockOutgoingProb = 1.0;
       if (randBool(rand, unlockOutgoingProb))//启动
       {
         handleFriendUnlock(rand);
@@ -2537,7 +2548,7 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
     printEvents("模拟支援卡随机事件：" + persons[card].cardParam.cardName + " 的羁绊+5，pt和随机属性+" + to_string(gameSettings.eventStrength));
 
     //支援卡一般是前几个事件加心情
-    if (randBool(rand, 0.4 * (1.0 - turn * 1.0 / TOTAL_TURN)))
+    if (randBool(rand, 0.6 * pow((1.0 - turn * 1.0 / TOTAL_TURN),2)))
     {
       addMotivation(1);
       printEvents("模拟支援卡随机事件：心情+1");
@@ -2547,7 +2558,7 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
       addVital(10);
       printEvents("模拟支援卡随机事件：体力+10");
     }
-    else if (randBool(rand, 0.03))
+    else if (randBool(rand, 0.003))
     {
       addVital(-10);
       printEvents("模拟支援卡随机事件：体力-10");
@@ -2560,9 +2571,10 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
   }
 
   //模拟马娘随机事件
-  if (randBool(rand, 0.1))
+  if (randBool(rand, 0.25))
   {
     addAllStatus(3);
+    skillPt += 15;
     printEvents("模拟马娘随机事件：全属性+3");
   }
 
@@ -2571,6 +2583,13 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
   {
     addVital(5);
     printEvents("模拟随机事件：体力+5");
+  }
+
+  //加体力
+  if (randBool(rand, 0.05))
+  {
+    addVital(10);
+    printEvents("模拟随机事件：体力+10");
   }
 
   //加30体力（吃饭事件）
@@ -2694,6 +2713,11 @@ std::vector<Action> Game::getAllLegalActions() const
 void Game::applyAction(std::mt19937_64& rand, Action action)
 {
   if (isEnd()) return;
+  if (action.stage == ST_action_randomize)
+  {
+    undoRandomize();
+    return;
+  }
   if (stage != action.stage)
     throw "Game::applyAction的stage不匹配";
 
@@ -2865,6 +2889,8 @@ static string getColoredColorName(int color)
     return "\033[1;32m绿\033[0m";
   else if (color == L_blue)
     return "\033[1;34m蓝\033[0m";
+  else
+    return "???";
 }
 
 std::string Action::toString(const Game& game) const
@@ -2900,12 +2926,8 @@ std::string Action::toString(const Game& game) const
     }
     else if (game.decidingEvent == DecidingEvent_three)
     {
-      if (idx == 0)
-        return "选蓝";
-      else if (idx == 1)
-        return "选绿";
-      else if (idx == 2)
-        return "选红";
+      if (idx < 3)
+        return "选" + getColoredColorName(idx);
       else
         assert(false);
     }
@@ -2930,11 +2952,12 @@ std::string Action::toString(const Game& game) const
     }
     if (game.turn == 65)
     {
-      return "选" + getColoredColorName(c) + "色第" + to_string(ord+1) + "个替换掉第" + to_string(idx/10) + "个";
+      return "选" + getColoredColorName(c) + "色第 \033[33m" + to_string(ord+1) + "\033[0m 个替换掉 " + ScenarioBuffInfo::getScenarioBuffName(game.lg_buffs[idx / 10 - 1].buffId);
     }
     else
     {
-      return "选" + getColoredColorName(c) + "色第" + to_string(ord + 1) + "个";
+      return "选" + getColoredColorName(c) + "色第 \033[33m" + to_string(ord + 1) + "\033[0m 个";// +ScenarioBuffInfo::getScenarioBuffName(game.lg_pickedBuffs[idx]);
+      //return "选" + ScenarioBuffInfo::getScenarioBuffName(game.lg_pickedBuffs[idx]);
     }
   }
   else

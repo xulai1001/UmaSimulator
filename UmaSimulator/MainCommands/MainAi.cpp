@@ -84,8 +84,8 @@ void main_ai()
 	auto rand = mt19937_64(rd());
 
 	int lastTurn = -1;
-	int scoreFirstTurn = 0;   // 第一回合分数
-	int scoreLastTurn = 0;   // 上一回合分数
+	ModelOutputValueV1 scoreFirstTurn = ModelOutputValueV1();   // 第一回合分数
+	ModelOutputValueV1 scoreLastTurn = ModelOutputValueV1();   // 上一回合分数
 	string lastJsonStr;//json str of the last time
 
 	// 检查工作目录
@@ -247,8 +247,8 @@ void main_ai()
 		lastJsonStr = jsonStr;
 		if (game.turn == 0)//第一回合，或者重启ai的第一回合
 		{
-			scoreFirstTurn = 0;
-			scoreLastTurn = 0;
+			scoreFirstTurn = ModelOutputValueV1();
+			scoreLastTurn = ModelOutputValueV1();
 		}
 
 		cout << endl;
@@ -294,33 +294,29 @@ void main_ai()
 				cout << p * 100 << "% ";
 				if (!GameConfig::noColor)cout << "\033[0m";
 			};
-		/*
-		auto printValue = [&ws](int which, double p, double ref)
+		
+		auto printColoredValue = [](double v0, double maxv, double ref)
 			{
-				string prefix[Action::MAX_ACTION_TYPE] = { "速:", "耐:", "力:", "根:", "智:", "| 休息: ", "外出: ", "比赛: " };
-				for (int dish = 1; dish < 14; dish++)
+				double dif = v0 - maxv;
+				if (dif < -5000)
 				{
-					prefix[dish + TRA_race] = Action::dishName[dish] + ": ";
-				}
-				if (p < -5000)
-				{
-					cout << prefix[which] << "---- ";
+					cout <<  "---- ";
 					return;
 				}
 				cout << fixed << setprecision(0);
 				if (!GameConfig::noColor)
 				{
-					if (ref - p < 30) cout << "\033[41m\033[1;33m*";
-					else if (ref - p < 150) cout << "\033[1;32m";
+					if (dif > -25) cout << "\033[41m\033[1;33m*";
+					else if (dif > -100) cout << "\033[1;32m";
 					else cout << "\033[33m";
 				}
-				cout << prefix[which] << setw(4) << p;
+				cout << setw(6) << to_string(int(v0 - ref));
 				if (!GameConfig::noColor)cout << "\033[0m";
 				cout << " ";
 			};
 
 		//search.runSearch(game, GameConfig::searchN, TOTAL_TURN, 0, rand);
-		*/
+		
 		if (game.turn < TOTAL_TURN)
 		{
 
@@ -367,9 +363,37 @@ void main_ai()
 					bestIdx = i;
 				}
 			}
+
+
+			double refScore = scoreLastTurn.value;
+
+			ModelOutputValueV1 reRandomizeValue;//重新随机分配人头或者取buff，计算分数
+			if (game.stage == ST_train || game.stage == ST_chooseBuff) {
+				Game game3 = game;
+				game3.undoRandomize();
+				reRandomizeValue = search.evaluateNewGame(game3, rand);
+				refScore = reRandomizeValue.value;
+			}
+
+			//刷新，然后重新显示一遍分数,让分数减去常数
+			for (int i = 0; i < allAction.size(); i++)
+				cout << "\033[1A";
+			for (int i = 0; i < allAction.size(); i++)
+			{
+				Action act = allAction[i];
+				cout << act.toString(game) << " : ";
+				printColoredValue(actionValues[i].value, bestValue, refScore);
+				cout << endl;
+			}
+
+
 			cout << endl;
 			Action bestAction = allAction[bestIdx];
-			cout << "AI建议：" << bestAction.toString(game) << endl;
+			cout << "AI建议：" << bestAction.toString(game);
+			if (game.stage == ST_chooseBuff && game.turn != 65)
+				cout << " " << ScenarioBuffInfo::getScenarioBuffName(game.lg_pickedBuffs[bestAction.idx]);
+			cout << endl;
+
 			if (bestAction.stage == ST_train && bestAction.idx == T_outgoing)
 			{
 				Game game2 = game;
@@ -385,7 +409,8 @@ void main_ai()
 						Action act2 = allAction2[i];
 						cout << act2.toString(game2) << " : ";
 						auto v = search.evaluateAction(game2, act2, rand);
-						cout << v.value << endl;
+						printColoredValue(v.value, bestValue2, refScore);
+						cout << endl;
 						actionValues2.push_back(v);
 						if (v.value > bestValue2)
 						{
@@ -403,39 +428,50 @@ void main_ai()
 			auto maxV = actionValues[bestIdx];
 
 
-
-			if (game.turn == 0 || scoreFirstTurn == 0)
+			cout << endl;
+			if (game.turn == 0 || scoreFirstTurn.value == 0)
 			{
 				cout << "评分预测: 平均\033[1;32m" << int(maxV.scoreMean) << "\033[0m" << "，乐观\033[1;36m+" << int(maxV.value - maxV.scoreMean) << "\033[0m" << endl;
-				scoreFirstTurn = maxV.scoreMean;
+				scoreFirstTurn = maxV;
 			}
 			else
 			{
 				cout << "运气指标：" << " | 本局：";
-				print_luck(maxV.scoreMean - scoreFirstTurn);
-				cout << " | 本回合：" << maxV.scoreMean - scoreLastTurn;
-				if (game.stage==ST_train) {
-					Game game3 = game;
-					game3.undoRandomize();
-					auto v3= search.evaluateNewGame(game3, rand);
-					cout << "（训练：\033[1;36m" << int(maxV.scoreMean - v3.scoreMean) << "\033[0m";
-				//
-				//	if (trainLuckRate >= 0)
-				//	{
-				//		cout << fixed << setprecision(2) << " 超过了\033[1;36m" << trainLuckRate * 100 << "%\033[0m";
-				//	}
-				//	cout << "）";
+				print_luck(int(maxV.scoreMean - scoreFirstTurn.scoreMean));
+				cout << " | 本回合：" << int(maxV.scoreMean - scoreLastTurn.scoreMean);
+				if (game.stage==ST_train || game.stage == ST_chooseBuff) {
+					cout << "（训练：\033[1;36m" << int(maxV.scoreMean - reRandomizeValue.scoreMean) << "\033[0m";
 				}
-				cout << " | 评分预测: \033[1;32m" << maxV.scoreMean << "\033[0m"
+				cout << " | 评分预测: \033[1;32m" << int(maxV.scoreMean) << "\033[0m"
 					<< "（乐观\033[1;36m+" << int(maxV.value - maxV.scoreMean) << "\033[0m）" << endl;
 
 			}
-			scoreLastTurn = maxV.scoreMean;
+			if (game.stage == ST_train && allAction[allAction.size() - 1].idx == T_race)
+			{
+				double raceLoss = bestValue - actionValues[actionValues.size() - 1].value;
+				cout << "比赛亏损：" << int(raceLoss) << endl;
+			}
 
-			//Game game4 = game;
-			//game4.gameSettings.playerPrint = true;
-			//game4.applyActionUntilNextDecision(rand, bestAction);
-			//game4.print();
+
+			scoreLastTurn = maxV;
+
+			if (false)//debug
+			{
+				cout << "参考分：" << refScore << endl;
+
+				Game game4 = game;
+				game4.gameSettings.playerPrint = true;
+				game4.applyActionUntilNextDecision(rand, bestAction);
+				game4.print(); 
+				if (game4.stage == ST_train || game4.stage == ST_chooseBuff) {
+					Game game3 = game;
+					game3.undoRandomize();
+					auto reRandomizeValue2 = search.evaluateNewGame(game3, rand);
+
+					cout << "下回合参考分：" << reRandomizeValue2.value << endl;
+				}
+
+			}
 
 			/*
 

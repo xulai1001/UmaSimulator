@@ -14,10 +14,11 @@ const double reserveStatusFactor = 50;//øÿ Ù–‘ ±∏¯√øªÿ∫œ‘§¡Ù∂‡…Ÿ£¨¥”0÷Ω•‘ˆº”µΩ’
 
 const double smallFailValue = -300;
 const double bigFailValue = -800;
-const double outgoingBonusIfNotFullMotivation = 300;//µÙ–ƒ«È ±Ã·∏ﬂÕ‚≥ˆ∑÷ ˝
-const double raceBonus = 150;//±»»¸ ’“Ê£¨≤ªøº¬«ÃÂ¡¶
+const double outgoingBonusIfNotFullMotivationStart = 100;//µÙ–ƒ«È ±Ã·∏ﬂÕ‚≥ˆ∑÷ ˝
+const double outgoingBonusIfNotFullMotivationEnd = 800;//µÙ–ƒ«È ±Ã·∏ﬂÕ‚≥ˆ∑÷ ˝
+const double raceBonus = 0;//±»»¸ ’“Ê£¨≤ªøº¬«ÃÂ¡¶
 
-const double lg_controlColorFactor = 50;
+const double lg_controlColorFactor = 20; //øÿ…´≤Œ ˝
 
 
 //“ª∏ˆ∑÷∂Œ∫Ø ˝£¨”√¿¥øÿ Ù–‘
@@ -37,10 +38,10 @@ static void statusGainEvaluation(const Game& g, double* result) { //result“¿¥Œ «
   double reserve = reserveStatusFactor * remainTurn * (1 - double(remainTurn) / (TOTAL_TURN * 2));
   double reserveInvX2 = 1 / (2 * reserve);
 
-  double finalBonus0 = 60;
-  finalBonus0 += 30;//ura3∫Õ◊Ó÷’ ¬º˛
-  if (remainTurn >= 1)finalBonus0 += 20;//ura2
-  if (remainTurn >= 2)finalBonus0 += 20;//ura1
+  double finalBonus0 = 150;
+  //finalBonus0 += 30;//ura3∫Õ◊Ó÷’ ¬º˛
+  //if (remainTurn >= 1)finalBonus0 += 20;//ura2
+  //if (remainTurn >= 2)finalBonus0 += 20;//ura1
 
   double remain[5]; //√ø÷÷ Ù–‘ªπ”–∂‡…Ÿø’º‰
 
@@ -49,11 +50,11 @@ static void statusGainEvaluation(const Game& g, double* result) { //result“¿¥Œ «
     remain[i] = g.fiveStatusLimit[i] - g.fiveStatus[i] - finalBonus0;
   }
 
-  if (g.friend_type != 0)
-  {
-    remain[0] -= 25;
-    remain[4] -= 25;
-  }
+  //if (g.friend_type != 0)
+  //{
+  //  remain[0] -= 25;
+  //  remain[4] -= 25;
+  //}
 
 
   for (int tra = 0; tra < 5; tra++)
@@ -104,9 +105,9 @@ static double vitalEvaluation(int vital, int maxVital)
 }
 
 const double LgBuffValuesForRed[3 * 19] = { //≤ªøº¬«—’…´£¨≤ªøº¬«Óø∞Ì£¨≤ªøº¬«¬Ãµ«¿∂µ«œﬁ∂®º”≥…
-  1,3,2,4, 7,6,4,7,8,7, 4,10,6,9,15,14,21,8,25,
-  1,3,2,4, 7,6,4,8,6,4, 15,22,20,17,12,16,21,10,24,
-  1,3,2,6, 7,6,4,8,4,5, 12,14,15,22,26,7,24,10,13
+  2,2,3,4, 7,6,4,7,8,7, 4,10,6,9,15,14,21,8,25,
+  2,2,3,4, 7,6,4,8,6,4, 15,22,20,17,12,16,21,10,24,
+  2,2,3,6, 7,6,4,8,4,5, 12,14,15,22,26,7,24,10,13
 };
 
 double getLgBuffColorWrongProb(int c0, int c1, int c2)
@@ -349,28 +350,82 @@ Action Evaluator::handWrittenStrategy(const Game& game)
 
     //Õ‚≥ˆ/–›œ¢
     {
-      bool isFriendOutgoingAvailable =
-        game.friend_type != 0 &&
-        game.friend_stage >= 2 &&
-        !game.friend_outgoingUsed[4] &&
-        (!game.isXiahesu());
-      Action action(ST_train,T_rest);
-      if (isFriendOutgoingAvailable || game.isXiahesu())action.idx = T_outgoing;//”–”—»ÀÕ‚≥ˆ”≈œ»Õ‚≥ˆ£¨∑Ò‘Ú–›œ¢
-
-      int vitalGain = isFriendOutgoingAvailable ? 50 : game.isXiahesu() ? 40 : 50;
-      bool addMotivation = game.motivation < 5 && action.idx == T_outgoing;
-
-      int vitalAfterRest = std::min(maxVitalEquvalant, vitalGain + game.vital);
-      double value = vitalFactor * (vitalEvaluation(vitalAfterRest, game.maxVital) - vitalEvalBeforeTrain);
-      if (addMotivation)value += outgoingBonusIfNotFullMotivation;
-
-
-      if (PrintHandwrittenLogicValueForDebug)
-        std::cout << action.toString() << " " << value << std::endl;
-      if (value > bestValue)
+      if (game.isXiahesu())
       {
-        bestValue = value;
-        bestAction = action;
+        Action action(ST_train, T_outgoing);
+        int vitalGain = 40;
+        int vitalAfterRest = std::min(maxVitalEquvalant, vitalGain + game.vital);
+        double value = vitalFactor * (vitalEvaluation(vitalAfterRest, game.maxVital) - vitalEvalBeforeTrain);
+        if (game.motivation < 5)value += outgoingBonusIfNotFullMotivationStart + (game.turn / double(TOTAL_TURN)) * (outgoingBonusIfNotFullMotivationEnd - outgoingBonusIfNotFullMotivationStart);
+
+
+        if (PrintHandwrittenLogicValueForDebug)
+          std::cout << action.toString() << " " << value << std::endl;
+        if (value > bestValue)
+        {
+          bestValue = value;
+          bestAction = action;
+        }
+      }
+      else
+      {
+        int vitalGain = 50;
+        int vitalAfterRest = std::min(maxVitalEquvalant, vitalGain + game.vital);
+        double value = vitalFactor * (vitalEvaluation(vitalAfterRest, game.maxVital) - vitalEvalBeforeTrain);
+        Action action(ST_train, T_rest);
+        if (PrintHandwrittenLogicValueForDebug)
+          std::cout << action.toString() << " " << value << std::endl;
+        if (value > bestValue)
+        {
+          bestValue = value;
+          bestAction = action;
+        }
+
+
+        action.idx = T_outgoing;
+        double outingValue = 0;
+        if(game.motivation < 5)
+          outingValue += outgoingBonusIfNotFullMotivationStart + (game.turn / double(TOTAL_TURN)) * (outgoingBonusIfNotFullMotivationEnd - outgoingBonusIfNotFullMotivationStart);
+
+
+        //±»Ωœ≥ˆ––”Î–›œ¢
+        bool isFriendOutgoingAvailable =
+          game.friend_type != 0 &&
+          game.friend_stage >= 2 &&
+          !game.friend_outgoingUsed[4] &&
+          (!game.isXiahesu());
+        if (isFriendOutgoingAvailable)
+        {
+          outingValue += value + 0.01;//ÃÂ¡¶
+
+          int outingUsed = game.friend_outgoingUsed[0] + game.friend_outgoingUsed[1] + game.friend_outgoingUsed[2] + game.friend_outgoingUsed[3] + game.friend_outgoingUsed[4]; 
+          int outingUsedExpected = game.turn / 12;
+          if (outingUsed > outingUsedExpected)
+            outingValue -= 200 * (outingUsed - outingUsedExpected);
+          int maxg = -1;
+          for (int i = 0; i < 3; i++)
+          {
+            if (game.lg_gauge[i] > maxg)
+              maxg = game.lg_gauge[i];
+            //if (game.lg_gauge[i] == 8)
+            //  outingValue -= 70;
+          }
+          int remainTurn = 6 - game.turn % 6;
+          if (game.turn > 24 && remainTurn <= 1 && maxg < 8)
+          {
+            outingValue += 350;
+          }
+
+
+        }
+
+        if (PrintHandwrittenLogicValueForDebug)
+          std::cout << action.toString() << " " << outingValue << std::endl;
+        if (outingValue > bestValue)
+        {
+          bestValue = outingValue;
+          bestAction = action;
+        }
       }
     }
     //±»»¸
@@ -416,7 +471,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
           if (game.persons[p].isHint)
             cardHintNum += 1;
         }
-        double hintProb = 1.0 / cardHintNum;
+        double hintProb = cardHintNum > 0 ? 1.0 / cardHintNum : 0.0;
         bool haveFriend = false;
         for (int j = 0; j < 5; j++)
         {

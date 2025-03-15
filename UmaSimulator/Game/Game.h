@@ -134,6 +134,7 @@ enum StageEnum :int16_t
   ST_pickBuff,//随机抽取心得前
   ST_chooseBuff,//选心得前
   ST_event,//处理事件前
+  ST_action_randomize,//仅用于action，表示ST_train或ST_chooseBuff前的随机化
 };
 
 //int16_t decidingEvent;//需要处理的含选择项的事件。选buff 1，团卡出行 2，团卡三选一 3

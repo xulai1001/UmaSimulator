@@ -264,18 +264,7 @@ void Search::printSearchResult(bool showSearchNum)
 
 ModelOutputValueV1 Search::evaluateNewGame(const Game& game, std::mt19937_64& rand)
 {
-
-  rootGame = game;
-  rootGame.undoRandomize();
-
-  auto actions = rootGame.getAllLegalActions();
-  assert(actions.size() == 1);
-
-  double radicalFactor = adjustRadicalFactor(param.maxRadicalFactor, game.turn);
-  allActionResults[0].clear();
-  allActionResults[0].isLegal = true;
-  searchSingleAction(param.searchSingleMax, rand, allActionResults[0], actions[0]);
-  return allActionResults[0].getWeightedMeanScore(adjustRadicalFactor(radicalFactor,game.turn));
+  return evaluateAction(game, Action(ST_action_randomize), rand);
 }
 
 ModelOutputValueV1 Search::evaluateAction(const Game& game, Action action, std::mt19937_64& rand)
