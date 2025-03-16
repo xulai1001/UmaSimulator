@@ -1,4 +1,4 @@
-#include "utils.h"
+ï»¿#include "utils.h"
 #include "windows.h"
 using json = nlohmann::json;
 using namespace std;
@@ -8,7 +8,7 @@ std::string string_To_UTF8(const std::string& str)
 {
     int nwLen = ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, NULL, 0);
 
-    wchar_t* pwBuf = new wchar_t[nwLen + 1];//Ò»¶¨Òª¼Ó1£¬²»È»»á³öÏÖÎ²°Í
+    wchar_t* pwBuf = new wchar_t[nwLen + 1];//ä¸€å®šè¦åŠ 1ï¼Œä¸ç„¶ä¼šå‡ºç°å°¾å·´
     ZeroMemory(pwBuf, nwLen * 2 + 2);
 
     ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.length(), pwBuf, nwLen);
@@ -35,7 +35,7 @@ std::string UTF8_To_string(const std::string& str)
 {
     int nwLen = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
 
-    wchar_t* pwBuf = new wchar_t[nwLen + 1];//Ò»¶¨Òª¼Ó1£¬²»È»»á³öÏÖÎ²°Í
+    wchar_t* pwBuf = new wchar_t[nwLen + 1];//ä¸€å®šè¦åŠ 1ï¼Œä¸ç„¶ä¼šå‡ºç°å°¾å·´
     memset(pwBuf, 0, nwLen * 2 + 2);
 
     MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), pwBuf, nwLen);

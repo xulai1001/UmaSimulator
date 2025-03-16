@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <sstream>
 #include <cassert>
 #include "vector"
@@ -12,7 +12,7 @@ bool Game::loadGameFromJson(std::string jsonStr)
 {
   if (jsonStr == "[test]" || jsonStr == "{\"Result\":1,\"Reason\":null}")
   {
-    std::cout << "ÒÑ³É¹¦ÓëURA½¨Á¢Á¬½Ó£¬µ«ÔÝÎ´½ÓÊÕµ½»ØºÏÐÅÏ¢£¬µÈ´ýÓÎÏ·¿ªÊ¼" << std::endl;
+    std::cout << "å·²æˆåŠŸä¸ŽURAå»ºç«‹è¿žæŽ¥ï¼Œä½†æš‚æœªæŽ¥æ”¶åˆ°å›žåˆä¿¡æ¯ï¼Œç­‰å¾…æ¸¸æˆå¼€å§‹" << std::endl;
     return false;
   }
   try
@@ -61,7 +61,7 @@ bool Game::loadGameFromJson(std::string jsonStr)
     isRacing = j["isRacing"];
     if (isRacing != isRacingTurn[turn])
     {
-      cout << "Warning:Êµ¼ÊÈü³ÌºÍÔ¤ÆÚÈü³Ì²»Ò»ÖÂ" << endl;
+      cout << "Warning:å®žé™…èµ›ç¨‹å’Œé¢„æœŸèµ›ç¨‹ä¸ä¸€è‡´" << endl;
       isRacingTurn[turn] = isRacing;
     }
     for (int i = 0; i < 6; i++) {
@@ -93,7 +93,7 @@ bool Game::loadGameFromJson(std::string jsonStr)
         }
         else
         {
-          throw "Game::loadGameFromJson¶ÁÈ¡µ½Î´ÖªµÄpersonId:" + to_string(pid);
+          throw "Game::loadGameFromJsonè¯»å–åˆ°æœªçŸ¥çš„personId:" + to_string(pid);
         }
       }
     }
@@ -108,7 +108,7 @@ bool Game::loadGameFromJson(std::string jsonStr)
     }
     if (stage == ST_decideEvent && decidingEvent == DecidingEvent_three && friend_stage == FriendStage_notClicked)
     {
-      cout << "¾¯¸æ£º¶ÁÈ¡jsonÊ±£¬ÓÐÈýÑ¡Ò»ÊÂ¼þµ«Î´¼ÇÂ¼µÚÒ»´Îµã»÷£¬¿ÉÄÜÐ¡ºÚ°åÊÇ°ëÍ¾¿ªÆôµÄ" << endl;
+      cout << "è­¦å‘Šï¼šè¯»å–jsonæ—¶ï¼Œæœ‰ä¸‰é€‰ä¸€äº‹ä»¶ä½†æœªè®°å½•ç¬¬ä¸€æ¬¡ç‚¹å‡»ï¼Œå¯èƒ½å°é»‘æ¿æ˜¯åŠé€”å¼€å¯çš„" << endl;
       friend_stage = FriendStage_beforeUnlockOutgoing;
     }
     friend_qingre = j["friend_qingre"];
@@ -116,7 +116,7 @@ bool Game::loadGameFromJson(std::string jsonStr)
 
     lg_mainColor = j["lg_mainColor"];
     if(lg_mainColor!=-1&&lg_mainColor!=L_red)
-      throw "µ±Ç°°æ±¾ÔÝ²»Ö§³ÖÀ¶µÇÂÌµÇ£¬ÇëµÈ´ýÐÂ°æ±¾";
+      throw "å½“å‰ç‰ˆæœ¬æš‚ä¸æ”¯æŒè“ç™»ç»¿ç™»ï¼Œè¯·ç­‰å¾…æ–°ç‰ˆæœ¬";
     for (int i = 0; i < 3; i++) {
       lg_gauge[i] = j["lg_gauge"][i];
     }
@@ -135,7 +135,7 @@ bool Game::loadGameFromJson(std::string jsonStr)
     }
 
 
-    //ÓÎÏ·ÀïµÄÏÔÊ¾ÊÇ°´Ë³ÐòµÄ
+    //æ¸¸æˆé‡Œçš„æ˜¾ç¤ºæ˜¯æŒ‰é¡ºåºçš„
     std::sort(lg_pickedBuffs, lg_pickedBuffs + lg_pickedBuffsNum, ScenarioBuffInfo::defaultOrder);
 
     lg_blue_active = j["lg_blue_active"];
@@ -158,19 +158,19 @@ bool Game::loadGameFromJson(std::string jsonStr)
   }
   catch (string e)
   {
-    cout << "¶ÁÈ¡ÓÎÏ·ÐÅÏ¢json³ö´í£º" << e << endl;
+    cout << "è¯»å–æ¸¸æˆä¿¡æ¯jsonå‡ºé”™ï¼š" << e << endl;
     //cout << "-- json --" << endl << jsonStr << endl;
     return false;
   }
   catch (std::exception& e)
   {
-    cout << "¶ÁÈ¡ÓÎÏ·ÐÅÏ¢json³ö´í£ºÎ´Öª´íÎó" << endl << e.what() << endl;
+    cout << "è¯»å–æ¸¸æˆä¿¡æ¯jsonå‡ºé”™ï¼šæœªçŸ¥é”™è¯¯" << endl << e.what() << endl;
     //cout << "-- json --" << endl << jsonStr << endl;
     return false;
   }
   catch (...)
   {
-    cout << "¶ÁÈ¡ÓÎÏ·ÐÅÏ¢json³ö´í£ºÎ´Öª´íÎó"  << endl;
+    cout << "è¯»å–æ¸¸æˆä¿¡æ¯jsonå‡ºé”™ï¼šæœªçŸ¥é”™è¯¯"  << endl;
     return false;
   }
 

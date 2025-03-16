@@ -1,4 +1,4 @@
-#include <cassert>
+ï»¿#include <cassert>
 #include <iostream>
 #include "Evaluator.h"
 #include "../Search/Search.h"
@@ -10,40 +10,40 @@ const double vitalFactorStart = 3;
 const double vitalFactorEnd = 10;
 const double vitalScaleTraining = 1.0;
 
-const double reserveStatusFactor = 50;//¿ØÊôĞÔÊ±¸øÃ¿»ØºÏÔ¤Áô¶àÉÙ£¬´Ó0Öğ½¥Ôö¼Óµ½Õâ¸öÊı×Ö
+const double reserveStatusFactor = 50;//æ§å±æ€§æ—¶ç»™æ¯å›åˆé¢„ç•™å¤šå°‘ï¼Œä»0é€æ¸å¢åŠ åˆ°è¿™ä¸ªæ•°å­—
 
 const double smallFailValue = -300;
 const double bigFailValue = -800;
-const double outgoingBonusIfNotFullMotivationStart = 100;//µôĞÄÇéÊ±Ìá¸ßÍâ³ö·ÖÊı
-const double outgoingBonusIfNotFullMotivationEnd = 800;//µôĞÄÇéÊ±Ìá¸ßÍâ³ö·ÖÊı
-const double raceBonus = 0;//±ÈÈüÊÕÒæ£¬²»¿¼ÂÇÌåÁ¦
+const double outgoingBonusIfNotFullMotivationStart = 100;//æ‰å¿ƒæƒ…æ—¶æé«˜å¤–å‡ºåˆ†æ•°
+const double outgoingBonusIfNotFullMotivationEnd = 800;//æ‰å¿ƒæƒ…æ—¶æé«˜å¤–å‡ºåˆ†æ•°
+const double raceBonus = 0;//æ¯”èµ›æ”¶ç›Šï¼Œä¸è€ƒè™‘ä½“åŠ›
 
-const double lg_controlColorFactor = 20; //¿ØÉ«²ÎÊı
+const double lg_controlColorFactor = 20; //æ§è‰²å‚æ•°
 
 
-//Ò»¸ö·Ö¶Îº¯Êı£¬ÓÃÀ´¿ØÊôĞÔ
-inline double statusSoftFunction(double x, double reserve, double reserveInvX2)//reserveÊÇ¿ØÊôĞÔ±£Áô¿Õ¼ä£¨½µµÍÈ¨ÖØ£©£¬reserveInvX2ÊÇ1/(2*reserve)
+//ä¸€ä¸ªåˆ†æ®µå‡½æ•°ï¼Œç”¨æ¥æ§å±æ€§
+inline double statusSoftFunction(double x, double reserve, double reserveInvX2)//reserveæ˜¯æ§å±æ€§ä¿ç•™ç©ºé—´ï¼ˆé™ä½æƒé‡ï¼‰ï¼ŒreserveInvX2æ˜¯1/(2*reserve)
 {
   if (x >= 0)return 0;
   if (x > -reserve)return -x * x * reserveInvX2;
   return x + 0.5 * reserve;
 }
 
-static void statusGainEvaluation(const Game& g, double* result) { //resultÒÀ´ÎÊÇÎåÖÖÑµÁ·µÄ¹ÀÖµ
-  int remainTurn = TOTAL_TURN - g.turn - 1;//Õâ´ÎÑµÁ·ºó»¹ÓĞ¼¸¸öÑµÁ·»ØºÏ
-  //uraÆÚ¼äµÄÒ»¸ö»ØºÏÊÓÎªÁ½¸ö»ØºÏ£¬Òò´Ë²»ĞèÒª¶îÍâ´¦Àí
-  //if (remainTurn == 2)remainTurn = 1;//uraµÚ¶ş»ØºÏ
-  //else if (remainTurn >= 4)remainTurn -= 2;//uraµÚÒ»»ØºÏ
+static void statusGainEvaluation(const Game& g, double* result) { //resultä¾æ¬¡æ˜¯äº”ç§è®­ç»ƒçš„ä¼°å€¼
+  int remainTurn = TOTAL_TURN - g.turn - 1;//è¿™æ¬¡è®­ç»ƒåè¿˜æœ‰å‡ ä¸ªè®­ç»ƒå›åˆ
+  //uraæœŸé—´çš„ä¸€ä¸ªå›åˆè§†ä¸ºä¸¤ä¸ªå›åˆï¼Œå› æ­¤ä¸éœ€è¦é¢å¤–å¤„ç†
+  //if (remainTurn == 2)remainTurn = 1;//uraç¬¬äºŒå›åˆ
+  //else if (remainTurn >= 4)remainTurn -= 2;//uraç¬¬ä¸€å›åˆ
 
   double reserve = reserveStatusFactor * remainTurn * (1 - double(remainTurn) / (TOTAL_TURN * 2));
   double reserveInvX2 = 1 / (2 * reserve);
 
   double finalBonus0 = 150;
-  //finalBonus0 += 30;//ura3ºÍ×îÖÕÊÂ¼ş
+  //finalBonus0 += 30;//ura3å’Œæœ€ç»ˆäº‹ä»¶
   //if (remainTurn >= 1)finalBonus0 += 20;//ura2
   //if (remainTurn >= 2)finalBonus0 += 20;//ura1
 
-  double remain[5]; //Ã¿ÖÖÊôĞÔ»¹ÓĞ¶àÉÙ¿Õ¼ä
+  double remain[5]; //æ¯ç§å±æ€§è¿˜æœ‰å¤šå°‘ç©ºé—´
 
   for (int i = 0; i < 5; i++)
   {
@@ -78,8 +78,8 @@ static double calculateMaxVitalEquvalant(const Game& g)
 {
   int t = g.turn;
   if (g.turn == 72)
-    return 0;//×îºóÒ»»ØºÏ
-  int nonRaceTurn = 0;//71»ØºÏÇ°£¬Ã¿¸öÑµÁ·»ØºÏ°´ÏûºÄ15ÌåÁ¦¼ÆËã
+    return 0;//æœ€åä¸€å›åˆ
+  int nonRaceTurn = 0;//71å›åˆå‰ï¼Œæ¯ä¸ªè®­ç»ƒå›åˆæŒ‰æ¶ˆè€—15ä½“åŠ›è®¡ç®—
   for (int i = 72; i > g.turn; i--)
   {
     if (!g.isRacingTurn[i])nonRaceTurn++;
@@ -104,7 +104,7 @@ static double vitalEvaluation(int vital, int maxVital)
     return vitalEvaluation(maxVital, maxVital);
 }
 
-const double LgBuffValuesForRed[3 * 19] = { //²»¿¼ÂÇÑÕÉ«£¬²»¿¼ÂÇî¿°í£¬²»¿¼ÂÇÂÌµÇÀ¶µÇÏŞ¶¨¼Ó³É
+const double LgBuffValuesForRed[3 * 19] = { //ä¸è€ƒè™‘é¢œè‰²ï¼Œä¸è€ƒè™‘ç¾ç»Šï¼Œä¸è€ƒè™‘ç»¿ç™»è“ç™»é™å®šåŠ æˆ
   2,2,3,4, 7,6,4,7,8,7, 4,10,6,9,15,14,21,8,25,
   2,2,3,4, 7,6,4,8,6,4, 15,22,20,17,12,16,21,10,24,
   2,2,3,6, 7,6,4,8,4,5, 12,14,15,22,26,7,24,10,13
@@ -115,11 +115,11 @@ double getLgBuffColorWrongProb(int c0, int c1, int c2)
   int total = c0 + c1 + c2;
   assert(total <= 6);
   if (c0 >= 4 || (c0 >= 3 && c1 > 0 && c2 > 0))
-    return 0;//°Ù·Ö°ÙÈ·¶¨ÑÕÉ«
+    return 0;//ç™¾åˆ†ç™¾ç¡®å®šé¢œè‰²
   if (c1 >= 4 || (c1 >= 3 && c0 > 0 && c2 > 0))
-    return 1;//°Ù·Ö°ÙÈ·¶¨ÑÕÉ«
+    return 1;//ç™¾åˆ†ç™¾ç¡®å®šé¢œè‰²
   if (c2 >= 4 || (c2 >= 3 && c0 > 0 && c1 > 0))
-    return 1;//°Ù·Ö°ÙÈ·¶¨ÑÕÉ«
+    return 1;//ç™¾åˆ†ç™¾ç¡®å®šé¢œè‰²
 
   if (c1 < c2)
   {
@@ -144,7 +144,7 @@ double getLgBuffColorWrongProb(int c0, int c1, int c2)
     else if (c0 == 2 && c1 == 3 && c2 == 0)
       return 0.7;
     else if (c0 == 2 && c1 == 2 && c2 == 1)
-      return 0.3;//²»ÊÇ0.5£¬Òª¿¼ÂÇÖ÷¹ÛÄÜ¶¯ĞÔ
+      return 0.3;//ä¸æ˜¯0.5ï¼Œè¦è€ƒè™‘ä¸»è§‚èƒ½åŠ¨æ€§
     else if (c0 == 1 && c1 == 2 && c2 == 2)
       return 0.8;
     else if (c0 == 0 && c1 == 3 && c2 == 2)
@@ -214,7 +214,7 @@ double getLgBuffColorWrongProb(int c0, int c1, int c2)
 double getLgBuffEva(const Game& game, int idx)
 {
   double v = LgBuffValuesForRed[idx];
-  //ºìµÇË«î¿°í
+  //çº¢ç™»åŒç¾ç»Š
   if (idx == 0 * 19 + 2 || idx == 1 * 19 + 2 || idx == 2 * 19 + 2 || idx == 2 * 19 + 10)
   {
     int extraJiban = game.lg_bonus.jibanAdd1 + game.lg_bonus.jibanAdd2 + (game.isAiJiao ? 2 : 0);
@@ -223,7 +223,7 @@ double getLgBuffEva(const Game& game, int idx)
       v += 3.5;
     }
   }
-  //¿ØÉ«
+  //æ§è‰²
   if (game.turn < 36 && game.gameSettings.color_priority >= 0)
   {
     int counts[3] = { 0,0,0 };
@@ -264,7 +264,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
         return Action(ST_decideEvent, 3);
       else if (!game.friend_outgoingUsed[3])
       {
-        //µÚ4¶Î³öĞĞ£¬Ñ¡Ôñ¸ñÊı×îÉÙµÄ
+        //ç¬¬4æ®µå‡ºè¡Œï¼Œé€‰æ‹©æ ¼æ•°æœ€å°‘çš„
 
         if (game.turn < 36 && game.gameSettings.color_priority >= 0 && game.lg_gauge[game.gameSettings.color_priority] < 8)
           return Action(ST_decideEvent, 4 + game.gameSettings.color_priority);
@@ -283,9 +283,9 @@ Action Evaluator::handWrittenStrategy(const Game& game)
       }
       else if (!game.friend_outgoingUsed[4])
         return Action(ST_decideEvent, 7);
-      else throw "handWrittenStrategyÓÑÈË³öĞĞÒÑÓÃÍê";
+      else throw "handWrittenStrategyå‹äººå‡ºè¡Œå·²ç”¨å®Œ";
     }
-    else if (game.decidingEvent == DecidingEvent_three)//ÓÅÏÈ²¹×ã8¸ñ
+    else if (game.decidingEvent == DecidingEvent_three)//ä¼˜å…ˆè¡¥è¶³8æ ¼
     {
       if (game.lg_gauge[2] == 7)
         return Action(ST_decideEvent, 2);
@@ -301,7 +301,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
         return Action(ST_decideEvent, 0);
       return Action(ST_decideEvent, 2);
     }
-    else throw "handWrittenStrategyÎ´ÖªdecidingEvent";
+    else throw "handWrittenStrategyæœªçŸ¥decidingEvent";
   }
   else if (game.stage == ST_chooseBuff)
   {
@@ -318,7 +318,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
     }
     if (game.turn == 65)
     {
-      bestBuff = bestBuff + 10;//Ìæ»»µôµÚÒ»¸öbuff
+      bestBuff = bestBuff + 10;//æ›¿æ¢æ‰ç¬¬ä¸€ä¸ªbuff
     }
     return Action(ST_chooseBuff, bestBuff);
   }
@@ -329,7 +329,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
     bestAction.idx = -1;
 
     if (game.isEnd())return bestAction;
-    //±ÈÈü
+    //æ¯”èµ›
     if (game.isRacing)
     {
       bestAction.idx = T_race;
@@ -348,7 +348,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
     double vitalEvalBeforeTrain = vitalEvaluation(std::min(maxVitalEquvalant, int(game.vital)), game.maxVital);
 
 
-    //Íâ³ö/ĞİÏ¢
+    //å¤–å‡º/ä¼‘æ¯
     {
       if (game.isXiahesu())
       {
@@ -388,7 +388,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
           outingValue += outgoingBonusIfNotFullMotivationStart + (game.turn / double(TOTAL_TURN)) * (outgoingBonusIfNotFullMotivationEnd - outgoingBonusIfNotFullMotivationStart);
 
 
-        //±È½Ï³öĞĞÓëĞİÏ¢
+        //æ¯”è¾ƒå‡ºè¡Œä¸ä¼‘æ¯
         bool isFriendOutgoingAvailable =
           game.friend_type != 0 &&
           game.friend_stage >= 2 &&
@@ -396,7 +396,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
           (!game.isXiahesu());
         if (isFriendOutgoingAvailable)
         {
-          outingValue += value + 0.01;//ÌåÁ¦
+          outingValue += value + 0.01;//ä½“åŠ›
 
           int outingUsed = game.friend_outgoingUsed[0] + game.friend_outgoingUsed[1] + game.friend_outgoingUsed[2] + game.friend_outgoingUsed[3] + game.friend_outgoingUsed[4]; 
           int outingUsedExpected = game.turn / 12;
@@ -428,7 +428,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
         }
       }
     }
-    //±ÈÈü
+    //æ¯”èµ›
     if (game.isRaceAvailable())
     {
       double value = raceBonus;
@@ -448,9 +448,9 @@ Action Evaluator::handWrittenStrategy(const Game& game)
     }
 
 
-    //ÑµÁ·
+    //è®­ç»ƒ
 
-    //ÏÈÕÒµ½×îºÃµÄÑµÁ·£¬È»ºó¼ÆËãÒª²»Òª³Ô²Ë
+    //å…ˆæ‰¾åˆ°æœ€å¥½çš„è®­ç»ƒï¼Œç„¶åè®¡ç®—è¦ä¸è¦åƒèœ
     {
       double statusGainE[5];
       statusGainEvaluation(game, statusGainE);
@@ -461,13 +461,13 @@ Action Evaluator::handWrittenStrategy(const Game& game)
         double value = statusGainE[tra];
 
 
-        //´¦ÀíhintºÍî¿°í
-        int cardHintNum = 0;//ËùÓĞhintËæ»úÈ¡Ò»¸ö£¬ËùÒÔ´ò·ÖµÄÊ±ºòÈ¡Æ½¾ù
+        //å¤„ç†hintå’Œç¾ç»Š
+        int cardHintNum = 0;//æ‰€æœ‰hintéšæœºå–ä¸€ä¸ªï¼Œæ‰€ä»¥æ‰“åˆ†çš„æ—¶å€™å–å¹³å‡
         for (int j = 0; j < 5; j++)
         {
           int p = game.personDistribution[tra][j];
-          if (p < 0)break;//Ã»ÈË
-          if (p >= 6)continue;//²»ÊÇ¿¨
+          if (p < 0)break;//æ²¡äºº
+          if (p >= 6)continue;//ä¸æ˜¯å¡
           if (game.persons[p].isHint)
             cardHintNum += 1;
         }
@@ -476,10 +476,10 @@ Action Evaluator::handWrittenStrategy(const Game& game)
         for (int j = 0; j < 5; j++)
         {
           int pi = game.personDistribution[tra][j];
-          if (pi < 0)break;//Ã»ÈË
-          if (pi >= 6)continue;//²»ÊÇ¿¨
+          if (pi < 0)break;//æ²¡äºº
+          if (pi >= 6)continue;//ä¸æ˜¯å¡
           const Person& p = game.persons[pi];
-          if (p.personType == PersonType_scenarioCard)//ÓÑÈË¿¨
+          if (p.personType == PersonType_scenarioCard)//å‹äººå¡
           {
             haveFriend = true;
             if (game.friend_stage == FriendStage_notClicked)
@@ -523,12 +523,12 @@ Action Evaluator::handWrittenStrategy(const Game& game)
         }
 
 
-        //ÀíÂÛÉÏ£¬¹ÀÖµĞèÒª³ËÉÏ²ËµÄÑµÁ·¼Ó³ÉÈ»ºó¼õÈ¥²ËµÄ¿ªÏú£¬µ«¹ıÓÚ¸´ÔÓ£¬ÀÁµÃ¿¼ÂÇÁË
+        //ç†è®ºä¸Šï¼Œä¼°å€¼éœ€è¦ä¹˜ä¸Šèœçš„è®­ç»ƒåŠ æˆç„¶åå‡å»èœçš„å¼€é”€ï¼Œä½†è¿‡äºå¤æ‚ï¼Œæ‡’å¾—è€ƒè™‘äº†
         int vitalAfterTrain = std::min(maxVitalEquvalant, game.trainVitalChange[tra] + game.vital);
         value += vitalScaleTraining * vitalFactor * (vitalEvaluation(vitalAfterTrain, game.maxVital) - vitalEvalBeforeTrain);
 
-        //µ½Ä¿Ç°ÎªÖ¹¶¼ÊÇÑµÁ·³É¹¦µÄvalue
-        //¼ÆËã³Ô²ËÖ®ºóµÄÌåÁ¦£¬ÖØĞÂ¼ÆËãÊ§°ÜÂÊ
+        //åˆ°ç›®å‰ä¸ºæ­¢éƒ½æ˜¯è®­ç»ƒæˆåŠŸçš„value
+        //è®¡ç®—åƒèœä¹‹åçš„ä½“åŠ›ï¼Œé‡æ–°è®¡ç®—å¤±è´¥ç‡
         double failRate = game.failRate[tra];
         
 
@@ -556,7 +556,7 @@ Action Evaluator::handWrittenStrategy(const Game& game)
     }
     return bestAction;
   }
-  else throw "Î´Öªstage";
+  else throw "æœªçŸ¥stage";
   return Action();
 }
 

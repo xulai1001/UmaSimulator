@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include "SupportCard.h"
 #include "../NeuralNet/NNInput.h"
 #include "../GameDatabase/GameConstants.h"
@@ -47,9 +47,9 @@ void SupportCard::load_from_json(json& j, int x) {
 	cardID = cardID * 10 + x;
 	cardType = j.value("cardType", -1);
 	cardName = UTF8_To_string(j.value<std::string>("cardName", ""));
-	//j.at("cardSkill").get_to(cardSkill);	// ²»ÔØÈë¼¼ÄÜ£¬ÒòÎª¸ñÊ½²»Í¬
+	//j.at("cardSkill").get_to(cardSkill);	// ä¸è½½å…¥æŠ€èƒ½ï¼Œå› ä¸ºæ ¼å¼ä¸åŒ
 	charaId = j.value("charaId", -1);
-	// ÔØÈë¹ÌÓĞ¡£Ã»ÓĞ¸ÃkeyÊ±ÓÃÄ¬ÈÏÖµ
+	// è½½å…¥å›ºæœ‰ã€‚æ²¡æœ‰è¯¥keyæ—¶ç”¨é»˜è®¤å€¼
 	uniqueEffectType = j.value("uniqueEffectType", 0);
 	uniqueEffectParam = j.value("uniqueEffectParam", vector<int>());
 
@@ -72,12 +72,12 @@ void SupportCard::load_from_json(json& j, int x) {
 	}
 
 	if (charaId > 0) {
-		// Ö±½ÓÊ¹ÓÃcharaIDÅĞ¶ÏÊÇ·ñÎªÁ´½Ó¿¨
+		// ç›´æ¥ä½¿ç”¨charaIDåˆ¤æ–­æ˜¯å¦ä¸ºé“¾æ¥å¡
 		isLink = GameConstants::isLinkChara(charaId);
 	}
 	else 
 	{
-		assert(false && "ÀÏÊı¾İÌÔÌ­ÁË");
+		assert(false && "è€æ•°æ®æ·˜æ±°äº†");
 	}
 	return;
 }

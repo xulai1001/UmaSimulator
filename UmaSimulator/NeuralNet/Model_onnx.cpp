@@ -1,4 +1,4 @@
-#include "../config.h"
+ï»¿#include "../config.h"
 #if USE_BACKEND == BACKEND_ONNX
 #include <cassert>
 #include <onnxruntime_cxx_api.h>
@@ -37,7 +37,7 @@ void Model::evaluate(Evaluator* eva, float* inputBuf, float* outputBuf, int game
 }
 void Model::printBackendInfo()
 {
-    cout << "AI°æ±¾£ºÉñ¾­ÍøÂç£¬ºó¶Ë£ºOnnx-DirectML " << endl;
+    cout << "AIç‰ˆæœ¬ï¼šç¥žç»ç½‘ç»œï¼ŒåŽç«¯ï¼šOnnx-DirectML " << endl;
 }
 
 #endif

@@ -1,4 +1,4 @@
-#include <fstream>
+ï»¿#include <fstream>
 #include "GameGenerator.h"
 #include "../Search/SearchParam.h"
 using namespace std;
@@ -21,7 +21,7 @@ Game GameGenerator::randomOpening()
   std::uniform_real_distribution<double> uniDistr(0.0, 1.0);
 
   Game game;
-  int umaId = 102401;//ÖØÅÚ
+  int umaId = 102401;//é‡ç‚®
   int umaStars = 5;
   int cards[6] = { 301884,301724,301614,301784,301874,301734 };
   int zhongmaBlue[5] = { 18,0,0,0,0 };
@@ -32,7 +32,7 @@ Game GameGenerator::randomOpening()
   }
   else if (param.cardRandType == 1 || param.cardRandType == 2)
   {
-    //Ëæ»úÂí
+    //éšæœºé©¬
     umaId = -1;
     while (!GameDatabase::AllUmas.count(umaId))
       umaId = 100000 + (rand() % 200) * 100 + rand() % 2 + 1;
@@ -40,7 +40,7 @@ Game GameGenerator::randomOpening()
     auto cards1 = getRandomCardset();
     for (int i = 0; i < 6; i++)cards[i] = cards1[i];
 
-    //Ëæ»úÀ¶Òò×ÓºÍ¾ç±¾Òò×Ó
+    //éšæœºè“å› å­å’Œå‰§æœ¬å› å­
     {
       vector<int> blueStarProb = { 1,1,5,100 };
       vector<int> blueTypeProb = { 20,1,3,1,1 };
@@ -54,7 +54,7 @@ Game GameGenerator::randomOpening()
       }
 
       vector<int> scenarioStarProb = { 1,2,5,15 };
-      vector<int> scenarioTypeProb = { 1,1,1 };//Çà´º±­ ´óÊ¦±­ ¿­ĞıÃÅ
+      vector<int> scenarioTypeProb = { 1,1,1 };//é’æ˜¥æ¯ å¤§å¸ˆæ¯ å‡¯æ—‹é—¨
       std::discrete_distribution<> scenarioStarProbDis(scenarioStarProb.begin(), scenarioStarProb.end());
       std::discrete_distribution<> scenarioTypeProbDis(scenarioTypeProb.begin(), scenarioTypeProb.end());
       for (int i = 0; i < 5; i++)
@@ -102,16 +102,16 @@ Game GameGenerator::randomOpening()
   game.gameSettings.eventStrength += int(normDistr(rand) * 5.0 + 0.5);
   if (game.gameSettings.eventStrength < 0)game.gameSettings.eventStrength = 0;
 
-  //¸øÊôĞÔ¼ÓËæ»ú
+  //ç»™å±æ€§åŠ éšæœº
   int r = rand() % 100;
-  if (r < 10)//Ëæ»ú¿ÛÊôĞÔ
+  if (r < 10)//éšæœºæ‰£å±æ€§
   {
     double mean = -expDistr(rand) * 30;
     for (int i = 0; i < 5; i++)
       game.addStatus(i, int(expDistr(rand) * mean));
     game.skillPt += int(2 * expDistr(rand) * mean);
   }
-  else if (r < 80)//Ëæ»ú¼ÓÊôĞÔ£¬Ä£Äâºú¾Ö
+  else if (r < 80)//éšæœºåŠ å±æ€§ï¼Œæ¨¡æ‹Ÿèƒ¡å±€
   {
     double mean = expDistr(rand) * 50;
     for (int i = 0; i < 5; i++)
@@ -134,9 +134,9 @@ Game GameGenerator::randomOpening()
 
   //if (rand() % 8 == 0)
   //  game.isQieZhe = true;
-  if (rand() % 4 == 0) //Á·Ï°ÉÏÊÖ
+  if (rand() % 4 == 0) //ç»ƒä¹ ä¸Šæ‰‹
     game.failureRateBias = -2;
-  if (rand() % 128 == 0) //Ë«È¦Á·Ï°ÉÏÊÖ
+  if (rand() % 128 == 0) //åŒåœˆç»ƒä¹ ä¸Šæ‰‹
     game.failureRateBias = -5;
   if (rand() % 8 == 0)
     game.isAiJiao = true;
@@ -176,16 +176,16 @@ Game GameGenerator::randomizeBeforeOutput(const Game& game0)
   std::normal_distribution<double> normDistr(0.0, 1.0);
   std::uniform_real_distribution<double> uniDistr(0.0, 1.0);
 
-  //¸øÊôĞÔ¼ÓËæ»ú
+  //ç»™å±æ€§åŠ éšæœº
   int type0 = rand() % 100;
-  if (type0 < 30)//Ëæ»ú¿ÛÊôĞÔ
+  if (type0 < 30)//éšæœºæ‰£å±æ€§
   {
     double mean = -expDistr(rand) * 50;
     for (int i = 0; i < 5; i++)
       game.addStatus(i, int(expDistr(rand) * mean));
     game.skillPt += int(2 * expDistr(rand) * mean);
   }
-  else if (type0 < 80)//Ëæ»ú¼ÓÊôĞÔ£¬Ä£Äâºú¾Ö
+  else if (type0 < 80)//éšæœºåŠ å±æ€§ï¼Œæ¨¡æ‹Ÿèƒ¡å±€
   {
     double mean = expDistr(rand) * 80;
     for (int i = 0; i < 5; i++)
@@ -196,15 +196,15 @@ Game GameGenerator::randomizeBeforeOutput(const Game& game0)
 
   if (rand() % 8 == 0)
     game.vital = rand() % (game.maxVital + 1);
-  //Á·Ï°ÏÂÊÖ
+  //ç»ƒä¹ ä¸‹æ‰‹
   if (rand() % 512 == 0)
     game.failureRateBias = 2;
 
 
-  // ²ËÁ¿Ëæ»ú
+  // èœé‡éšæœº
   if (rand() % 2 == 0)
   {
-    double mean = expDistr(rand) * 30; //×îÖÕdifµÄ·¶Î§À©´óµ½+-90³£¼û£¬+-270Å¼¶û£¬±È½ÏºÏÊÊ
+    double mean = expDistr(rand) * 30; //æœ€ç»ˆdifçš„èŒƒå›´æ‰©å¤§åˆ°+-90å¸¸è§ï¼Œ+-270å¶å°”ï¼Œæ¯”è¾ƒåˆé€‚
       for (int i = 0; i < 5; i++)
       {
         int dif = normDistr(rand) * mean + 0.5;
@@ -214,10 +214,10 @@ Game GameGenerator::randomizeBeforeOutput(const Game& game0)
         game.cook_material[i] = newlevel;
       }
   }
-  // Å©ÌïptËæ»ú
+  // å†œç”°ptéšæœº
   if (rand() % 2 == 0)
   {
-    double mean = expDistr(rand) * 30; //×îÖÕdifµÄ·¶Î§À©´óµ½+-90³£¼û£¬+-270Å¼¶û£¬±È½ÏºÏÊÊ
+    double mean = expDistr(rand) * 30; //æœ€ç»ˆdifçš„èŒƒå›´æ‰©å¤§åˆ°+-90å¸¸è§ï¼Œ+-270å¶å°”ï¼Œæ¯”è¾ƒåˆé€‚
     int dif = normDistr(rand) * mean + 0.5;
     int newlevel = game.cook_farm_pt + dif;
     if (newlevel > 999)newlevel = 999;
@@ -225,13 +225,13 @@ Game GameGenerator::randomizeBeforeOutput(const Game& game0)
     game.cook_farm_pt = newlevel;
   }
 
-  // Å©ÌïµÈ¼¶Ëæ»ú
+  // å†œç”°ç­‰çº§éšæœº
   if (rand() % 4 == 0)
   {
     double rand_number = rand() % 100;
     for (int i = 0; i < 5; i++)
     {
-      int dif = rand_number>67?1:rand_number>33?0:-1; // 1/3¸ÅÂÊÉı¼¶£¬1/3¸ÅÂÊ²»±ä£¬1/3¸ÅÂÊ½µ¼¶
+      int dif = rand_number>67?1:rand_number>33?0:-1; // 1/3æ¦‚ç‡å‡çº§ï¼Œ1/3æ¦‚ç‡ä¸å˜ï¼Œ1/3æ¦‚ç‡é™çº§
       int newlevel = game.cook_farm_level[i] + dif;
       if (newlevel > 5)newlevel = 5;
       if (newlevel < 1)newlevel = 1;
@@ -245,7 +245,7 @@ Game GameGenerator::randomizeBeforeOutput(const Game& game0)
     }
   }
 
-  // ÂÌÈ¦¼ÇÂ¼Ëæ»ú
+  // ç»¿åœˆè®°å½•éšæœº
   if (rand() % 4 == 0)
   {
     for (int i = 0; i < 4; i++)
@@ -256,7 +256,7 @@ Game GameGenerator::randomizeBeforeOutput(const Game& game0)
   }
 
 
-  //ÀíÊÂ³¤¼ÇÕßµÄî¿°íËæ»ú¼Ó
+  //ç†äº‹é•¿è®°è€…çš„ç¾ç»ŠéšæœºåŠ 
   for (int i = 0; i < 1; i++)
   {
     if (game.friend_type != 0 && i == 0)continue;
@@ -282,14 +282,14 @@ void GameGenerator::newGameBatch()
       turnsEveryGame[i] = randTurn;
   }
 
-  int all_end = param.batchsize; // ×Ü¹²µÄÓÎÏ·¾ÖÃæÊı
+  int all_end = param.batchsize; // æ€»å…±çš„æ¸¸æˆå±€é¢æ•°
 
-  //Íùºó½øĞĞÒ»Ğ©»ØºÏ
-  SearchParam defaultSearchParam(1024, 5.0);//Õâ¸ö²ÎÊıËæÒâÈ¡£¬Ö»ÓÃÓÚÉú³É¿ª¾ÖÊ±ÊäÈëÉñ¾­ÍøÂç
+  //å¾€åè¿›è¡Œä¸€äº›å›åˆ
+  SearchParam defaultSearchParam(1024, 5.0);//è¿™ä¸ªå‚æ•°éšæ„å–ï¼Œåªç”¨äºç”Ÿæˆå¼€å±€æ—¶è¾“å…¥ç¥ç»ç½‘ç»œ
   for (int depth = 0; depth < maxTurn; depth++)
   {
-    evaluator.evaluateSelf(1, defaultSearchParam);//¼ÆËãpolicy
-    // assert("false" && "TODO:ĞÂ¾ç±¾applyAction²»Ò»¶¨ÊÇÒ»¸ö»ØºÏ£¬Òª¸ÄÉú³É²ßÂÔ");
+    evaluator.evaluateSelf(1, defaultSearchParam);//è®¡ç®—policy
+    // assert("false" && "TODO:æ–°å‰§æœ¬applyActionä¸ä¸€å®šæ˜¯ä¸€ä¸ªå›åˆï¼Œè¦æ”¹ç”Ÿæˆç­–ç•¥");
 
     for (int i = 0; i < param.batchsize; i++)
     {

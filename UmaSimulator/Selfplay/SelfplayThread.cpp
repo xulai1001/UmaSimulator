@@ -1,4 +1,4 @@
-#include "../External/cnpy/cnpy.h"
+ï»¿#include "../External/cnpy/cnpy.h"
 #include "SelfplayThread.h"
 using namespace std;
 
@@ -72,7 +72,7 @@ TrainingSample SelfplayThread::generateSingleSample()
 
   Game game = gameGenerator.get();
 
-  // Êı¾İÄÚÈİ
+  // æ•°æ®å†…å®¹
   //cout << "The game turn is: " << game.turn << '\n';
   //for (int i = 0; i < 5; ++i)
   //    cout << game.fiveStatus[i] << " ";
@@ -105,7 +105,7 @@ void SelfplayThread::writeDataToFile()
     outputPath = outputPath + "/";
   outputPath = outputPath + generateHexFileName(rand) + ".npz";
 
-  cnpy::npz_save(outputPath, "x", nnInputBuf.data(), { uint64_t(param.sampleNumEachFile), NNINPUT_CHANNELS_V1 }, "w"); // "w" ±íÊ¾Ğ´Ä£Ê½
-  cnpy::npz_save(outputPath, "label", nnOutputBuf.data(), { uint64_t(param.sampleNumEachFile), NNOUTPUT_CHANNELS_V1 }, "a"); // "a" ±íÊ¾×·¼ÓÄ£Ê½
+  cnpy::npz_save(outputPath, "x", nnInputBuf.data(), { uint64_t(param.sampleNumEachFile), NNINPUT_CHANNELS_V1 }, "w"); // "w" è¡¨ç¤ºå†™æ¨¡å¼
+  cnpy::npz_save(outputPath, "label", nnOutputBuf.data(), { uint64_t(param.sampleNumEachFile), NNOUTPUT_CHANNELS_V1 }, "a"); // "a" è¡¨ç¤ºè¿½åŠ æ¨¡å¼
 
 }

@@ -1,4 +1,4 @@
-#include "../config.h"
+ï»¿#include "../config.h"
 #if USE_BACKEND == BACKEND_NONE
 #include <cassert>
 #include "Model.h"
@@ -19,6 +19,6 @@ void Model::evaluate(Evaluator* eva, float* inputBuf, float* outputBuf, int game
 
 void Model::printBackendInfo()
 {
-    cout << "AI°æ±¾£ºÊÖÐ´Âß¼­+MonteCarlo" << endl;
+    cout << "AIç‰ˆæœ¬ï¼šæ‰‹å†™é€»è¾‘+MonteCarlo" << endl;
 }
 #endif

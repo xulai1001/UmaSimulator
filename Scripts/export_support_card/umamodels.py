@@ -129,7 +129,8 @@ class SupportCardEffectType(IntEnum):
     TrainingHPConsumptionDown = 28
     MinigameEffectUP = 29
     SkillPointBonus = 30
-    WizRecoverUp = 31 
+    WizRecoverUp = 31
+    InitialPtUp = 32 
 
 class SupportCardRarity(IntEnum):
     R = 1
@@ -195,6 +196,8 @@ class RouteRaceData:
     condition_value_2: int
     determine_race: int # 根据选项决定的比赛
     determine_race_flag: int
+    alt_determine_race: int	# 25.02.23 新增
+    alt_determine_race_flag: int
 
 @dataclass
 class CharacterCard:
