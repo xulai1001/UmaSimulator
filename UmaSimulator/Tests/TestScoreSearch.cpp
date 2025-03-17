@@ -105,7 +105,7 @@ namespace TestScoreSearch
       }
       //cout << termcolor::red << "育成结束！" << termcolor::reset << endl;
       int64_t score = game.finalScore();
-      if (score >= 51000)
+      if (score >= 57000)
       {
         if (recordGame)
           for (int i = 0; i < gameHistory.size(); i++)
@@ -186,7 +186,10 @@ namespace TestScoreSearch
         << "UB7概率=" << float(segmentStats[528]) / n << ","
         << "UB8概率=" << float(segmentStats[536]) / n << ","
         << "UB9概率=" << float(segmentStats[544]) / n << ","
-        << "UA0概率=" << float(segmentStats[552]) / n << endl;
+        << "UA0概率=" << float(segmentStats[552]) / n << ","
+        << "UA1概率=" << float(segmentStats[559]) / n << ","
+        << "UA2概率=" << float(segmentStats[567]) / n << ","
+        << "UA3概率=" << float(segmentStats[575]) / n << endl;
     }
 
   }

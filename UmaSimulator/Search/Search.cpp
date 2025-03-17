@@ -126,7 +126,23 @@ Action Search::runSearch(const Game& game,
   std::mt19937_64& rand, bool twoStageSearchFirstYear)
 {
 
-  throw("TODO");
+  auto allAction = game.getAllLegalActions();
+  vector<ModelOutputValueV1> actionValues;
+  int bestIdx = -1;
+  double bestValue = -1e9;
+  for (int i = 0; i < allAction.size(); i++)
+  {
+    Action act = allAction[i];
+    auto v = evaluateAction(game, act, rand);
+    actionValues.push_back(v);
+    if (v.value > bestValue)
+    {
+      bestValue = v.value;
+      bestIdx = i;
+    }
+  }
+  return allAction[bestIdx];
+  //throw("TODO");
   /*
   assert(param.searchSingleMax > 0 && "Search.param not initialized");
 
