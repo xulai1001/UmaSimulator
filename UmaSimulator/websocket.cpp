@@ -46,7 +46,7 @@ void websocket::on_disconnect(wsclient* c, websocketpp::connection_hdl hdl) {
 	m_status = "Lost";
 	auto con = c->get_con_from_hdl(hdl);
 	std::cout 
-		<< "与URA的websocket连接已断开："
+		<< "\x1b[91m与URA的ws连接已断开，请启动URA\x1b[0m >> "
 		<< con->get_ec().message()
 		<< std::endl;
 	connect();
@@ -57,7 +57,7 @@ void websocket::connect() {
 	wsclient::connection_ptr con = m_endpoint.get_connection(m_uri, ec);
 	m_hdl = con->get_handle();
 	if (ec) {
-		std::cout << "> Connect initialization error: " << ec.message() << std::endl;
+		std::cout << "\x1b[91mm> WebSocket初始化错误: \x1b[0m >>" << ec.message() << std::endl;
 		return;
 	}
 

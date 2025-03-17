@@ -29,7 +29,8 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
   isLinkUma = GameConstants::isLinkChara(umaId);
   if (!GameDatabase::AllUmas.count(umaId))
   {
-    throw "ERROR Unknown character. Updating database is required.";
+      cout << "\x1b[91m未知角色ID: " << umaId << ", 请更新AI数据" << "\x1b[0m" << endl;
+      throw "ERROR Unknown character";
   }
   for (int i = 0; i < TOTAL_TURN; i++)
     isRacingTurn[i] = GameDatabase::AllUmas[umaId].races[i] == TURN_RACE;

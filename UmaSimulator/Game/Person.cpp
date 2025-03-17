@@ -17,8 +17,11 @@ Person::Person()
 
 void Person::setCard(int cardId)
 {
+    if (!GameDatabase::AllCards.contains(cardId)) {
+        cout << "\x1b[91m未知支援卡ID: " << cardId << ", 请更新AI数据" << "\x1b[0m" << endl;
+        throw "ERROR Unknown card";
+    }
   cardParam = GameDatabase::AllCards[cardId];
-
 
   friendship = cardParam.initialJiBan;
   isHint = false;

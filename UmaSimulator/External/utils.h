@@ -32,4 +32,7 @@ int jsonToArray(const json& j, T* buf, int bufSize)
 // 引用windows.h的函数需要放在cpp里，避免污染全局命名空间
 std::string string_To_UTF8(const std::string& str);
 std::string UTF8_To_string(const std::string& str);
+// 计算UTF8字符(Rune)数
+int UTF8_rune_count(const std::string& utf8String);
+std::string UTF8_rune_cut(const std::string& utf8String, int n);
 #endif

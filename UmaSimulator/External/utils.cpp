@@ -57,3 +57,42 @@ std::string UTF8_To_string(const std::string& str)
 
     return retStr;
 }
+
+// 计算UTF8字符(Rune)数
+int UTF8_rune_count(const std::string& utf8String)
+{
+    int runeCount = 0;
+    for (size_t i = 0; i < utf8String.length(); ++i)
+    {
+        unsigned char byte = utf8String[i];
+        if (byte >= 0xF0) // 4字节字符
+            i += 3;
+        else if (byte >= 0xE0) // 3字节字符
+            i += 2;
+        else if (byte >= 0xC0) // 2字节字符
+            i += 1;
+        // 0x00到0x7F是1字节字符，‌不需要额外操作
+        ++runeCount;
+    }
+    return runeCount;
+}
+
+// 计算UTF8字符(Rune)数
+std::string UTF8_rune_cut(const std::string& utf8String, int n)
+{
+    int runeCount = 0;
+    int i = 0;
+    while (i < utf8String.length() && runeCount < n) {
+        unsigned char byte = utf8String[i];
+        if (byte >= 0xF0) // 4字节字符
+            i += 3;
+        else if (byte >= 0xE0) // 3字节字符
+            i += 2;
+        else if (byte >= 0xC0) // 2字节字符
+            i += 1;
+        // 0x00到0x7F是1字节字符，‌不需要额外操作
+        ++runeCount;
+        ++i;
+    }
+    return utf8String.substr(0, i);
+}

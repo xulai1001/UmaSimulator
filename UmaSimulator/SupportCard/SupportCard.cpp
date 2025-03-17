@@ -46,7 +46,8 @@ void SupportCard::load_from_json(json& j, int x) {
 	cardID = j.value("cardId", 0);
 	cardID = cardID * 10 + x;
 	cardType = j.value("cardType", -1);
-	cardName = UTF8_To_string(j.value<std::string>("cardName", ""));
+	//cardName = UTF8_To_string(j.value<std::string>("cardName", ""));
+	cardName = j.value<std::string>("cardName", "");
 	//j.at("cardSkill").get_to(cardSkill);	// 不载入技能，因为格式不同
 	charaId = j.value("charaId", -1);
 	// 载入固有。没有该key时用默认值

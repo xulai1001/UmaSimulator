@@ -36,7 +36,7 @@ void GameDatabase::loadUmas(const string& pathname)
     }
     catch (exception& e)
     {
-        cout << "读取马娘信息出错: " << endl << e.what() << endl;
+        cout << "\x1b[91m读取马娘信息出错，请检查当前目录下是否有“db”文件夹: \x1b[0m" << endl << e.what() << endl;
     }
     catch (...)
     {
@@ -63,7 +63,8 @@ void GameDatabase::loadTranslation(const string& filename)
                 int index = atoi(it1.key().c_str());
                 string st;
                 it1.value().get_to(st);
-                dict[index] = UTF8_To_string(st);   // json必须是utf8，这里转换会有少量乱码
+                //dict[index] = UTF8_To_string(st);   // json必须是utf8，这里转换会有少量乱码
+                dict[index] = st;
             }
             TLGTranslation[idx] = dict;
         }

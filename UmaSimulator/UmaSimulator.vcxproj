@@ -80,8 +80,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PublicIncludeDirectories>G:\src\UmaSimulator\UmaSimulator;$(PublicIncludeDirectories)</PublicIncludeDirectories>
-    <ExternalIncludePath>C:\Users\zhenz\Downloads\boost_1_84_0\boost_1_84_0;G:\libtorch\include;G:\libtorch\include\torch\csrc\api\include;G:\boost-1.86.0;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>C:\Users\zhenz\Downloads\boost_1_84_0\boost_1_84_0\stage\lib;G:\libtorch\lib;G:\boost-1.86.0\libs;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>C:\Users\zhenz\Downloads\boost_1_84_0\boost_1_84_0;G:\libtorch\include;G:\libtorch\include\torch\csrc\api\include;G:\boost-1.84.0;$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>C:\Users\zhenz\Downloads\boost_1_84_0\boost_1_84_0\stage\lib;G:\libtorch\lib;G:\boost-1.84.0\libs;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
