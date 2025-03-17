@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <iomanip> 
 #include <sstream>
 #include <fstream>
@@ -41,20 +41,20 @@ void loadRole()
 		{
 			rpText[item.key()] = UTF8_To_string(item.value());
 		}
-		cout << "µ±Ç°RP½ÇÉ«£º" << rpText["name"] << endl;
+		cout << "å½“å‰RPè§’è‰²ï¼š" << rpText["name"] << endl;
 	}
 	catch (...)
 	{
-		cout << "¶ÁÈ¡ÅäÖÃĞÅÏ¢³ö´í£ºroleplay.json" << endl;
+		cout << "è¯»å–é…ç½®ä¿¡æ¯å‡ºé”™ï¼šroleplay.json" << endl;
 	}
 }
 
 void print_luck(int luck)
 {
-	int u = 0;//ĞÂ°æÆ½¾ùÔËÆø´óÔ¼500£¬µ«ÎªÁËÕÕ¹ËÖÖÂí±È½ÏÒ»°ãºÍ¿¨Ã»ÂúÆÆµÄÈË£¨ÕâÁ½ÖÖÇé¿öai´ò·Ö»áÆ«¸ß£©£¬¾ÍÉè³É0ÁË
+	int u = 0;//æ–°ç‰ˆå¹³å‡è¿æ°”å¤§çº¦500ï¼Œä½†ä¸ºäº†ç…§é¡¾ç§é©¬æ¯”è¾ƒä¸€èˆ¬å’Œå¡æ²¡æ»¡ç ´çš„äººï¼ˆè¿™ä¸¤ç§æƒ…å†µaiæ‰“åˆ†ä¼šåé«˜ï¼‰ï¼Œå°±è®¾æˆ0äº†
 	int sigma = 1500;
 	string color = "";
-	if (luck > 20000) u = 32000;//ºÃµãµÄ¿¨Æ½¾ùÖµÔ¼Îªue6
+	if (luck > 20000) u = 32000;//å¥½ç‚¹çš„å¡å¹³å‡å€¼çº¦ä¸ºue6
 
 	if (!GameConfig::noColor)
 	{
@@ -72,539 +72,572 @@ void print_luck(int luck)
 
 void main_ai()
 {
-	//const double radicalFactor = 5;//¼¤½ø¶È
-	//const int threadNum = 16; //Ïß³ÌÊı
-	 // const int searchN = 12288; //Ã¿¸öÑ¡ÏîµÄÃÉÌØ¿¨ÂåÄ£ÄâµÄ¾ÖÊı
+	//const double radicalFactor = 5;//æ¿€è¿›åº¦
+	//const int threadNum = 16; //çº¿ç¨‹æ•°
+	 // const int searchN = 12288; //æ¯ä¸ªé€‰é¡¹çš„è’™ç‰¹å¡æ´›æ¨¡æ‹Ÿçš„å±€æ•°
 
-	//¼¤½ø¶ÈÎªk£¬Ä£Äân¾ÖÊ±£¬±ê×¼²îÔ¼Îªsqrt(1+k^2/(2k+1))*1200/(sqrt(n))
-	//±ê×¼²î´óÓÚ30Ê±»áÑÏÖØÓ°ÏìÅĞ¶Ï×¼È·¶È
+	//æ¿€è¿›åº¦ä¸ºkï¼Œæ¨¡æ‹Ÿnå±€æ—¶ï¼Œæ ‡å‡†å·®çº¦ä¸ºsqrt(1+k^2/(2k+1))*1200/(sqrt(n))
+	//æ ‡å‡†å·®å¤§äº30æ—¶ä¼šä¸¥é‡å½±å“åˆ¤æ–­å‡†ç¡®åº¦
 
+	try {
+		random_device rd;
+		auto rand = mt19937_64(rd());
 
-	random_device rd;
-	auto rand = mt19937_64(rd());
+		int lastTurn = -1;
+		ModelOutputValueV1 scoreFirstTurn = ModelOutputValueV1();   // ç¬¬ä¸€å›åˆåˆ†æ•°
+		ModelOutputValueV1 scoreLastTurn = ModelOutputValueV1();   // ä¸Šä¸€å›åˆåˆ†æ•°
+		string lastJsonStr;//json str of the last time
 
-	int lastTurn = -1;
-	ModelOutputValueV1 scoreFirstTurn = ModelOutputValueV1();   // µÚÒ»»ØºÏ·ÖÊı
-	ModelOutputValueV1 scoreLastTurn = ModelOutputValueV1();   // ÉÏÒ»»ØºÏ·ÖÊı
-	string lastJsonStr;//json str of the last time
-
-	// ¼ì²é¹¤×÷Ä¿Â¼
-	wchar_t buf[10240];
-	GetModuleFileNameW(0, buf, 10240);
-	filesystem::path exeDir = filesystem::path(buf).parent_path();
-	filesystem::current_path(exeDir);
-	std::cout << "µ±Ç°¹¤×÷Ä¿Â¼£º" << filesystem::current_path() << endl;
-	cout << "µ±Ç°³ÌĞòÄ¿Â¼£º" << exeDir << endl;
+		// æ£€æŸ¥å·¥ä½œç›®å½•
+		char buf[10240];
+		GetModuleFileNameA(0, buf, 10240);
+		filesystem::path exeDir = filesystem::path(buf).parent_path();
+		filesystem::current_path(exeDir);
+		std::cout << "å½“å‰å·¥ä½œç›®å½•ï¼š" << filesystem::current_path() << endl;
+		cout << "å½“å‰ç¨‹åºç›®å½•ï¼š" << exeDir << endl;
 
 #if USE_BACKEND == BACKEND_NONE
-	GameConfig::load("./aiConfig_cpu.json");
+		GameConfig::load("./aiConfig_cpu.json");
 #else
-	GameConfig::load("./aiConfig.json");
+		GameConfig::load("./aiConfig.json");
 #endif
-	//GameDatabase::loadTranslation("./db/text_data.json");
-	GameDatabase::loadUmas("./db/umaDB.json");
-	//GameDatabase::loadCards("./db/card"); // ÔØÈë²¢ÓÅÏÈÊ¹ÓÃÊÖ¶¯Ö§Ô®¿¨Êı¾İ
-	GameDatabase::loadDBCards("./db/cardDB.json"); //cardDBÊı¾İÒÑ¾­ºÜÍêÉÆÁË
-	//loadRole();   // roleplay
+		//GameDatabase::loadTranslation("./db/text_data.json");
+		GameDatabase::loadUmas("./db/umaDB.json");
+		//GameDatabase::loadCards("./db/card"); // è½½å…¥å¹¶ä¼˜å…ˆä½¿ç”¨æ‰‹åŠ¨æ”¯æ´å¡æ•°æ®
+		GameDatabase::loadDBCards("./db/cardDB.json"); //cardDBæ•°æ®å·²ç»å¾ˆå®Œå–„äº†
 
-	bool uraFileMode = GameConfig::communicationMode == "urafile";
-	//³Ô²ËÓ°Ïì¾ö²ß£¬ËùÒÔÃ¿´ÎÎÄ¼ş¸Ä±ä¶¼Ë¢ĞÂ
-	bool refreshIfAnyChanged = true;//if false, only new turns will refresh
-	//bool refreshIfAnyChanged = GameConfig::communicationMode == "localfile";//if false, only new turns will refresh
-	string currentGameStagePath = uraFileMode ?
-		string(getenv("LOCALAPPDATA")) + "/UmamusumeResponseAnalyzer/GameData/thisTurn.json"
-		: "./thisTurn.json";
-	//string currentGameStagePath2 = 
-	//	string(getenv("LOCALAPPDATA")) + "/UmamusumeResponseAnalyzer/GameData/turn34.json"
-	//	
-	//string currentGameStagePath = "./gameData/thisTurn.json";
+		bool uraFileMode = GameConfig::communicationMode == "urafile";
 
+		bool refreshIfAnyChanged = true;//if false, only new turns will refresh
+		//bool refreshIfAnyChanged = GameConfig::communicationMode == "localfile";//if false, only new turns will refresh
+		string currentGameStagePath = uraFileMode ?
+			string(getenv("LOCALAPPDATA")) + "/UmamusumeResponseAnalyzer/GameData/thisTurn.json"
+			: "./thisTurn.json";
+		//string currentGameStagePath2 = 
+		//	string(getenv("LOCALAPPDATA")) + "/UmamusumeResponseAnalyzer/GameData/turn34.json"
+		//	
+		//string currentGameStagePath = "./gameData/thisTurn.json";
 
 
-	Model* modelptr = NULL;
-	Model model(GameConfig::modelPath, GameConfig::batchSize);
-	Model* modelSingleptr = NULL;
-	Model modelSingle(GameConfig::modelPath, 1);
-	if (GameConfig::modelPath != "")
-	{
-		modelptr = &model;
-		modelSingleptr = &modelSingle;
-	}
-	else
-	{
-		GameConfig::maxDepth = 2 * TOTAL_TURN;
-	}
 
-	Model::printBackendInfo();
-
-	SearchParam searchParam(
-		GameConfig::searchSingleMax,
-		GameConfig::searchTotalMax,
-		GameConfig::searchGroupSize,
-		GameConfig::searchCpuct,
-		GameConfig::maxDepth,
-		GameConfig::radicalFactor
-	);
-	Search search(modelptr, GameConfig::batchSize, GameConfig::threadNum, searchParam);
-	//Search search2(modelptr, GameConfig::batchSize, GameConfig::threadNum, searchParam);
-	//Evaluator evaSingle(modelSingleptr, 1);
-
-	bool useWebsocket = GameConfig::communicationMode == "websocket";
-	websocket ws(useWebsocket ? "http://127.0.0.1:4693" : "");
-	if (useWebsocket)
-	{
-		do {
-			Sleep(500);
-			std::cout << "µÈ´ıURAÁ¬½Ó" << std::endl;
-		} while (ws.get_status() != "Open");
-	}
-
-	while (true)
-	{
-		Game game;
-		//Game game2;
-		string jsonStr;
-		//string jsonStr2;
-		if (useWebsocket)
+		Model* modelptr = NULL;
+		Model model(GameConfig::modelPath, GameConfig::batchSize);
+		Model* modelSingleptr = NULL;
+		Model modelSingle(GameConfig::modelPath, 1);
+		if (GameConfig::modelPath != "")
 		{
-			jsonStr = lastFromWs;
+			modelptr = &model;
+			modelSingleptr = &modelSingle;
 		}
 		else
 		{
-
-			while (!filesystem::exists(currentGameStagePath))
-			{
-				std::cout << "ÕÒ²»µ½" + currentGameStagePath + "£¬¿ÉÄÜÊÇÓı³ÉÎ´¿ªÊ¼»òĞ¡ºÚ°åÎ´Õı³£¹¤×÷" << endl;
-				std::this_thread::sleep_for(std::chrono::milliseconds(3000));//ÑÓ³Ù¼¸Ãë£¬±ÜÃâË¢ÆÁ
-			}
-			ifstream fs(currentGameStagePath);
-			if (!fs.good())
-			{
-				cout << "¶ÁÈ¡ÎÄ¼ş´íÎó" << endl;
-				std::this_thread::sleep_for(std::chrono::milliseconds(3000));//ÑÓ³Ù¼¸Ãë£¬±ÜÃâË¢ÆÁ
-				continue;
-			}
-			ostringstream tmp;
-			tmp << fs.rdbuf();
-			fs.close();
-
-			jsonStr = tmp.str();
-			//ifstream fs2(currentGameStagePath2);
-			//ostringstream tmp2;
-			//tmp2 << fs2.rdbuf();
-			//fs2.close();
-
-			//jsonStr2 = tmp2.str();
+			GameConfig::maxDepth = 2 * TOTAL_TURN;
 		}
 
-		if (lastJsonStr == jsonStr)//Ã»ÓĞ¸üĞÂ
+		Model::printBackendInfo();
+
+		SearchParam searchParam(
+			GameConfig::searchSingleMax,
+			GameConfig::searchTotalMax,
+			GameConfig::searchGroupSize,
+			GameConfig::searchCpuct,
+			GameConfig::maxDepth,
+			GameConfig::radicalFactor
+		);
+		Search search(modelptr, GameConfig::batchSize, GameConfig::threadNum, searchParam);
+		//Search search2(modelptr, GameConfig::batchSize, GameConfig::threadNum, searchParam);
+		//Evaluator evaSingle(modelSingleptr, 1);
+
+		bool useWebsocket = GameConfig::communicationMode == "websocket";
+		bool isLinkError = false;
+		websocket ws(useWebsocket ? "http://127.0.0.1:4693" : "");
+		if (useWebsocket)
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(300));//µÈÒ»ÏÂ
-			continue;
-		}
-
-		bool suc = game.loadGameFromJson(jsonStr);
-		game.gameSettings.eventStrength = GameConfig::eventStrength;
-		game.gameSettings.ptScoreRate = GameConfig::scorePtRate;
-		game.gameSettings.scoringMode = GameConfig::scoringMode;
-		//bool suc2 = game2.loadGameFromJson(jsonStr2);
-		//game2.eventStrength = GameConfig::eventStrength;
-
-		if (!suc)
-		{
-			cout << "³öÏÖ´íÎó" << endl;
-			if (jsonStr != "[test]" && jsonStr != "{\"Result\":1,\"Reason\":null}")
-			{
-				auto ofs = ofstream("lastError.json");
-				ofs.write(jsonStr.data(), jsonStr.size());
-				ofs.close();
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(3000));//ÑÓ³Ù¼¸Ãë£¬±ÜÃâË¢ÆÁ
-			continue;
-		}
-		if (game.turn == lastTurn)
-		{
-			if (!refreshIfAnyChanged)
-			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(300));//¼ì²éÊÇ·ñÓĞ¸üĞÂ
-				continue;
-			}
-		}
-		bool maybeNonTrainingTurn = true;//ÓĞÊ±»áÊÕµ½Ò»Ğ©·ÇÑµÁ·»ØºÏµÄĞÅÏ¢£¬¹²Í¬µãÊÇÃ»ÈËÍ·¡£Õı³£ÑµÁ·Ã»ÈËÍ·µÄ¸ÅÂÊÔ¼°ÙÍò·ÖÖ®Ò»
-		for (int i = 0; i < 5; i++)
-			for (int j = 0; j < 5; j++)
-			{
-				if (game.personDistribution[i][j] != -1)
-					maybeNonTrainingTurn = false;
-			}
-		if (maybeNonTrainingTurn && !refreshIfAnyChanged)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(300));//¼ì²éÊÇ·ñÓĞ¸üĞÂ
-			continue;
-		}
-		//cout << jsonStr << endl;
-		lastTurn = game.turn;
-		lastJsonStr = jsonStr;
-		if (game.turn == 0)//µÚÒ»»ØºÏ£¬»òÕßÖØÆôaiµÄµÚÒ»»ØºÏ
-		{
-			scoreFirstTurn = ModelOutputValueV1();
-			scoreLastTurn = ModelOutputValueV1();
-		}
-
-		cout << endl;
-
-		//if (game.stage == ST_train)
-		//{
-		//	Game game2 = game;
-		//	for (int i = 0; i < 5; i++)
-		//	{
-		//		game2.randomizeTurn(rand);
-				//game2.print();
-		//	}
-		//}
-		/*{
-			auto allActions = game.getAllLegalActions();
-			for (int i = 0; i < allActions.size(); i++)
-			{
-				Action a = allActions[i];
-				cout << i << " of " << allActions.size() << " " << a.stage << " " << a.idx << endl;
-				Game game2 = game;
-				game2.gameSettings.playerPrint = true;
-				game2.applyActionUntilNextDecision(rand, a);
-				game2.print();
-				cout << endl;
-			}
-		}*/
-
-
-
-		//game.print();
-
-
-		//cout << rpText["name"] << rpText["calc"] << endl;
-		auto printPolicy = [](float p)
-			{
-				cout << fixed << setprecision(1);
-				if (!GameConfig::noColor)
-				{
-					if (p >= 0.3)cout << "\033[33m";
-					//else if (p >= 0.1)cout << "\033[32m";
-					else cout << "\033[36m";
+			do {
+				Sleep(500);
+				if (!isLinkError) {
+					std::cout << "\x1b[93mç­‰å¾…URAè¿æ¥\x1b[0m" << std::endl;
+					isLinkError = true;
 				}
-				cout << p * 100 << "% ";
-				if (!GameConfig::noColor)cout << "\033[0m";
-			};
-		
-		auto printColoredValue = [](double v0, double maxv, double ref)
-			{
-				double dif = v0 - maxv;
-				if (dif < -5000)
-				{
-					cout <<  "---- ";
-					return;
-				}
-				cout << fixed << setprecision(0);
-				if (!GameConfig::noColor)
-				{
-					if (dif > -25) cout << "\033[41m\033[1;33m*";
-					else if (dif > -100) cout << "\033[1;32m";
-					else cout << "\033[33m";
-				}
-				cout << setw(6) << to_string(int(v0 - ref));
-				if (!GameConfig::noColor)cout << "\033[0m";
-				cout << " ";
-			};
+			} while (ws.get_status() != "Open");
+			isLinkError = false;
+		}
 
-		//search.runSearch(game, GameConfig::searchN, TOTAL_TURN, 0, rand);
-		
-		if (game.turn < TOTAL_TURN)
+		while (true)
 		{
-
-			//±¸·İ»ØºÏĞÅÏ¢ÓÃÓÚdebug
-			try
+			Game game;
+			//Game game2;
+			string jsonStr;
+			//string jsonStr2;
+			if (useWebsocket)
 			{
-				std::filesystem::create_directories("log");
-				string fname = "log/turn" + to_string(game.turn) + "_" + to_string(game.stage) + ".json";
-				auto ofs = ofstream(fname);
-				ofs.write(jsonStr.data(), jsonStr.size());
-				ofs.close();
-			}
-			catch (...)
-			{
-				cout << "±£´æ»ØºÏĞÅÏ¢Ê§°Ü" << endl;
-			}
-
-			//game.applyAction(rand, Action(DISH_none, TRA_guts));
-			game.print();
-			//game2.print();
-			//game = game2;
-
-			Action hw = Evaluator::handWrittenStrategy(game);
-			//cout << "ÊÖĞ´Âß¼­: " << hw.toString(game) << endl;
-			//Game game2 = game;
-			//game2.gameSettings.playerPrint = true;
-			//game2.applyActionUntilNextDecision(rand, hw);
-			//game2.print();
-
-			auto allAction = game.getAllLegalActions();
-			vector<ModelOutputValueV1> actionValues;
-			int bestIdx = -1;
-			double bestValue = -1e9;
-			for (int i = 0; i < allAction.size(); i++)
-			{
-				Action act = allAction[i];
-				cout << act.toString(game) << " : ";
-				auto v = search.evaluateAction(game, act, rand);
-				cout << v.value << endl;
-				actionValues.push_back(v);
-				if (v.value > bestValue)
-				{
-					bestValue = v.value;
-					bestIdx = i;
-				}
-			}
-
-
-			double refScore = scoreLastTurn.value;
-
-			ModelOutputValueV1 reRandomizeValue;//ÖØĞÂËæ»ú·ÖÅäÈËÍ·»òÕßÈ¡buff£¬¼ÆËã·ÖÊı
-			if (game.stage == ST_train || game.stage == ST_chooseBuff) {
-				Game game3 = game;
-				game3.undoRandomize();
-				reRandomizeValue = search.evaluateNewGame(game3, rand);
-				refScore = reRandomizeValue.value;
-			}
-
-			//Ë¢ĞÂ£¬È»ºóÖØĞÂÏÔÊ¾Ò»±é·ÖÊı,ÈÃ·ÖÊı¼õÈ¥³£Êı
-			for (int i = 0; i < allAction.size(); i++)
-				cout << "\033[1A";
-			for (int i = 0; i < allAction.size(); i++)
-			{
-				Action act = allAction[i];
-				cout << act.toString(game) << " : ";
-				printColoredValue(actionValues[i].value, bestValue, refScore);
-				cout << endl;
-			}
-
-
-			cout << endl;
-			Action bestAction = allAction[bestIdx];
-			cout << "AI½¨Òé£º" << bestAction.toString(game);
-			if (game.stage == ST_chooseBuff && game.turn != 65)
-				cout << " " << ScenarioBuffInfo::getScenarioBuffName(game.lg_pickedBuffs[bestAction.idx]);
-			cout << endl;
-
-			if (bestAction.stage == ST_train && bestAction.idx == T_outgoing)
-			{
-				Game game2 = game;
-				game2.applyActionUntilNextDecision(rand, bestAction);
-				if (game2.stage == ST_decideEvent && game2.decidingEvent == DecidingEvent_outing)
-				{
-					auto allAction2 = game2.getAllLegalActions();
-					vector<ModelOutputValueV1> actionValues2;
-					int bestIdx2 = -1;
-					double bestValue2 = -1e9;
-					for (int i = 0; i < allAction2.size(); i++)
-					{
-						Action act2 = allAction2[i];
-						cout << act2.toString(game2) << " : ";
-						auto v = search.evaluateAction(game2, act2, rand);
-						printColoredValue(v.value, bestValue2, refScore);
-						cout << endl;
-						actionValues2.push_back(v);
-						if (v.value > bestValue2)
-						{
-							bestValue2 = v.value;
-							bestIdx2 = i;
-						}
-					}
-					Action bestAction2 = allAction2[bestIdx2];
-					cout << "AI½¨Òé£º" << bestAction2.toString(game2) << endl;
-				}
-			}
-
-
-
-			auto maxV = actionValues[bestIdx];
-
-
-			cout << endl;
-			if (game.turn == 0 || scoreFirstTurn.value == 0)
-			{
-				cout << "ÆÀ·ÖÔ¤²â: Æ½¾ù\033[1;32m" << int(maxV.scoreMean) << "\033[0m" << "£¬ÀÖ¹Û\033[1;36m+" << int(maxV.value - maxV.scoreMean) << "\033[0m" << endl;
-				scoreFirstTurn = maxV;
+				jsonStr = lastFromWs;
 			}
 			else
 			{
-				cout << "ÔËÆøÖ¸±ê£º" << " | ±¾¾Ö£º";
-				print_luck(int(maxV.scoreMean - scoreFirstTurn.scoreMean));
-				cout << " | ±¾»ØºÏ£º" << int(maxV.scoreMean - scoreLastTurn.scoreMean);
-				if (game.stage==ST_train || game.stage == ST_chooseBuff) {
-					cout << "£¨ÑµÁ·£º\033[1;36m" << int(maxV.scoreMean - reRandomizeValue.scoreMean) << "\033[0m";
-				}
-				cout << " | ÆÀ·ÖÔ¤²â: \033[1;32m" << int(maxV.scoreMean) << "\033[0m"
-					<< "£¨ÀÖ¹Û\033[1;36m+" << int(maxV.value - maxV.scoreMean) << "\033[0m£©" << endl;
 
-			}
-			if (game.stage == ST_train && allAction[allAction.size() - 1].idx == T_race)
-			{
-				double raceLoss = bestValue - actionValues[actionValues.size() - 1].value;
-				cout << "±ÈÈü¿÷Ëğ£º" << int(raceLoss) << endl;
-			}
-
-
-			scoreLastTurn = maxV;
-
-			if (false)//debug
-			{
-				cout << "²Î¿¼·Ö£º" << refScore << endl;
-
-				Game game4 = game;
-				game4.gameSettings.playerPrint = true;
-				game4.applyActionUntilNextDecision(rand, bestAction);
-				game4.print(); 
-				if (game4.stage == ST_train || game4.stage == ST_chooseBuff) {
-					Game game3 = game;
-					game3.undoRandomize();
-					auto reRandomizeValue2 = search.evaluateNewGame(game3, rand);
-
-					cout << "ÏÂ»ØºÏ²Î¿¼·Ö£º" << reRandomizeValue2.value << endl;
-				}
-
-			}
-
-			/*
-
-		evaSingle.gameInput[0] = game;
-		evaSingle.evaluateSelf(1, searchParam);
-		Action hl = evaSingle.actionResults[0];
-		if (GameConfig::modelPath == "")
-			cout << "ÊÖĞ´Âß¼­: " << hl.toString() << endl;
-		else
-			cout << "´¿Éñ¾­ÍøÂç: " << hl.toString() << endl;
-
-		search.param.maxDepth = game.turn < 70 - GameConfig::maxDepth ? GameConfig::maxDepth : 2 * TOTAL_TURN;
-		Action bestAction = search.runSearch(game, rand);
-		cout << "ÃÉÌØ¿¨Âå: " << bestAction.toString() << endl;
-
-
-		//Èç¹ûÖØĞÂ·ÖÅä¿¨×é£¬Æ½¾ù·ÖÊÇ¶àÉÙ£¬Óëµ±Ç°»ØºÏ¶Ô±È¿ÉÒÔ»ñµÃÔËÆøÇé¿ö
-		ModelOutputValueV1 trainAvgScore = { -1,-1,-1 };
-		double trainLuckRate = -1;
-
-		if (game.cook_dish == DISH_none)
-		{
-			trainAvgScore = search2.evaluateNewGame(game, rand);
-
-			//ÖØĞÂ·ÖÅä¿¨×é£¬ÓĞ¶à´ó¸ÅÂÊ±ÈÕâ»ØºÏºÃ
-			if (modelptr != NULL)//Ö»ÓĞÉñ¾­ÍøÂç°æÖ§³Ö´Ë¹¦ÄÜ
-			{
-				int64_t count = 0;
-				int64_t luckCount = 0;
-				auto& eva = search2.evaluators[0];
-				eva.gameInput.assign(eva.maxBatchsize, game);
-				eva.evaluateSelf(0, search2.param);
-				double refValue = eva.valueResults[0].scoreMean;//µ±Ç°ÑµÁ·µÄÆ½¾ù·Ö
-
-				int batchN = 1 + 4 * GameConfig::searchSingleMax / eva.maxBatchsize;
-				for (int b = 0; b < batchN; b++)
+				while (!filesystem::exists(currentGameStagePath))
 				{
-					for (int i = 0; i < eva.maxBatchsize; i++)
-					{
-						eva.gameInput[i] = game;
-						eva.gameInput[i].randomDistributeCards(rand);
+					if (!isLinkError) {
+						std::cout << "\x1b[92mç­‰å¾…æ¥æ”¶å›åˆä¿¡æ¯ï¼Œè¯·å¼€å§‹è‚²æˆ\x1b[0m" << endl;
+						isLinkError = true;
 					}
+				}
+				ifstream fs(currentGameStagePath);
+				if (!fs.good())
+				{
+					if (!isLinkError) {
+						std::cout << "è¯»å–å›åˆæ•°æ®é”™è¯¯: æ²¡æœ‰æ‰¾åˆ°gamedata/thisTurn.json" << endl;
+						isLinkError = true;
+					}
+					continue;
+				}
+				ostringstream tmp;
+				tmp << fs.rdbuf();
+				fs.close();
+
+				jsonStr = tmp.str();
+				isLinkError = false;
+			}
+
+			if (lastJsonStr == jsonStr)//æ²¡æœ‰æ›´æ–°
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(300));//ç­‰ä¸€ä¸‹
+				continue;
+			}
+
+			// sanity check
+			if (isLinkError) continue;
+			try {
+
+				bool suc = game.loadGameFromJson(jsonStr);
+				game.gameSettings.eventStrength = GameConfig::eventStrength;
+				game.gameSettings.ptScoreRate = GameConfig::scorePtRate;
+				game.gameSettings.scoringMode = GameConfig::scoringMode;
+			
+				if (!suc)
+				{
+					if (!isLinkError) {
+						cout << "\x1b[93mç­‰å¾…è¯»å–æ¸¸æˆæ•°æ®\x1b[0m" << endl;
+						isLinkError = true;
+					}
+					if (jsonStr != "[test]" && jsonStr != "{\"Result\":1,\"Reason\":null}")
+					{
+						auto ofs = ofstream("lastError.json");
+						ofs.write(jsonStr.data(), jsonStr.size());
+						ofs.close();
+					}
+					std::this_thread::sleep_for(std::chrono::milliseconds(3000));//å»¶è¿Ÿå‡ ç§’ï¼Œé¿å…åˆ·å±
+					continue;					
+				}
+				else {
+					isLinkError = false;
+				}
+				if (game.turn == lastTurn)
+				{
+					if (!refreshIfAnyChanged)
+					{
+						std::this_thread::sleep_for(std::chrono::milliseconds(300));//æ£€æŸ¥æ˜¯å¦æœ‰æ›´æ–°
+						continue;
+					}
+				}
+				bool maybeNonTrainingTurn = true;//æœ‰æ—¶ä¼šæ”¶åˆ°ä¸€äº›éè®­ç»ƒå›åˆçš„ä¿¡æ¯ï¼Œå…±åŒç‚¹æ˜¯æ²¡äººå¤´ã€‚æ­£å¸¸è®­ç»ƒæ²¡äººå¤´çš„æ¦‚ç‡çº¦ç™¾ä¸‡åˆ†ä¹‹ä¸€
+				for (int i = 0; i < 5; i++)
+					for (int j = 0; j < 5; j++)
+					{
+						if (game.personDistribution[i][j] != -1)
+							maybeNonTrainingTurn = false;
+					}
+				if (maybeNonTrainingTurn && !refreshIfAnyChanged)
+				{
+					std::this_thread::sleep_for(std::chrono::milliseconds(300));//æ£€æŸ¥æ˜¯å¦æœ‰æ›´æ–°
+					continue;
+				}
+				//cout << jsonStr << endl;
+				lastTurn = game.turn;
+				lastJsonStr = jsonStr;
+				if (game.turn == 0)//ç¬¬ä¸€å›åˆï¼Œæˆ–è€…é‡å¯aiçš„ç¬¬ä¸€å›åˆ
+				{
+					scoreFirstTurn = ModelOutputValueV1();
+					scoreLastTurn = ModelOutputValueV1();
+				}
+
+				cout << endl;
+
+				//if (game.stage == ST_train)
+				//{
+				//	Game game2 = game;
+				//	for (int i = 0; i < 5; i++)
+				//	{
+				//		game2.randomizeTurn(rand);
+						//game2.print();
+				//	}
+				//}
+				/*{
+					auto allActions = game.getAllLegalActions();
+					for (int i = 0; i < allActions.size(); i++)
+					{
+						Action a = allActions[i];
+						cout << i << " of " << allActions.size() << " " << a.stage << " " << a.idx << endl;
+						Game game2 = game;
+						game2.gameSettings.playerPrint = true;
+						game2.applyActionUntilNextDecision(rand, a);
+						game2.print();
+						cout << endl;
+					}
+				}*/
+
+
+
+				//game.print();
+
+
+				//cout << rpText["name"] << rpText["calc"] << endl;
+				auto printPolicy = [](float p)
+					{
+						cout << fixed << setprecision(1);
+						if (!GameConfig::noColor)
+						{
+							if (p >= 0.3)cout << "\033[33m";
+							//else if (p >= 0.1)cout << "\033[32m";
+							else cout << "\033[36m";
+						}
+						cout << p * 100 << "% ";
+						if (!GameConfig::noColor)cout << "\033[0m";
+					};
+
+				auto printColoredValue = [](double v0, double maxv, double ref)
+					{
+						double dif = v0 - maxv;
+						if (dif < -5000)
+						{
+							cout << "---- ";
+							return;
+						}
+						cout << fixed << setprecision(0);
+						if (!GameConfig::noColor)
+						{
+							if (dif > -25) cout << "\033[41m\033[1;33m*";
+							else if (dif > -100) cout << "\033[1;32m";
+							else cout << "\033[33m";
+						}
+						cout << setw(6) << to_string(int(v0 - ref));
+						if (!GameConfig::noColor)cout << "\033[0m";
+						cout << " ";
+					};
+
+				//search.runSearch(game, GameConfig::searchN, TOTAL_TURN, 0, rand);
+
+				if (game.turn < TOTAL_TURN)
+				{
+
+					//å¤‡ä»½å›åˆä¿¡æ¯ç”¨äºdebug
+					try
+					{
+						std::filesystem::create_directories("log");
+						string fname = "log/turn" + to_string(game.turn) + "_" + to_string(game.stage) + ".json";
+						auto ofs = ofstream(fname);
+						ofs.write(jsonStr.data(), jsonStr.size());
+						ofs.close();
+					}
+					catch (...)
+					{
+						cout << "ä¿å­˜å›åˆä¿¡æ¯å¤±è´¥" << endl;
+					}
+
+					//game.applyAction(rand, Action(DISH_none, TRA_guts));
+					game.print();
+					//game2.print();
+					//game = game2;
+
+					Action hw = Evaluator::handWrittenStrategy(game);
+					//cout << "æ‰‹å†™é€»è¾‘: " << hw.toString(game) << endl;
+					//Game game2 = game;
+					//game2.gameSettings.playerPrint = true;
+					//game2.applyActionUntilNextDecision(rand, hw);
+					//game2.print();
+
+					auto allAction = game.getAllLegalActions();
+					vector<ModelOutputValueV1> actionValues;
+					int bestIdx = -1;
+					double bestValue = -1e9;
+					for (int i = 0; i < allAction.size(); i++)
+					{
+						Action act = allAction[i];
+						cout << act.toString(game) << " : ";
+						auto v = search.evaluateAction(game, act, rand);
+						cout << v.value << endl;
+						actionValues.push_back(v);
+						if (v.value > bestValue)
+						{
+							bestValue = v.value;
+							bestIdx = i;
+						}
+					}
+
+
+					double refScore = scoreLastTurn.value;
+
+					ModelOutputValueV1 reRandomizeValue;//é‡æ–°éšæœºåˆ†é…äººå¤´æˆ–è€…å–buffï¼Œè®¡ç®—åˆ†æ•°
+					if (game.stage == ST_train || game.stage == ST_chooseBuff) {
+						Game game3 = game;
+						game3.undoRandomize();
+						reRandomizeValue = search.evaluateNewGame(game3, rand);
+						refScore = reRandomizeValue.value;
+					}
+
+					//åˆ·æ–°ï¼Œç„¶åé‡æ–°æ˜¾ç¤ºä¸€éåˆ†æ•°,è®©åˆ†æ•°å‡å»å¸¸æ•°
+					for (int i = 0; i < allAction.size(); i++)
+						cout << "\033[1A";
+					for (int i = 0; i < allAction.size(); i++)
+					{
+						Action act = allAction[i];
+						cout << act.toString(game) << " : ";
+						printColoredValue(actionValues[i].value, bestValue, refScore);
+						cout << endl;
+					}
+
+
+					cout << endl;
+					Action bestAction = allAction[bestIdx];
+					cout << "AIå»ºè®®ï¼š" << bestAction.toString(game);
+					if (game.stage == ST_chooseBuff && game.turn != 65)
+						cout << " " << ScenarioBuffInfo::getScenarioBuffName(game.lg_pickedBuffs[bestAction.idx]);
+					cout << endl;
+
+					if (bestAction.stage == ST_train && bestAction.idx == T_outgoing)
+					{
+						Game game2 = game;
+						game2.applyActionUntilNextDecision(rand, bestAction);
+						if (game2.stage == ST_decideEvent && game2.decidingEvent == DecidingEvent_outing)
+						{
+							auto allAction2 = game2.getAllLegalActions();
+							vector<ModelOutputValueV1> actionValues2;
+							int bestIdx2 = -1;
+							double bestValue2 = -1e9;
+							for (int i = 0; i < allAction2.size(); i++)
+							{
+								Action act2 = allAction2[i];
+								cout << act2.toString(game2) << " : ";
+								auto v = search.evaluateAction(game2, act2, rand);
+								printColoredValue(v.value, bestValue2, refScore);
+								cout << endl;
+								actionValues2.push_back(v);
+								if (v.value > bestValue2)
+								{
+									bestValue2 = v.value;
+									bestIdx2 = i;
+								}
+							}
+							Action bestAction2 = allAction2[bestIdx2];
+							cout << "AIå»ºè®®ï¼š" << bestAction2.toString(game2) << endl;
+						}
+					}
+
+
+
+					auto maxV = actionValues[bestIdx];
+
+
+					cout << endl;
+					if (game.turn == 0 || scoreFirstTurn.value == 0)
+					{
+						cout << "è¯„åˆ†é¢„æµ‹: å¹³å‡\033[1;32m" << int(maxV.scoreMean) << "\033[0m" << "ï¼Œä¹è§‚\033[1;36m+" << int(maxV.value - maxV.scoreMean) << "\033[0m" << endl;
+						scoreFirstTurn = maxV;
+					}
+					else
+					{
+						cout << "è¿æ°”æŒ‡æ ‡ï¼š" << " | æœ¬å±€ï¼š";
+						print_luck(int(maxV.scoreMean - scoreFirstTurn.scoreMean));
+						cout << " | æœ¬å›åˆï¼š" << int(maxV.scoreMean - scoreLastTurn.scoreMean);
+						if (game.stage == ST_train || game.stage == ST_chooseBuff) {
+							cout << "ï¼ˆè®­ç»ƒï¼š\033[1;36m" << int(maxV.scoreMean - reRandomizeValue.scoreMean) << "\033[0m";
+						}
+						cout << " | è¯„åˆ†é¢„æµ‹: \033[1;32m" << int(maxV.scoreMean) << "\033[0m"
+							<< "ï¼ˆä¹è§‚\033[1;36m+" << int(maxV.value - maxV.scoreMean) << "\033[0mï¼‰" << endl;
+
+					}
+					if (game.stage == ST_train && allAction[allAction.size() - 1].idx == T_race)
+					{
+						double raceLoss = bestValue - actionValues[actionValues.size() - 1].value;
+						cout << "æ¯”èµ›äºæŸï¼š" << int(raceLoss) << endl;
+					}
+
+
+					scoreLastTurn = maxV;
+
+					if (false)//debug
+					{
+						cout << "å‚è€ƒåˆ†ï¼š" << refScore << endl;
+
+						Game game4 = game;
+						game4.gameSettings.playerPrint = true;
+						game4.applyActionUntilNextDecision(rand, bestAction);
+						game4.print();
+						if (game4.stage == ST_train || game4.stage == ST_chooseBuff) {
+							Game game3 = game;
+							game3.undoRandomize();
+							auto reRandomizeValue2 = search.evaluateNewGame(game3, rand);
+
+							cout << "ä¸‹å›åˆå‚è€ƒåˆ†ï¼š" << reRandomizeValue2.value << endl;
+						}
+
+					}
+				}
+
+				/*
+
+			evaSingle.gameInput[0] = game;
+			evaSingle.evaluateSelf(1, searchParam);
+			Action hl = evaSingle.actionResults[0];
+			if (GameConfig::modelPath == "")
+				cout << "æ‰‹å†™é€»è¾‘: " << hl.toString() << endl;
+			else
+				cout << "çº¯ç¥ç»ç½‘ç»œ: " << hl.toString() << endl;
+
+			search.param.maxDepth = game.turn < 70 - GameConfig::maxDepth ? GameConfig::maxDepth : 2 * TOTAL_TURN;
+			Action bestAction = search.runSearch(game, rand);
+			cout << "è’™ç‰¹å¡æ´›: " << bestAction.toString() << endl;
+
+
+			//å¦‚æœé‡æ–°åˆ†é…å¡ç»„ï¼Œå¹³å‡åˆ†æ˜¯å¤šå°‘ï¼Œä¸å½“å‰å›åˆå¯¹æ¯”å¯ä»¥è·å¾—è¿æ°”æƒ…å†µ
+			ModelOutputValueV1 trainAvgScore = { -1,-1,-1 };
+			double trainLuckRate = -1;
+
+			if (game.cook_dish == DISH_none)
+			{
+				trainAvgScore = search2.evaluateNewGame(game, rand);
+
+				//é‡æ–°åˆ†é…å¡ç»„ï¼Œæœ‰å¤šå¤§æ¦‚ç‡æ¯”è¿™å›åˆå¥½
+				if (modelptr != NULL)//åªæœ‰ç¥ç»ç½‘ç»œç‰ˆæ”¯æŒæ­¤åŠŸèƒ½
+				{
+					int64_t count = 0;
+					int64_t luckCount = 0;
+					auto& eva = search2.evaluators[0];
+					eva.gameInput.assign(eva.maxBatchsize, game);
 					eva.evaluateSelf(0, search2.param);
-					for (int i = 0; i < eva.maxBatchsize; i++)
+					double refValue = eva.valueResults[0].scoreMean;//å½“å‰è®­ç»ƒçš„å¹³å‡åˆ†
+
+					int batchN = 1 + 4 * GameConfig::searchSingleMax / eva.maxBatchsize;
+					for (int b = 0; b < batchN; b++)
 					{
-						count++;
-						if (eva.valueResults[i].scoreMean < refValue)
-							luckCount++;
+						for (int i = 0; i < eva.maxBatchsize; i++)
+						{
+							eva.gameInput[i] = game;
+							eva.gameInput[i].randomDistributeCards(rand);
+						}
+						eva.evaluateSelf(0, search2.param);
+						for (int i = 0; i < eva.maxBatchsize; i++)
+						{
+							count++;
+							if (eva.valueResults[i].scoreMean < refValue)
+								luckCount++;
+						}
+
 					}
-
+					trainLuckRate = double(luckCount) / count;
 				}
-				trainLuckRate = double(luckCount) / count;
 			}
-		}
-		double maxMean = -1e7;
-		double maxValue = -1e7;
-		for (int i = 0; i < Action::MAX_ACTION_TYPE; i++)
-		{
-			if (!search.allActionResults[i].isLegal)continue;
-			auto v = search.allActionResults[i].lastCalculate;
-			if (v.value > maxValue)
-				maxValue = v.value;
-			if (v.scoreMean > maxMean)
-				maxMean = v.scoreMean;
-		}
-
-		Action restAction;
-		restAction.dishType = DISH_none;
-		restAction.train = TRA_rest;
-		Action outgoingAction;
-		outgoingAction.dishType = DISH_none;
-		outgoingAction.train = TRA_outgoing;
-		//ĞİÏ¢ºÍÍâ³öÀïÃæ·Ö×î¸ßµÄÄÇ¸ö¡£Õâ¸öÊı×Ö×÷ÎªÏÔÊ¾²Î¿¼
-		double restValue = search.allActionResults[restAction.toInt()].lastCalculate.value;
-		double outgoingValue = search.allActionResults[outgoingAction.toInt()].lastCalculate.value;
-		if (outgoingValue > restValue)
-			restValue = outgoingValue;
-
-
-		wstring strToSendURA = L"UMAAI_COOK";
-		strToSendURA += L" " + to_wstring(game.turn) + L" " + to_wstring(maxMean) + L" " + to_wstring(scoreFirstTurn) + L" " + to_wstring(scoreLastTurn) + L" " + to_wstring(maxValue);
-		if (game.turn == 0 || scoreFirstTurn == 0)
-		{
-			//cout << "ÆÀ·ÖÔ¤²â: Æ½¾ù\033[1;32m" << int(maxMean) << "\033[0m" << "£¬ÀÖ¹Û\033[1;36m+" << int(maxValue - maxMean) << "\033[0m" << endl;
-			scoreFirstTurn = search.allActionResults[outgoingAction.toInt()].lastCalculate.scoreMean;
-		}
-		//else
-		{
-			cout << "ÔËÆøÖ¸±ê£º" << " | ±¾¾Ö£º";
-			print_luck(maxMean - scoreFirstTurn);
-			cout << " | ±¾»ØºÏ£º" << maxMean - scoreLastTurn;
-			if (trainAvgScore.value >= 0) {
-				cout << "£¨ÑµÁ·£º\033[1;36m" << int(maxMean - trainAvgScore.scoreMean) << "\033[0m";
-
-				if (trainLuckRate >= 0)
-				{
-					cout << fixed << setprecision(2) << " ³¬¹ıÁË\033[1;36m" << trainLuckRate * 100 << "%\033[0m";
-				}
-				cout << "£©";
-			}
-			cout	<< " | ÆÀ·ÖÔ¤²â: \033[1;32m" << maxMean << "\033[0m"
-				<< "£¨ÀÖ¹Û\033[1;36m+" << int(maxValue - maxMean) << "\033[0m£©" << endl;
-
-		}
-		cout.flush();
-		scoreLastTurn = maxMean;
-
-		for (int tr = 0; tr < 8; tr++)
-		{
-			Action a;
-			a.dishType = DISH_none;
-			a.train = tr;
-			double value = search.allActionResults[a.toInt()].lastCalculate.value;
-			strToSendURA += L" " + to_wstring(tr) + L" " + to_wstring(value - restValue) + L" " + to_wstring(maxValue - restValue);
-			printValue(a.toInt(), value - restValue, maxValue - restValue);
-			//cout << "(" << search.allActionResults[a.toInt()].num << ")";
-			//cout << "(¡À" << 2 * int(Search::expectedSearchStdev / sqrt(search.allActionResults[a.toInt()].num)) << ")";
-			if (tr == TRA_race && game.isLegal(a))
+			double maxMean = -1e7;
+			double maxValue = -1e7;
+			for (int i = 0; i < Action::MAX_ACTION_TYPE; i++)
 			{
-				cout << "(±ÈÈü¿÷Ëğ:\033[1;36m" << maxValue - value << "\033[0m£©";
+				if (!search.allActionResults[i].isLegal)continue;
+				auto v = search.allActionResults[i].lastCalculate;
+				if (v.value > maxValue)
+					maxValue = v.value;
+				if (v.scoreMean > maxMean)
+					maxMean = v.scoreMean;
 			}
+
+			Action restAction;
+			restAction.dishType = DISH_none;
+			restAction.train = TRA_rest;
+			Action outgoingAction;
+			outgoingAction.dishType = DISH_none;
+			outgoingAction.train = TRA_outgoing;
+			//ä¼‘æ¯å’Œå¤–å‡ºé‡Œé¢åˆ†æœ€é«˜çš„é‚£ä¸ªã€‚è¿™ä¸ªæ•°å­—ä½œä¸ºæ˜¾ç¤ºå‚è€ƒ
+			double restValue = search.allActionResults[restAction.toInt()].lastCalculate.value;
+			double outgoingValue = search.allActionResults[outgoingAction.toInt()].lastCalculate.value;
+			if (outgoingValue > restValue)
+				restValue = outgoingValue;
+
+
+			wstring strToSendURA = L"UMAAI_COOK";
+			strToSendURA += L" " + to_wstring(game.turn) + L" " + to_wstring(maxMean) + L" " + to_wstring(scoreFirstTurn) + L" " + to_wstring(scoreLastTurn) + L" " + to_wstring(maxValue);
+			if (game.turn == 0 || scoreFirstTurn == 0)
+			{
+				//cout << "è¯„åˆ†é¢„æµ‹: å¹³å‡\033[1;32m" << int(maxMean) << "\033[0m" << "ï¼Œä¹è§‚\033[1;36m+" << int(maxValue - maxMean) << "\033[0m" << endl;
+				scoreFirstTurn = search.allActionResults[outgoingAction.toInt()].lastCalculate.scoreMean;
+			}
+			//else
+			{
+				cout << "è¿æ°”æŒ‡æ ‡ï¼š" << " | æœ¬å±€ï¼š";
+				print_luck(maxMean - scoreFirstTurn);
+				cout << " | æœ¬å›åˆï¼š" << maxMean - scoreLastTurn;
+				if (trainAvgScore.value >= 0) {
+					cout << "ï¼ˆè®­ç»ƒï¼š\033[1;36m" << int(maxMean - trainAvgScore.scoreMean) << "\033[0m";
+
+					if (trainLuckRate >= 0)
+					{
+						cout << fixed << setprecision(2) << " è¶…è¿‡äº†\033[1;36m" << trainLuckRate * 100 << "%\033[0m";
+					}
+					cout << "ï¼‰";
+				}
+				cout	<< " | è¯„åˆ†é¢„æµ‹: \033[1;32m" << maxMean << "\033[0m"
+					<< "ï¼ˆä¹è§‚\033[1;36m+" << int(maxValue - maxMean) << "\033[0mï¼‰" << endl;
+
+			}
+			cout.flush();
+			scoreLastTurn = maxMean;
+
+			for (int tr = 0; tr < 8; tr++)
+			{
+				Action a;
+				a.dishType = DISH_none;
+				a.train = tr;
+				double value = search.allActionResults[a.toInt()].lastCalculate.value;
+				strToSendURA += L" " + to_wstring(tr) + L" " + to_wstring(value - restValue) + L" " + to_wstring(maxValue - restValue);
+				printValue(a.toInt(), value - restValue, maxValue - restValue);
+				//cout << "(" << search.allActionResults[a.toInt()].num << ")";
+				//cout << "(Â±" << 2 * int(Search::expectedSearchStdev / sqrt(search.allActionResults[a.toInt()].num)) << ")";
+				if (tr == TRA_race && game.isLegal(a))
+				{
+					cout << "(æ¯”èµ›äºæŸ:\033[1;36m" << maxValue - value << "\033[0mï¼‰";
+				}
+			}
+			cout << endl;
+
+
+			//strToSendURA = L"0.1234567 5.4321";
+			if (useWebsocket)
+			{
+				wstring s = L"{\"CommandType\":1,\"Command\":\"PrintUmaAiResult\",\"Parameters\":[\"" + strToSendURA + L"\"]}";
+				//ws.send(s);
+			}*/
+
+			}
+			catch (exception& e) {
+				cout << "\x1b[91må‘ç”Ÿé”™è¯¯: " << endl << e.what() << endl;
+				cout << "\x1b[91m** ç¨‹åºå³å°†é€€å‡º**\x1b[0m" << endl;
+				system("pause");
+			}
+			catch (...) {
+				cout << "\x1b[91må‘ç”ŸæœªçŸ¥é”™è¯¯ï¼Œè¯·é‡å¯AI" << endl;
+				cout << "\x1b[91m** ç¨‹åºå³å°†é€€å‡º**\x1b[0m" << endl;
+				system("pause");
+			}
+
 		}
-		cout << endl;
-
-
-		//strToSendURA = L"0.1234567 5.4321";
-		if (useWebsocket)
-		{
-			wstring s = L"{\"CommandType\":1,\"Command\":\"PrintUmaAiResult\",\"Parameters\":[\"" + strToSendURA + L"\"]}";
-			//ws.send(s);
-		}*/
-
-		}
-	
+	}	// try
+	catch (exception& e) {
+		cout << "\x1b[91mAIåˆå§‹åŒ–æ—¶å‘ç”Ÿé”™è¯¯: " << endl << e.what() << endl;
+		cout << "\x1b[91m** ç¨‹åºå³å°†é€€å‡º**\x1b[0m" << endl;
+		system("pause");
+	}
+	catch (...) {
+		cout << "\x1b[91mAIåˆå§‹åŒ–æ—¶å‘ç”ŸæœªçŸ¥é”™è¯¯ï¼Œè¯·æ£€æŸ¥é…ç½®" << endl;
+		cout << "\x1b[91m** ç¨‹åºå³å°†é€€å‡º**\x1b[0m" << endl;
+		system("pause");
 	}
 }

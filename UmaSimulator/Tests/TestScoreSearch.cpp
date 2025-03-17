@@ -1,4 +1,4 @@
-#include <iostream>
+é”˜ï¿½#include <iostream>
 #include <random>
 #include <sstream>
 #include <string>
@@ -31,7 +31,7 @@ namespace TestScoreSearch
   const int threadNum = 1;
   const int batchsize = 1;
   const int threadNumInner = 8;
-  const double radicalFactor = 3;//¼¤½ø¶È
+  const double radicalFactor = 3;//å©µï¿½æ©æ¶˜å®³
   const int searchDepth = 2 * TOTAL_TURN;
   const int searchN = 2048;
   const bool recordGame = true;
@@ -42,15 +42,15 @@ namespace TestScoreSearch
 
   TestConfig test;
   /*
-  //int umaId = 108401;//¹ÈË®£¬30Á¦¼Ó³É
-  int umaId = 106501;//Ì«ÑôÉñ£¬15ËÙ15Á¦¼Ó³É
+  //int umaId = 108401;//ç’‹é”‹æŒ‰é”›ï¿½30é”æ¶˜å§é´ï¿½
+  int umaId = 106501;//æ¾¶îˆæ§¼ç»çƒ‡ç´15é–«ï¿½15é”æ¶˜å§é´ï¿½
   int umaStars = 5;
-  //int cards[6] = { 301604,301344,301614,300194,300114,301074 };//ÓÑÈË£¬¸ß·å£¬ÉñÓ¥£¬ÎÚÀ­À­£¬·çÉñ£¬Ë¾»ú
-  int cards[6] = { 301604,301724,301614,301304,300114,300374 };//ÓÑÈË£¬ÖÇÂóÀ¥£¬ËÙÉñÓ¥£¬¸ù¿­Ë¹£¬¸ù·çÉñ£¬¸ù»ÊµÛ
+  //int cards[6] = { 301604,301344,301614,300194,300114,301074 };//é™å¬©æ±‰é”›å²„ç®å®„å¸®ç´ç»ç‚ºæ‹±é”›å±¼ç®¤é·å¤‹åªºé”›å²„î—“ç»çƒ‡ç´é™å‘Šæº€
+  int cards[6] = { 301604,301724,301614,301304,300114,300374 };//é™å¬©æ±‰é”›å±¾æ«¤æ¥¹ï¸½æ§…é”›å²„ï¿½ç†ºîš£æ¥£å¸®ç´éç‘°åš¡é‚îˆ¤ç´éå½’î—“ç»çƒ‡ç´éåœ­æ®—ç”¯ï¿½
 
   int zhongmaBlue[5] = { 18,0,0,0,0 };
   int zhongmaBonus[6] = { 10,10,30,0,10,70 };
-  bool allowedDebuffs[9] = { false, false, false, false, false, false, true, false, false };//µÚ¶şÄê¿ÉÒÔ²»ÏûµÚ¼¸¸ödebuff¡£µÚÎå¸öÊÇÖÇÁ¦£¬µÚÆß¸öÊÇÇ¿ĞÄÔà
+  bool allowedDebuffs[9] = { false, false, false, false, false, false, true, false, false };//ç»—îƒ¿ç°©éªæ‘å½²æµ ãƒ¤ç¬‰å¨‘å ¢îƒ‡é‘çŠ±é‡œdebufféŠ†å‚œîƒ‡æµœæ–¾é‡œé„îˆ›æ«¤é”æ¶³ç´ç»—îƒ¿ç«·æ¶“î…æ§¸å¯®å“„ç¸¾é‘´ï¿½
   */
   std::atomic<double> totalScore = 0;
   std::atomic<double> totalScoreSqr = 0;
@@ -58,7 +58,7 @@ namespace TestScoreSearch
   std::atomic<int> bestScore = 0;
   std::atomic<int> n = 0;
   std::mutex printLock;
-  vector<atomic<int>> segmentStats = vector<atomic<int>>(700);//100·ÖÒ»¶Î£¬700¶Î
+  vector<atomic<int>> segmentStats = vector<atomic<int>>(700);//100é’å—•ç«´å¨ˆç¢‰ç´700å¨ˆï¿½
   std::atomic<int> printThreshold = 2187;
 
   void worker()
@@ -103,7 +103,7 @@ namespace TestScoreSearch
         }
         game.applyAction(rand, action);
       }
-      //cout << termcolor::red << "Óı³É½áÊø£¡" << termcolor::reset << endl;
+      //cout << termcolor::red << "é‘²å‰åšç¼æ’´æ½«é”›ï¿½" << termcolor::reset << endl;
       int64_t score = game.finalScore();
       if (score >= 57000)
       {
@@ -138,14 +138,14 @@ namespace TestScoreSearch
       }
 
       while (score > bestScoreOld && !bestScore.compare_exchange_weak(bestScoreOld, score)) {
-        // Èç¹ûval´óÓÚold_max£¬²¢ÇÒmax_valµÄÖµ»¹ÊÇold_max£¬ÄÇÃ´¾Í½«max_valµÄÖµ¸üĞÂÎªval
-        // Èç¹ûmax_valµÄÖµÒÑ¾­±»ÆäËûÏß³Ì¸üĞÂ£¬ÄÇÃ´¾Í²»×öÈÎºÎÊÂÇé£¬²¢ÇÒold_max»á±»ÉèÖÃÎªmax_valµÄĞÂÖµ
-        // È»ºóÎÒÃÇÔÙ´Î½øĞĞ±È½ÏºÍ½»»»²Ù×÷£¬Ö±µ½³É¹¦ÎªÖ¹
+        // æ¿¡å‚›ç‰valæ¾¶Ñ‚ç°¬old_maxé”›å±½è‹Ÿæ¶“æ”ax_valé¨å‹«ï¿½è‰°ç¹•é„ç—®ld_maxé”›å²„å…æ¶”å æ°¨çå”Œax_valé¨å‹«ï¿½å…¼æ´¿é‚é¢è´Ÿval
+        // æ¿¡å‚›ç‰max_valé¨å‹«ï¿½ç…å‡¡ç¼å¿šî¦éæœµç²¬ç»¾è·¨â–¼é‡å­˜æŸŠé”›å²„å…æ¶”å æ°¨æ¶“å¶…ä»›æµ è®³ç¶æµœå¬«å„é”›å±½è‹Ÿæ¶“æ”ld_maxæµ¼æ°³î¦ç’å‰§ç–†æ¶“ç°ƒax_valé¨å‹¬æŸŠéŠï¿½
+        // é’è·ºæ‚—é´æˆœæ»‘éå¶†î‚¼æ©æ¶œî”‘å§£æ—‡ç·éœå±¼æ°¦é¹ãˆ¡æ·æµ£æ»ç´é©æ‘åŸŒé´æ„¬å§›æ¶“çƒ˜î„›
       }
 
       //game.print();
       game.printFinalStats();
-      cout << endl << n << "¾Ö£¬ËÑË÷Á¿=" << searchN << "£¬Æ½¾ù·Ö" << totalScore / n << "£¬±ê×¼²î" << sqrt(totalScoreSqr / n - totalScore * totalScore / n / n) << "£¬×î¸ß·Ö" << bestScore << endl;
+      cout << endl << n << "çï¿½é”›å±¾æ‚³ç»±ãˆ¤å™º=" << searchN << "é”›å±½é’©é§å›§å" << totalScore / n << "é”›å±¾çˆ£é‘å——æ¨Š" << sqrt(totalScoreSqr / n - totalScore * totalScore / n / n) << "é”›å±¾æ¸¶æ¥‚æ¨ºå" << bestScore << endl;
       //for (int i=0; i<400; ++i)
       //    cout << i*100 << ",";
       //cout << endl;
@@ -153,43 +153,41 @@ namespace TestScoreSearch
       //    cout << float(segmentStats[i]) / n << ",";
       //cout << endl;
       cout
-        << "UE7¸ÅÂÊ=" << float(segmentStats[327]) / n << ","
-        << "UE8¸ÅÂÊ=" << float(segmentStats[332]) / n << ","
-        << "UE9¸ÅÂÊ=" << float(segmentStats[338]) / n << ","
-        << "UD0¸ÅÂÊ=" << float(segmentStats[344]) / n << ","
-        << "UD1¸ÅÂÊ=" << float(segmentStats[350]) / n << ","
-        << "UD2¸ÅÂÊ=" << float(segmentStats[356]) / n << ","
-        << "UD3¸ÅÂÊ=" << float(segmentStats[362]) / n << ","
-        << "UD4¸ÅÂÊ=" << float(segmentStats[368]) / n << ","
-        << "UD5¸ÅÂÊ=" << float(segmentStats[375]) / n << ","
-        << "UD6¸ÅÂÊ=" << float(segmentStats[381]) / n << ","
-        << "UD7¸ÅÂÊ=" << float(segmentStats[387]) / n << ","
-        << "UD8¸ÅÂÊ=" << float(segmentStats[394]) / n << ","
-        << "UD9¸ÅÂÊ=" << float(segmentStats[400]) / n << ","
-        << "UC0¸ÅÂÊ=" << float(segmentStats[407]) / n << ","
-        << "UC1¸ÅÂÊ=" << float(segmentStats[413]) / n << ","
-        << "UC2¸ÅÂÊ=" << float(segmentStats[420]) / n << ","
-        << "UC3¸ÅÂÊ=" << float(segmentStats[427]) / n << ","
-        << "UC4¸ÅÂÊ=" << float(segmentStats[434]) / n << ","
-        << "UC5¸ÅÂÊ=" << float(segmentStats[440]) / n << ","
-        << "UC6¸ÅÂÊ=" << float(segmentStats[447]) / n << ","
-        << "UC7¸ÅÂÊ=" << float(segmentStats[454]) / n << ","
-        << "UC8¸ÅÂÊ=" << float(segmentStats[462]) / n << ","
-        << "UC9¸ÅÂÊ=" << float(segmentStats[469]) / n << ","
-        << "UB0¸ÅÂÊ=" << float(segmentStats[476]) / n << ","
-        << "UB1¸ÅÂÊ=" << float(segmentStats[483]) / n << ","
-        << "UB2¸ÅÂÊ=" << float(segmentStats[490]) / n << ","
-        << "UB3¸ÅÂÊ=" << float(segmentStats[498]) / n << ","
-        << "UB4¸ÅÂÊ=" << float(segmentStats[505]) / n << ","
-        << "UB5¸ÅÂÊ=" << float(segmentStats[513]) / n << ","
-        << "UB6¸ÅÂÊ=" << float(segmentStats[520]) / n << ","
-        << "UB7¸ÅÂÊ=" << float(segmentStats[528]) / n << ","
-        << "UB8¸ÅÂÊ=" << float(segmentStats[536]) / n << ","
-        << "UB9¸ÅÂÊ=" << float(segmentStats[544]) / n << ","
-        << "UA0¸ÅÂÊ=" << float(segmentStats[552]) / n << ","
-        << "UA1¸ÅÂÊ=" << float(segmentStats[559]) / n << ","
-        << "UA2¸ÅÂÊ=" << float(segmentStats[567]) / n << ","
-        << "UA3¸ÅÂÊ=" << float(segmentStats[575]) / n << endl;
+
+        << "UE7å§’å‚œå·¼=" << float(segmentStats[327]) / n << ","
+        << "UE8å§’å‚œå·¼=" << float(segmentStats[332]) / n << ","
+        << "UE9å§’å‚œå·¼=" << float(segmentStats[338]) / n << ","
+        << "UD0å§’å‚œå·¼=" << float(segmentStats[344]) / n << ","
+        << "UD1å§’å‚œå·¼=" << float(segmentStats[350]) / n << ","
+        << "UD2å§’å‚œå·¼=" << float(segmentStats[356]) / n << ","
+        << "UD3å§’å‚œå·¼=" << float(segmentStats[362]) / n << ","
+        << "UD4å§’å‚œå·¼=" << float(segmentStats[368]) / n << ","
+        << "UD5å§’å‚œå·¼=" << float(segmentStats[375]) / n << ","
+        << "UD6å§’å‚œå·¼=" << float(segmentStats[381]) / n << ","
+        << "UD7å§’å‚œå·¼=" << float(segmentStats[387]) / n << ","
+        << "UD8å§’å‚œå·¼=" << float(segmentStats[394]) / n << ","
+        << "UD9å§’å‚œå·¼=" << float(segmentStats[400]) / n << ","
+        << "UC0å§’å‚œå·¼=" << float(segmentStats[407]) / n << ","
+        << "UC1å§’å‚œå·¼=" << float(segmentStats[413]) / n << ","
+        << "UC2å§’å‚œå·¼=" << float(segmentStats[420]) / n << ","
+        << "UC3å§’å‚œå·¼=" << float(segmentStats[427]) / n << ","
+        << "UC4å§’å‚œå·¼=" << float(segmentStats[434]) / n << ","
+        << "UC5å§’å‚œå·¼=" << float(segmentStats[440]) / n << ","
+        << "UC6å§’å‚œå·¼=" << float(segmentStats[447]) / n << ","
+        << "UC7å§’å‚œå·¼=" << float(segmentStats[454]) / n << ","
+        << "UC8å§’å‚œå·¼=" << float(segmentStats[462]) / n << ","
+        << "UC9å§’å‚œå·¼=" << float(segmentStats[469]) / n << ","
+        << "UB0å§’å‚œå·¼=" << float(segmentStats[476]) / n << ","
+        << "UB1å§’å‚œå·¼=" << float(segmentStats[483]) / n << ","
+        << "UB2å§’å‚œå·¼=" << float(segmentStats[490]) / n << ","
+        << "UB3å§’å‚œå·¼=" << float(segmentStats[498]) / n << ","
+        << "UB4å§’å‚œå·¼=" << float(segmentStats[505]) / n << ","
+        << "UB5å§’å‚œå·¼=" << float(segmentStats[513]) / n << ","
+        << "UB6å§’å‚œå·¼=" << float(segmentStats[520]) / n << ","
+        << "UB7å§’å‚œå·¼=" << float(segmentStats[528]) / n << ","
+        << "UB8å§’å‚œå·¼=" << float(segmentStats[536]) / n << ","
+        << "UB9å§’å‚œå·¼=" << float(segmentStats[544]) / n << ","
+        << "UA0å§’å‚œå·¼=" << float(segmentStats[552]) / n << endl;
     }
 
   }
@@ -198,7 +196,7 @@ namespace TestScoreSearch
 using namespace TestScoreSearch;
 void main_testScoreSearch()
 {
-  // ¼ì²é¹¤×÷Ä¿Â¼
+  // å¦«ï¿½éŒãƒ¥ä¼æµ£æ»…æ´°è¤°ï¿½
   GameDatabase::loadTranslation("./db/text_data.json");
   GameDatabase::loadUmas("./db/umaDB.json");
   GameDatabase::loadDBCards("./db/cardDB.json");
@@ -210,7 +208,7 @@ void main_testScoreSearch()
 
   for (int i = 0; i < 700; i++)segmentStats[i] = 0;
 
-  cout << "ÕıÔÚ²âÊÔ¡­¡­\033[?25l" << endl;
+  cout << "å§ï½…æ¹ªå¨´å¬­ç˜¯éˆ¥ï¸¹ï¿½î›‚033[?25l" << endl;
 
   std::vector<std::thread> threads;
   for (int i = 0; i < threadNum; ++i) {
@@ -220,7 +218,7 @@ void main_testScoreSearch()
     thread.join();
   }
 
-  cout << n << "¾Ö£¬ËÑË÷Á¿=" << searchN << "£¬Æ½¾ù·Ö" << totalScore / n << "£¬±ê×¼²î" << sqrt(totalScoreSqr / n - totalScore * totalScore / n / n) << "£¬×î¸ß·Ö" << bestScore << endl;
+  cout << n << "çï¿½é”›å±¾æ‚³ç»±ãˆ¤å™º=" << searchN << "é”›å±½é’©é§å›§å" << totalScore / n << "é”›å±¾çˆ£é‘å——æ¨Š" << sqrt(totalScoreSqr / n - totalScore * totalScore / n / n) << "é”›å±¾æ¸¶æ¥‚æ¨ºå" << bestScore << endl;
   system("pause");
 
 }

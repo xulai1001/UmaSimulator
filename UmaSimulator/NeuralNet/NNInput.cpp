@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <cassert>
 #include "NNInput.h"
 #include "../Search/SearchParam.h"
@@ -9,7 +9,7 @@ using namespace std;
 void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
 {
   /*
-  //Ã¿ÕÅ¿¨µÄ³õÊ¼ÊôĞÔ¼Ó³É¡¢³õÊ¼î¿°í¡¢Èüºó¼Ó³É²»ĞèÒª¸æËßÉñ¾­ÍøÂç£¬Ö»¸æËß×ÜÈüºó
+  //æ¯å¼ å¡çš„åˆå§‹å±æ€§åŠ æˆã€åˆå§‹ç¾ç»Šã€èµ›ååŠ æˆä¸éœ€è¦å‘Šè¯‰ç¥ç»ç½‘ç»œï¼Œåªå‘Šè¯‰æ€»èµ›å
 
   for (int ch = 0; ch < NNINPUT_CHANNELS_CARD_V1; ch++)
     buf[ch] = 0;
@@ -17,7 +17,7 @@ void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
   //0~6 cardtype
   buf[cardType] = 1.0;
 
-  //´óÖÂÓ³Éäµ½0~1·¶Î§
+  //å¤§è‡´æ˜ å°„åˆ°0~1èŒƒå›´
   buf[7] = youQingBasic * 0.04;
   buf[8] = ganJingBasic * 0.02;
   buf[9] = xunLianBasic * 0.05;
@@ -38,13 +38,13 @@ void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
   buf[27] = 0.0; //reserve
   buf[28] = 0.0;
 
-  //ÊÇ·ñlink£¬linkµÄ¹Ì¶¨buff£¬ÔÚPerson::getNNInputV1ÖĞĞ´
+  //æ˜¯å¦linkï¼Œlinkçš„å›ºå®šbuffï¼Œåœ¨Person::getNNInputV1ä¸­å†™
 
 
-  //¹ÌÓĞ
+  //å›ºæœ‰
   assert(isDBCard);
   const int BasicC = 29;
-  const int UniqueTypeC = 35;//0~29Ö±½Ó±àºÅ£¬30~34ÌØÊâ¹ÌÓĞ
+  const int UniqueTypeC = 35;//0~29ç›´æ¥ç¼–å·ï¼Œ30~34ç‰¹æ®Šå›ºæœ‰
   assert(uniqueEffectType < 30);
   const int UniqueEffectC = 13;
   static_assert(BasicC + UniqueTypeC + UniqueEffectC == NNINPUT_CHANNELS_CARD_V1);
@@ -53,7 +53,7 @@ void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
 
   auto writeUniqueEffect = [&](int key, double value)
   {
-    //ÒÀ´ÎÊÇ£º0~4ËÙÄÍÁ¦¸ùÖÇ£¬5pt£¬6ÓÑÇé£¬7¸É¾¢£¬8ÑµÁ·£¬9Ê§°ÜÂÊ£¬10ÌåÁ¦»¨·Ñ¼õÉÙ£¬11ÖÇÁ¦²ÊÈ¦ÌåÁ¦
+    //ä¾æ¬¡æ˜¯ï¼š0~4é€Ÿè€åŠ›æ ¹æ™ºï¼Œ5ptï¼Œ6å‹æƒ…ï¼Œ7å¹²åŠ²ï¼Œ8è®­ç»ƒï¼Œ9å¤±è´¥ç‡ï¼Œ10ä½“åŠ›èŠ±è´¹å‡å°‘ï¼Œ11æ™ºåŠ›å½©åœˆä½“åŠ›
     if (key <= 0)
       return;
     else if (key == 1)
@@ -198,25 +198,25 @@ void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
   else if (uniqueEffectType == 16)
   {
     writeUniqueEffect(uniqueEffectParam[2], uniqueEffectParam[4] * uniqueEffectParam[3]);
-    if (uniqueEffectParam[1] == 1 && uniqueEffectParam[4] == 5)//5¸öËÙ¶È¼¼ÄÜ
+    if (uniqueEffectParam[1] == 1 && uniqueEffectParam[4] == 5)//5ä¸ªé€Ÿåº¦æŠ€èƒ½
     {
       bufUniqueType[16] = 1.0;
     }
-    else if (uniqueEffectParam[1] == 1 && uniqueEffectParam[4] == 3)//3¸öËÙ¶È¼¼ÄÜ
+    else if (uniqueEffectParam[1] == 1 && uniqueEffectParam[4] == 3)//3ä¸ªé€Ÿåº¦æŠ€èƒ½
     {
       bufUniqueType[30] = 1.0;
     }
-    else if (uniqueEffectParam[1] == 2 && uniqueEffectParam[4] == 3)//3¸ö¼ÓËÙ¶È¼¼ÄÜ
+    else if (uniqueEffectParam[1] == 2 && uniqueEffectParam[4] == 3)//3ä¸ªåŠ é€Ÿåº¦æŠ€èƒ½
     {
       bufUniqueType[31] = 1.0;
     }
-    else if (uniqueEffectParam[1] == 3 && uniqueEffectParam[4] == 3)//3¸ö»ØÌå¼¼ÄÜ
+    else if (uniqueEffectParam[1] == 3 && uniqueEffectParam[4] == 3)//3ä¸ªå›ä½“æŠ€èƒ½
     {
       bufUniqueType[32] = 1.0;
     }
     else
     {
-      assert(false && "nninput: Î´ÖªµÄ¹ºÂò¼¼ÄÜĞÍÖ§Ô®¿¨¹ÌÓĞ");
+      assert(false && "nninput: æœªçŸ¥çš„è´­ä¹°æŠ€èƒ½å‹æ”¯æ´å¡å›ºæœ‰");
     }
   }
   else if (uniqueEffectType == 17)
@@ -224,17 +224,17 @@ void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
     bufUniqueType[17] = 1.0;
     writeUniqueEffect(8, uniqueEffectParam[3]);
   }
-  else if (uniqueEffectType == 18)//×ôÔÀ
+  else if (uniqueEffectType == 18)//ä½å²³
   {
     bufUniqueType[18] = 1.0;
-    assert(false && "±¾ai²»Ö§³Ö·Ç¾ç±¾ÓÑÈË¿¨");
+    assert(false && "æœ¬aiä¸æ”¯æŒéå‰§æœ¬å‹äººå¡");
   }
-  else if (uniqueEffectType == 19)//Á¹»¨
+  else if (uniqueEffectType == 19)//å‡‰èŠ±
   {
     bufUniqueType[19] = 1.0;
-    assert(false && "±¾ai²»Ö§³Ö·Ç¾ç±¾ÓÑÈË¿¨");
+    assert(false && "æœ¬aiä¸æ”¯æŒéå‰§æœ¬å‹äººå¡");
   }
-  else if (uniqueEffectType == 20)//¾Ş½³
+  else if (uniqueEffectType == 20)//å·¨åŒ 
   {
     bufUniqueType[20] = 1.0;
     int cardTypeCount[7] = { 0,0,0,0,0,0,0 };
@@ -250,11 +250,11 @@ void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
       if (cardTypeCount[i] > 2)cardTypeCount[i] = 2;
     for (int i = 0; i < 5; i++)
       if (cardTypeCount[i] > 0)
-        writeUniqueEffect(i + 3, cardTypeCount[i]);  // ËÙÄÍÁ¦¸ùÖÇ = 0-4 = CardEffect´ÊÌõ3-7
+        writeUniqueEffect(i + 3, cardTypeCount[i]);  // é€Ÿè€åŠ›æ ¹æ™º = 0-4 = CardEffectè¯æ¡3-7
     if (cardTypeCount[5] > 0)
       writeUniqueEffect(30, cardTypeCount[5]); // pt = 30
   }
-  else if (uniqueEffectType == 21)//Íòô¥
+  else if (uniqueEffectType == 21)//ä¸‡ç±
   {
     int cardTypeCount[7] = { 0,0,0,0,0,0,0 };
     for (int i = 0; i < 6; i++)
@@ -273,13 +273,13 @@ void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
       writeUniqueEffect(uniqueEffectParam[2], uniqueEffectParam[3]);
     }
   }
-  else if (uniqueEffectType == 22)//ÀíÊÂ³¤
+  else if (uniqueEffectType == 22)//ç†äº‹é•¿
   {
     bufUniqueType[22] = 1.0;
   }
   else
   {
-    assert(false && "NNInput:Î´Öª¹ÌÓĞ");
+    assert(false && "NNInput:æœªçŸ¥å›ºæœ‰");
   }
 
 
@@ -290,25 +290,25 @@ void SupportCard::getCardParamNNInputV1(float* buf, const Game& game) const
 void Person::getCardNNInputV1(float* buf, const Game& game, int index) const
 {
 
-  assert(personType >= 1 && personType <= 6 && "Ö»ÓĞÖ§Ô®¿¨µ÷ÓÃ´Ëº¯Êı£¬ÀíÊÂ³¤¼ÇÕßµÈÔÚÈ«¾Ö²ÎÊıÀï");
+  assert(personType >= 1 && personType <= 6 && "åªæœ‰æ”¯æ´å¡è°ƒç”¨æ­¤å‡½æ•°ï¼Œç†äº‹é•¿è®°è€…ç­‰åœ¨å…¨å±€å‚æ•°é‡Œ");
 
   for (int ch = 0; ch < NNINPUT_CHANNELS_PERSON_V1 + NNINPUT_CHANNELS_CARD_V1; ch++)
     buf[ch] = 0;
 
-  //cardParamÔÚÆäËûµØ·½ÊäÈë
-  //PersonType²»ÓÃĞ´£¬uaf¾ç±¾Ö»°ÑÖ§Ô®¿¨ÊäÈëµ¥¶ÀµÄnninput
-  //charaId²»ÓÃĞ´
-  //cardIdInGame²»ÓÃĞ´£¬ºÍ¿¨×é²ÎÊı·ÅÔÚ¶ÔÓ¦¹Ì¶¨Î»ÖÃ¾ÍĞĞ
+  //cardParamåœ¨å…¶ä»–åœ°æ–¹è¾“å…¥
+  //PersonTypeä¸ç”¨å†™ï¼Œuafå‰§æœ¬åªæŠŠæ”¯æ´å¡è¾“å…¥å•ç‹¬çš„nninput
+  //charaIdä¸ç”¨å†™
+  //cardIdInGameä¸ç”¨å†™ï¼Œå’Œå¡ç»„å‚æ•°æ”¾åœ¨å¯¹åº”å›ºå®šä½ç½®å°±è¡Œ
   buf[0] = double(friendship) / 100.0;
   buf[1] = friendship >= 80 ? 1.0 : 0.0;
   buf[2] = friendship >= 100 ? 1.0 : 0.0;
   buf[3] = isHint ? 1.0 : 0.0;
-  buf[4] = 0.0;//Ô¤Áô
-  buf[5] = 0.0;//Ô¤Áô
-  buf[6] = 0.0;//Ô¤Áô
-  //ÓÑÈËÍÅ¶Ó¿¨µÄ×´Ì¬ÔÚÈ«¾Ö±äÁ¿ÀïÊäÈë
+  buf[4] = 0.0;//é¢„ç•™
+  buf[5] = 0.0;//é¢„ç•™
+  buf[6] = 0.0;//é¢„ç•™
+  //å‹äººå›¢é˜Ÿå¡çš„çŠ¶æ€åœ¨å…¨å±€å˜é‡é‡Œè¾“å…¥
   
-  //ÔÚÄÄ¸öÑµÁ·
+  //åœ¨å“ªä¸ªè®­ç»ƒ
   if (!game.isRacing) {
       for (int tr = 0; tr < 5; tr++)
       {
@@ -330,13 +330,13 @@ void Person::getCardNNInputV1(float* buf, const Game& game, int index) const
 
 
 
-void NNInput_init(float * buf) { //³õÊ¼»¯NNInput
+void NNInput_init(float * buf) { //åˆå§‹åŒ–NNInput
   for(int i=0;i<NNINPUT_CHANNELS_V1;++i)
     buf[i] = 0.0;
   return ;
 }
 
-void SetValue(float * buf, int &buf_ptr, float value) { //ÉèÖÃÖµ
+void SetValue(float * buf, int &buf_ptr, float value) { //è®¾ç½®å€¼
   buf[buf_ptr] = value;
   buf_ptr++;
   return ;
@@ -346,98 +346,98 @@ void SetValue(float * buf, int &buf_ptr, float value) { //ÉèÖÃÖµ
 void Game::getNNInputV1(float* buf, const SearchParam& param) const
 {
   /*
-  int buf_ptr = 0; //Ö¸ÏòNNInput bufµÄÖ¸Õë
-  NNInput_init(buf); //³õÊ¼»¯NNInput
-  //ÉèÖÃËÑË÷²ÎÊı
-  buf[buf_ptr] = 1.0 * log(param.maxRadicalFactor + 1.0); //¼¤½øÒò×Ó
+  int buf_ptr = 0; //æŒ‡å‘NNInput bufçš„æŒ‡é’ˆ
+  NNInput_init(buf); //åˆå§‹åŒ–NNInput
+  //è®¾ç½®æœç´¢å‚æ•°
+  buf[buf_ptr] = 1.0 * log(param.maxRadicalFactor + 1.0); //æ¿€è¿›å› å­
   buf_ptr += 6;
 
-  // ºÏ·¨µÄactionÑ¡Ïî
+  // åˆæ³•çš„actioné€‰é¡¹
   for(int i=0;i<Action::MAX_ACTION_TYPE;++i)
     SetValue(buf,buf_ptr,isLegal(Action::intToAction(i))?1.0:0.0);
 
-  //²ÎÊıÏà¹ØÉèÖÃ
+  //å‚æ•°ç›¸å…³è®¾ç½®
   //ptScoreRate
   SetValue(buf, buf_ptr, ptScoreRate - 2.0);
   SetValue(buf, buf_ptr, hintPtRate - 5.0);
   SetValue(buf, buf_ptr, (eventStrength - 20) * 0.1);
 
-  // »ù±¾×´Ì¬ 
-  // ÊÇ·ñÎªlinkÂí
+  // åŸºæœ¬çŠ¶æ€ 
+  // æ˜¯å¦ä¸ºlinké©¬
   SetValue(buf,buf_ptr,isLinkUma ? 1.0 : 0.0);
-  // ÊÇ·ñÎª±ÈÈü»ØºÏ
+  // æ˜¯å¦ä¸ºæ¯”èµ›å›åˆ
   for (int i = 0; i < TOTAL_TURN; ++i)
     SetValue(buf, buf_ptr, isRacingTurn[i] ? 1.0 : 0.0);
-  // ÎåÎ¬ÊôĞÔµÄ³É³¤ÂÊ
+  // äº”ç»´å±æ€§çš„æˆé•¿ç‡
   for (int i = 0; i < 5; ++i)
     SetValue(buf, buf_ptr, 0.1 * float(fiveStatusBonus[i]));
-  //µÚ¼¸»ØºÏ
+  //ç¬¬å‡ å›åˆ
   assert(turn < TOTAL_TURN);
   buf[buf_ptr + turn] = 1.0;
   buf_ptr += TOTAL_TURN;
-  // ÓÎÏ·½×¶Î
+  // æ¸¸æˆé˜¶æ®µ
   SetValue(buf,buf_ptr,gameStage);
-  // ÌåÁ¦
+  // ä½“åŠ›
   SetValue(buf,buf_ptr,vital*0.02);
-  // ÌåÁ¦ÉÏÏŞ
+  // ä½“åŠ›ä¸Šé™
   SetValue(buf,buf_ptr,(maxVital-100.0)*0.10);
-  // ¸É¾¢
+  // å¹²åŠ²
   buf[buf_ptr + motivation - 1] = 1.0;
   buf_ptr += 5;
-  // ÎåÎ¬ÊôĞÔ
+  // äº”ç»´å±æ€§
   for(int i=0;i<5;++i) 
     SetValue(buf,buf_ptr,fiveStatus[i] * 0.002);
-  // ÎåÎ¬ÊôĞÔÉÏÏŞ
+  // äº”ç»´å±æ€§ä¸Šé™
   for(int i=0;i<5;++i) 
     SetValue(buf,buf_ptr,(fiveStatusLimit[i] - GameConstants::BasicFiveStatusLimit[i])*0.01);
-  // ¼¼ÄÜ·ÖÊı
+  // æŠ€èƒ½åˆ†æ•°
   SetValue(buf,buf_ptr,getSkillScore() * 0.001);
-  // ÑµÁ·µÈ¼¶¼ÆÊı
+  // è®­ç»ƒç­‰çº§è®¡æ•°
   for (int i = 0; i < 5; ++i)
     SetValue(buf, buf_ptr, (trainLevelCount[i] % 4) * 0.25);
-  // µ±Ç°ÑµÁ·µÈ¼¶
+  // å½“å‰è®­ç»ƒç­‰çº§
   for (int i = 0; i < 5; ++i)
   {
     buf[buf_ptr + (trainLevelCount[i] / 4)] = 1.0;
     buf_ptr += 5;
   }
 
-  // Buff×´Ì¬ÉèÖÃ 
-  // Ê§°ÜÂÊ¸Ä±äÁ¿
-  SetValue(buf, buf_ptr, failureRateBias < 0 ? 1.0 * failureRateBias : 0.0); //ÊÇ·ñÁ·Ï°ÉÏÊÖ
-  SetValue(buf, buf_ptr, failureRateBias > 0 ? 1.0 * failureRateBias : 0.0); //ÊÇ·ñÁ·Ï°ÏÂÊÖ
+  // BuffçŠ¶æ€è®¾ç½® 
+  // å¤±è´¥ç‡æ”¹å˜é‡
+  SetValue(buf, buf_ptr, failureRateBias < 0 ? 1.0 * failureRateBias : 0.0); //æ˜¯å¦ç»ƒä¹ ä¸Šæ‰‹
+  SetValue(buf, buf_ptr, failureRateBias > 0 ? 1.0 * failureRateBias : 0.0); //æ˜¯å¦ç»ƒä¹ ä¸‹æ‰‹
   
-  // ÊÇ·ñÇĞÕß
+  // æ˜¯å¦åˆ‡è€…
   SetValue(buf,buf_ptr,isQieZhe?1.0:0.0);
-  // ÊÇ·ñ°®½¿
+  // æ˜¯å¦çˆ±å¨‡
   SetValue(buf,buf_ptr,isAiJiao?1.0:0.0);
-  // ÊÇ·ñ»ı¼«Ë¼¿¼
+  // æ˜¯å¦ç§¯ææ€è€ƒ
   SetValue(buf,buf_ptr,isPositiveThinking?1.0:0.0);
-  // ÊÇ·ñ·ÅËÉĞÄÇé
+  // æ˜¯å¦æ”¾æ¾å¿ƒæƒ…
   SetValue(buf,buf_ptr,isRefreshMind?1.0:0.0);
 
-  // ÖÖÂí×´Ì¬ÉèÖÃ 
-  // ÖÖÂíÀ¶É«ÊıÁ¿
+  // ç§é©¬çŠ¶æ€è®¾ç½® 
+  // ç§é©¬è“è‰²æ•°é‡
   for(int i=0;i<5;++i) 
     SetValue(buf,buf_ptr,zhongMaBlueCount[i]*0.1);
-  // ÖÖÂí¶îÍâÊôĞÔ¼Ó³É
+  // ç§é©¬é¢å¤–å±æ€§åŠ æˆ
   for(int i=0;i<5;++i) 
     SetValue(buf,buf_ptr,zhongMaExtraBonus[i]*0.03);
-  // ÖÖÂí¶îÍâpt¼Ó³É
+  // ç§é©¬é¢å¤–ptåŠ æˆ
   SetValue(buf,buf_ptr,zhongMaExtraBonus[5]*0.01);
 
-  // ±ÈÈüÏà¹Ø 
-  // Èüºó¼Ó³É
+  // æ¯”èµ›ç›¸å…³ 
+  // èµ›ååŠ æˆ
   SetValue(buf,buf_ptr,saihou*0.03);
-  // ÊÇ·ñÔÚ±ÈÈü
+  // æ˜¯å¦åœ¨æ¯”èµ›
   SetValue(buf,buf_ptr,isRacing?1.0:0.0);
 
 
   //buf[buf_ptr + friend_type] = 1.0;
   //buf_ptr += 3;
 
-  // ÈËÎï·Ö²¼ 
-  // ÀíÊÂ³¤î¿°íºÍÎ»ÖÃ
+  // äººç‰©åˆ†å¸ƒ 
+  // ç†äº‹é•¿ç¾ç»Šå’Œä½ç½®
   if (!isRacing && friend_type == 0) {
 	  SetValue(buf, buf_ptr, friendship_noncard_yayoi * 0.01);
 	  SetValue(buf, buf_ptr, friendship_noncard_yayoi >= 40 ? 1.0 : 0.0);
@@ -457,7 +457,7 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
       buf_ptr += 9;
   }
 	  
-  // ¼ÇÕßî¿°íºÍÎ»ÖÃ
+  // è®°è€…ç¾ç»Šå’Œä½ç½®
   if (!isRacing) {
       SetValue(buf, buf_ptr, friendship_noncard_reporter * 0.01);
       SetValue(buf, buf_ptr, friendship_noncard_reporter >= 40 ? 1.0 : 0.0);
@@ -476,7 +476,7 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
   else 
 	  buf_ptr += 9;
   
-  // Ã¿¸öÑµÁ·Ê£ÓàµÄ¿ÕÎ»
+  // æ¯ä¸ªè®­ç»ƒå‰©ä½™çš„ç©ºä½
   if (!isRacing) {
       for (int tr = 0; tr < 5; tr++)
       {
@@ -494,12 +494,12 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
 	  buf_ptr += 30;
   
 
-  // ¾ç±¾Ïà¹Ø 
-  // ²ËÔ­ÁÏÊıÁ¿
+  // å‰§æœ¬ç›¸å…³ 
+  // èœåŸæ–™æ•°é‡
   for (int i = 0; i < 5; ++i)
   {
     int d = cook_material[i];
-    SetValue(buf, buf_ptr, d * 0.01); // ²ËÁ¿·¶Î§ÔÚ[0,999]
+    SetValue(buf, buf_ptr, d * 0.01); // èœé‡èŒƒå›´åœ¨[0,999]
     SetValue(buf, buf_ptr, d >= 25 ? 1.0 : 0.0);
     SetValue(buf, buf_ptr, d >= 40 ? 1.0 : 0.0);
     SetValue(buf, buf_ptr, d >= 50 ? 1.0 : 0.0);
@@ -507,11 +507,11 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
     SetValue(buf, buf_ptr, d >= 150 ? 1.0 : 0.0);
     SetValue(buf, buf_ptr, d >= 250 ? 1.0 : 0.0);
   }
-  // ÁÏÀípt
-  // ÑµÁ·µÈ¼¶Ö®ÀàµÄ¶¼ÊÇÈ¡¾öÓÚ³Ô²ËÇ°µÄpt£¬ËùÒÔÊäÈëcook_dish_pt_turn_begin¶ø²»ÊÇcook_dish_pt
+  // æ–™ç†pt
+  // è®­ç»ƒç­‰çº§ä¹‹ç±»çš„éƒ½æ˜¯å–å†³äºåƒèœå‰çš„ptï¼Œæ‰€ä»¥è¾“å…¥cook_dish_pt_turn_beginè€Œä¸æ˜¯cook_dish_pt
   {
     int d = cook_dish_pt_turn_begin > 12000 ? 12000 : cook_dish_pt;
-    SetValue(buf, buf_ptr, d * 0.0002); // ÁÏÀípt·¶Î§ÔÚ[0,12000]
+    SetValue(buf, buf_ptr, d * 0.0002); // æ–™ç†ptèŒƒå›´åœ¨[0,12000]
     SetValue(buf, buf_ptr, d >= 2000 ? 1.0 : 0.0);
     SetValue(buf, buf_ptr, d >= 7000 ? 1.0 : 0.0);
     SetValue(buf, buf_ptr, d >= 12000 ? 1.0 : 0.0);
@@ -521,14 +521,14 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
     SetValue(buf, buf_ptr, d >= 10000 ? 1.0 : 0.0);
     SetValue(buf, buf_ptr, d >= 12000 ? 1.0 : 0.001 * (d % 1500));
   }
-  // »ØºÏ¿ªÊ¼Ç°µÄÁÏÀípt
-  //SetValue(buf,buf_ptr,*0.0002); // ÁÏÀípt·¶Î§ÔÚ[0,50000]
-  // Å©ÌïµÈ¼¶
+  // å›åˆå¼€å§‹å‰çš„æ–™ç†pt
+  //SetValue(buf,buf_ptr,*0.0002); // æ–™ç†ptèŒƒå›´åœ¨[0,50000]
+  // å†œç”°ç­‰çº§
   for(int i=0;i<5;++i)
     buf[buf_ptr+i*5+cook_farm_level[i]] = 1.0;
   buf_ptr += 25;
-  // Å©ÌïÉı¼¶pt
-  SetValue(buf, buf_ptr, cook_farm_pt * 0.002); // Å©ÌïÉı¼¶pt·¶Î§ÔÚ[0,1000]
+  // å†œç”°å‡çº§pt
+  SetValue(buf, buf_ptr, cook_farm_pt * 0.002); // å†œç”°å‡çº§ptèŒƒå›´åœ¨[0,1000]
   SetValue(buf, buf_ptr, cook_farm_pt >= 100 ? 1.0 : 0.0);
   SetValue(buf, buf_ptr, cook_farm_pt >= 180 ? 1.0 : 0.0);
   SetValue(buf, buf_ptr, cook_farm_pt >= 220 ? 1.0 : 0.0);
@@ -537,29 +537,29 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
   SetValue(buf, buf_ptr, cook_farm_pt >= 440 ? 1.0 : 0.0);
   SetValue(buf, buf_ptr, cook_farm_pt >= 540 ? 1.0 : 0.0);
   SetValue(buf, buf_ptr, cook_farm_pt >= 660 ? 1.0 : 0.0);
-  // ÊÇ·ñ´ó³É¹¦
+  // æ˜¯å¦å¤§æˆåŠŸ
   SetValue(buf,buf_ptr,cook_dish_sure_success?1.0:0.0);
-  // µ±Ç°²Ë
+  // å½“å‰èœ
   buf[buf_ptr+cook_dish] = 1.0;
   buf_ptr += 14;
-  // ÊÔÊ³»áÀúÊ·
+  // è¯•é£Ÿä¼šå†å²
   for(int i=0;i<5;++i){
     buf[buf_ptr+cook_win_history[i]] = 1.0;
     buf_ptr += 3;
   }
-  // ÊÕ»ñÀúÊ·
+  // æ”¶è·å†å²
   for(int i=0;i<4;++i){
     int vege_type = cook_harvest_history[i]==-1?5:cook_harvest_history[i];
     buf[buf_ptr+cook_harvest_history[i]] = 1.0;
-    buf_ptr += 6; // 0~4±íÊ¾¶ÔÓ¦µÄ²Ë£¬5±íÊ¾Î´Ñ¡Ôñ
+    buf_ptr += 6; // 0~4è¡¨ç¤ºå¯¹åº”çš„èœï¼Œ5è¡¨ç¤ºæœªé€‰æ‹©
   }
-  // ÊÇ·ñÂÌ²Ë
+  // æ˜¯å¦ç»¿èœ
   for(int i=0;i<4;++i)
     SetValue(buf,buf_ptr,cook_harvest_green_history[i]?1.0:0.0);
-  // ²ËÆ·µÄ¶îÍâÊÕ»ñ
+  // èœå“çš„é¢å¤–æ”¶è·
   for(int i=0;i<5;++i)
-    SetValue(buf,buf_ptr,cook_harvest_extra[i]*0.005); // ÊÕ»ñ¶îÍâ·¶Î§ÔÚ[0,160]
-  // ¸÷¸öAction»ñµÃ²ËµÄÖÖÀà
+    SetValue(buf,buf_ptr,cook_harvest_extra[i]*0.005); // æ”¶è·é¢å¤–èŒƒå›´åœ¨[0,160]
+  // å„ä¸ªActionè·å¾—èœçš„ç§ç±»
   for(int i=0;i<8;++i) {
     if (isLegal(Action(i)))
     {
@@ -570,37 +570,37 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
     else
       buf_ptr += 6;
   }
-  // ±ÈÈü»ØºÏµÄ²ËÖÖÀà
+  // æ¯”èµ›å›åˆçš„èœç§ç±»
   if(isRacing)
     buf[buf_ptr+cook_main_race_material_type] = 1.0;
   buf_ptr += 5;
   
-  // ¾ç±¾ÓÑÈË¿¨ 
-  // ÓÑÈË¿¨µÄ×´Ì¬
+  // å‰§æœ¬å‹äººå¡ 
+  // å‹äººå¡çš„çŠ¶æ€
   buf[buf_ptr+friend_type] = 1.0;
   buf_ptr += 3;
-  // ´æÔÚÓÑÈË¿¨Ê±£¬ÓÑÈË¿¨µÄÏà¹Ø×´Ì¬
+  // å­˜åœ¨å‹äººå¡æ—¶ï¼Œå‹äººå¡çš„ç›¸å…³çŠ¶æ€
   if(friend_type != 0) {
-    // ÓÑÈË¿¨µÄ±àºÅ
+    // å‹äººå¡çš„ç¼–å·
     //buf[buf_ptr+friend_personId] = 1.0;
     //buf_ptr += 6;
-    // ÓÑÈË¿¨µÄ×´Ì¬
+    // å‹äººå¡çš„çŠ¶æ€
     buf[buf_ptr+friend_stage] = 1.0;
     buf_ptr += 3;
-    // ÓÑÈË¿¨³öĞĞµÄ´ÎÊı
+    // å‹äººå¡å‡ºè¡Œçš„æ¬¡æ•°
     buf[buf_ptr+friend_outgoingUsed] = 1.0;
     buf_ptr += 6;
-    // ÓÑÈË¿¨µÄÌåÁ¦»Ö¸´±¶ÂÊ
+    // å‹äººå¡çš„ä½“åŠ›æ¢å¤å€ç‡
     SetValue(buf,buf_ptr,friend_vitalBonus - 1.0);
-    // ÓÑÈË¿¨µÄÊÂ¼şĞ§¹û±¶ÂÊ
+    // å‹äººå¡çš„äº‹ä»¶æ•ˆæœå€ç‡
     SetValue(buf,buf_ptr,friend_statusBonus - 1.0);
   }
   else{
     buf_ptr += 11;
   }
 
-  // ÑµÁ·Ïà¹ØµÄĞÅÏ¢ 
-  // ÑµÁ·µÄÊıÖµºÍÌåÁ¦
+  // è®­ç»ƒç›¸å…³çš„ä¿¡æ¯ 
+  // è®­ç»ƒçš„æ•°å€¼å’Œä½“åŠ›
   if (!isRacing) {
       for (int i = 0; i < 5; ++i) {
           for (int j = 0; j < 6; ++j) {
@@ -609,26 +609,26 @@ void Game::getNNInputV1(float* buf, const SearchParam& param) const
           SetValue(buf, buf_ptr, trainVitalChange[i] * 0.05);
       }
 
-      // ÑµÁ·Ê§°ÜÂÊ
+      // è®­ç»ƒå¤±è´¥ç‡
       for (int i = 0; i < 5; ++i)
         SetValue(buf, buf_ptr, failRate[i] * 0.01);
 
-      // ÑµÁ·ÊÇ·ñÉÁ²Ê
+      // è®­ç»ƒæ˜¯å¦é—ªå½©
       for (int i = 0; i < 5; ++i)
         SetValue(buf, buf_ptr, isTrainShining[i] ? 1.0 : 0.0);
   }
   else {
 	  buf_ptr += 45;
   }
-  // Ê¹ÓÃÁÏÀíµÄ´ó³É¹¦ÂÊ
+  // ä½¿ç”¨æ–™ç†çš„å¤§æˆåŠŸç‡
   SetValue(buf,buf_ptr,cook_dishpt_success_rate*0.01);
-  // ÁÏÀíptÑµÁ·¼Ó³É
+  // æ–™ç†ptè®­ç»ƒåŠ æˆ
   SetValue(buf,buf_ptr,cook_dishpt_training_bonus*0.01);
-  // ÁÏÀípt¼¼ÄÜµã¼Ó³É
+  // æ–™ç†ptæŠ€èƒ½ç‚¹åŠ æˆ
   SetValue(buf,buf_ptr,cook_dishpt_skillpt_bonus*0.01);
-  // ÁÏÀíptµÃÒâÂÊ¼Ó³É
+  // æ–™ç†ptå¾—æ„ç‡åŠ æˆ
   SetValue(buf,buf_ptr,cook_dishpt_deyilv_bonus*0.05);
-  // ¸÷¸öAction»ñµÃµÄ¶îÍâ²Ë¸öÊı
+  // å„ä¸ªActionè·å¾—çš„é¢å¤–èœä¸ªæ•°
   for (int i = 0; i < 8; ++i)
   {
     if (isLegal(Action(i)))

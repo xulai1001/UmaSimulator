@@ -1,55 +1,55 @@
-#pragma once
+ï»¿#pragma once
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include "../config.h"
 
 const int TOTAL_TURN = 72;
-const int MAX_INFO_PERSON_NUM = 6;//ÓĞµ¥¶ÀĞÅÏ¢µÄÈËÍ·¸öÊı£¨´Ë¾ç±¾Ö»ÓĞÖ§Ô®¿¨£©
+const int MAX_INFO_PERSON_NUM = 6;//æœ‰å•ç‹¬ä¿¡æ¯çš„äººå¤´ä¸ªæ•°ï¼ˆæ­¤å‰§æœ¬åªæœ‰æ”¯æ´å¡ï¼‰
 
 class GameConstants
 {
 public:
-  static const int TrainingBasicValue[5][5][7]; //TrainingBasicValue[ÑÕÉ«][µÚ¼¸ÖÖÑµÁ·][LV¼¸][ËÙÄÍÁ¦¸ùÖÇptÌåÁ¦]
-  static const int FailRateBasic[5][5];//[µÚ¼¸ÖÖÑµÁ·][LV¼¸]£¬Ê§°ÜÂÊ= 0.025*(x0-x)^2 + 1.25*(x0-x)
-  static const int BasicFiveStatusLimit[5];//³õÊ¼ÉÏÏŞ£¬1200ÒÔÉÏ·­±¶
+  static const int TrainingBasicValue[5][5][7]; //TrainingBasicValue[é¢œè‰²][ç¬¬å‡ ç§è®­ç»ƒ][LVå‡ ][é€Ÿè€åŠ›æ ¹æ™ºptä½“åŠ›]
+  static const int FailRateBasic[5][5];//[ç¬¬å‡ ç§è®­ç»ƒ][LVå‡ ]ï¼Œå¤±è´¥ç‡= 0.025*(x0-x)^2 + 1.25*(x0-x)
+  static const int BasicFiveStatusLimit[5];//åˆå§‹ä¸Šé™ï¼Œ1200ä»¥ä¸Šç¿»å€
 
-  //¸÷ÖÖÓÎÏ·²ÎÊı
-  //static const int NormalRaceFiveStatusBonus;//³£¹æ±ÈÈüÊôĞÔ¼Ó³É=3£¬ÌØÊâÂíÄïÌØÊâ´¦Àí£¨µÒ¶ÅË¹µÈ£©
-  //static const int NormalRacePtBonus;//³£¹æ±ÈÈüpt¼Ó³É
-  static const double EventProb;//Ã¿»ØºÏÓĞEventProb¸ÅÂÊËæ»úÒ»¸öÊôĞÔÒÔ¼°pt +EventStrengthDefault£¬Ä£ÄâÖ§Ô®¿¨ÊÂ¼ş
+  //å„ç§æ¸¸æˆå‚æ•°
+  //static const int NormalRaceFiveStatusBonus;//å¸¸è§„æ¯”èµ›å±æ€§åŠ æˆ=3ï¼Œç‰¹æ®Šé©¬å¨˜ç‰¹æ®Šå¤„ç†ï¼ˆç‹„æœæ–¯ç­‰ï¼‰
+  //static const int NormalRacePtBonus;//å¸¸è§„æ¯”èµ›ptåŠ æˆ
+  static const double EventProb;//æ¯å›åˆæœ‰EventProbæ¦‚ç‡éšæœºä¸€ä¸ªå±æ€§ä»¥åŠpt +EventStrengthDefaultï¼Œæ¨¡æ‹Ÿæ”¯æ´å¡äº‹ä»¶
   static const int EventStrengthDefault;
 
-  //¾ç±¾¿¨Ïà¹Ø
-  static const int FriendCardIdSSR = 30241;//SSRÍÅ
-  static const int FriendCardIdR = 19999;//ÎŞr¿¨
-  static const double FriendUnlockOutgoingProbEveryTurnLowFriendship;//Ã¿»ØºÏ½âËøÍâ³öµÄ¸ÅÂÊ£¬î¿°íĞ¡ÓÚ60
-  static const double FriendUnlockOutgoingProbEveryTurnHighFriendship;//Ã¿»ØºÏ½âËøÍâ³öµÄ¸ÅÂÊ£¬î¿°í´óÓÚµÈÓÚ60
-  //static const double FriendEventProb;//ÓÑÈËÊÂ¼ş¸ÅÂÊ//³£Êı0.4Ğ´ËÀÔÚ¶ÔÓ¦º¯ÊıÀïÁË
-  static const double FriendVitalBonusSSR[5];//ÓÑÈËSSR¿¨µÄ»Ø¸´Á¿±¶Êı£¨ÂúÆÆ1.6£©
-  static const double FriendVitalBonusR[5];//ÓÑÈËR¿¨µÄ»Ø¸´Á¿±¶Êı
-  static const double FriendStatusBonusSSR[5];//ÓÑÈËSSR¿¨µÄÊÂ¼şĞ§¹û±¶Êı£¨ÂúÆÆ1.25£©
-  static const double FriendStatusBonusR[5];//ÓÑÈËR¿¨µÄÊÂ¼şĞ§¹û±¶Êı
+  //å‰§æœ¬å¡ç›¸å…³
+  static const int FriendCardIdSSR = 30241;//SSRå›¢
+  static const int FriendCardIdR = 19999;//æ— rå¡
+  static const double FriendUnlockOutgoingProbEveryTurnLowFriendship;//æ¯å›åˆè§£é”å¤–å‡ºçš„æ¦‚ç‡ï¼Œç¾ç»Šå°äº60
+  static const double FriendUnlockOutgoingProbEveryTurnHighFriendship;//æ¯å›åˆè§£é”å¤–å‡ºçš„æ¦‚ç‡ï¼Œç¾ç»Šå¤§äºç­‰äº60
+  //static const double FriendEventProb;//å‹äººäº‹ä»¶æ¦‚ç‡//å¸¸æ•°0.4å†™æ­»åœ¨å¯¹åº”å‡½æ•°é‡Œäº†
+  static const double FriendVitalBonusSSR[5];//å‹äººSSRå¡çš„å›å¤é‡å€æ•°ï¼ˆæ»¡ç ´1.6ï¼‰
+  static const double FriendVitalBonusR[5];//å‹äººRå¡çš„å›å¤é‡å€æ•°
+  static const double FriendStatusBonusSSR[5];//å‹äººSSRå¡çš„äº‹ä»¶æ•ˆæœå€æ•°ï¼ˆæ»¡ç ´1.25ï¼‰
+  static const double FriendStatusBonusR[5];//å‹äººRå¡çš„äº‹ä»¶æ•ˆæœå€æ•°
 
-  static const double FriendQingreStopProb[10];//ÍÅ¿¨ÒÑ¾­ÇéÈÈx»ØºÏºó£¬±¾»ØºÏÓĞ¶à´ó¸ÅÂÊÖÕÖ¹
+  static const double FriendQingreStopProb[10];//å›¢å¡å·²ç»æƒ…çƒ­xå›åˆåï¼Œæœ¬å›åˆæœ‰å¤šå¤§æ¦‚ç‡ç»ˆæ­¢
   
 
-  //¾ç±¾Ïà¹Ø
-  static const std::vector<int> LinkCharas;// Link½ÇÉ«
+  //å‰§æœ¬ç›¸å…³
+  static const std::vector<int> LinkCharas;// Linkè§’è‰²
 
 
-  static const double LG_redLvXunlianCard[10];//ºìµÇ²»Í¬µÈ¼¶µÄ¿¨µÄÑµÁ·¼Ó³É
-  static const double LG_redLvXunlianNPC[10];//ºìµÇ²»Í¬µÈ¼¶µÄnpcµÄÑµÁ·¼Ó³É
-  static const double LG_redLvYouqingNPC[10];//ºìµÇ²»Í¬µÈ¼¶µÄnpcµÄÓÑÇé¼Ó³É
+  static const double LG_redLvXunlianCard[10];//çº¢ç™»ä¸åŒç­‰çº§çš„å¡çš„è®­ç»ƒåŠ æˆ
+  static const double LG_redLvXunlianNPC[10];//çº¢ç™»ä¸åŒç­‰çº§çš„npcçš„è®­ç»ƒåŠ æˆ
+  static const double LG_redLvYouqingNPC[10];//çº¢ç™»ä¸åŒç­‰çº§çš„npcçš„å‹æƒ…åŠ æˆ
 
 
 
-  //ÆÀ·Ö
-  static const int FiveStatusFinalScore[1200+800*2+1];//²»Í¬ÊôĞÔ¶ÔÓ¦µÄÆÀ·Ö
-  static const double ScorePtRateDefault;//ÎªÁË·½±ã£¬Ö±½ÓÊÓÎªÃ¿1pt¶ÔÓ¦¶àÉÙ·Ö¡£
-  static const double HintLevelPtRateDefault;//ÎªÁË·½±ã£¬Ö±½ÓÊÓÎªÃ¿Ò»¼¶hint¶àÉÙpt¡£
-  static const double HintProbTimeConstantDefault;//ÎªÁË·½±ã£¬Ö±½ÓÊÓÎªÃ¿Ò»¼¶hint¶àÉÙpt¡£
-  //static const double ScorePtRateQieZhe;//ÎªÁË·½±ã£¬Ö±½ÓÊÓÎªÃ¿1pt¶ÔÓ¦¶àÉÙ·Ö¡£ÇĞÕß
+  //è¯„åˆ†
+  static const int FiveStatusFinalScore[1200+800*2+1];//ä¸åŒå±æ€§å¯¹åº”çš„è¯„åˆ†
+  static const double ScorePtRateDefault;//ä¸ºäº†æ–¹ä¾¿ï¼Œç›´æ¥è§†ä¸ºæ¯1ptå¯¹åº”å¤šå°‘åˆ†ã€‚
+  static const double HintLevelPtRateDefault;//ä¸ºäº†æ–¹ä¾¿ï¼Œç›´æ¥è§†ä¸ºæ¯ä¸€çº§hintå¤šå°‘ptã€‚
+  static const double HintProbTimeConstantDefault;//ä¸ºäº†æ–¹ä¾¿ï¼Œç›´æ¥è§†ä¸ºæ¯ä¸€çº§hintå¤šå°‘ptã€‚
+  //static const double ScorePtRateQieZhe;//ä¸ºäº†æ–¹ä¾¿ï¼Œç›´æ¥è§†ä¸ºæ¯1ptå¯¹åº”å¤šå°‘åˆ†ã€‚åˆ‡è€…
 
   static bool isLinkChara(int id);
 

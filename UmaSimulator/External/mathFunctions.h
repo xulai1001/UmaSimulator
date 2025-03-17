@@ -1,5 +1,5 @@
-#pragma once
+ï»¿#pragma once
 #include <cmath>
 
-//ÕıÌ¬·Ö²¼º¯ÊıµÄÀÛ»ı·Ö²¼º¯ÊıµÄ·´º¯Êı
+//æ­£æ€åˆ†å¸ƒå‡½æ•°çš„ç´¯ç§¯åˆ†å¸ƒå‡½æ•°çš„åå‡½æ•°
 double normalCDFInverse(double p);

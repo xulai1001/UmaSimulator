@@ -1,4 +1,4 @@
-#include "Person.h"
+ï»¿#include "Person.h"
 #include "../GameDatabase/GameDatabase.h"
 using namespace std;
 Person::Person()
@@ -17,29 +17,32 @@ Person::Person()
 
 void Person::setCard(int cardId)
 {
+    if (!GameDatabase::AllCards.contains(cardId)) {
+        cout << "\x1b[91mæœªçŸ¥æ”¯æ´å¡ID: " << cardId << ", è¯·æ›´æ–°AIæ•°æ®" << "\x1b[0m" << endl;
+        throw "ERROR Unknown card";
+    }
   cardParam = GameDatabase::AllCards[cardId];
-
 
   friendship = cardParam.initialJiBan;
   isHint = false;
   cardRecord = 0;
 
   int cardType = cardParam.cardType;
-  if (cardType == 5 || cardType == 6)//ÓÑÈËÍÅ¶Ó¿¨
+  if (cardType == 5 || cardType == 6)//å‹äººå›¢é˜Ÿå¡
   {
     int realCardId = cardId / 10;
 
 
-    if (realCardId == GameConstants::FriendCardIdR || realCardId == GameConstants::FriendCardIdSSR)//¾ç±¾ÓÑÈË¿¨
+    if (realCardId == GameConstants::FriendCardIdR || realCardId == GameConstants::FriendCardIdSSR)//å‰§æœ¬å‹äººå¡
     {
       personType = PersonType_scenarioCard;
     }
     else
     {
-      throw string("²»Ö§³Ö´ø¾ç±¾¿¨ÒÔÍâµÄÓÑÈË»òÍÅ¶Ó¿¨");
+      throw string("ä¸æ”¯æŒå¸¦å‰§æœ¬å¡ä»¥å¤–çš„å‹äººæˆ–å›¢é˜Ÿå¡");
     }
   }
-  else if (cardType >= 0 && cardType <= 4)//ËÙÄÍÁ¦¸ùÖÇ¿¨
+  else if (cardType >= 0 && cardType <= 4)//é€Ÿè€åŠ›æ ¹æ™ºå¡
   {
     personType = 2;
   }
@@ -51,7 +54,7 @@ void Person::setNonCard(int pType)
   personType = pType;
   if (personType != PersonType_lishizhang && personType != PersonType_jizhe && personType != PersonType_lianghuaNonCard)
   {
-    assert(false && "setNonCardÖ»ÓÃÓÚ·ÇÖ§Ô®¿¨ÈËÍ·µÄ³õÊ¼»¯");
+    assert(false && "setNonCardåªç”¨äºéæ”¯æ´å¡äººå¤´çš„åˆå§‹åŒ–");
   }
 
   friendship = 0;
@@ -59,7 +62,7 @@ void Person::setNonCard(int pType)
   cardRecord = 0;
   friendOrGroupCardStage = 0;
   groupCardShiningContinuousTurns = 0;
-  std::vector<int> probs = { 100,100,100,100,100,200 }; //»ù´¡¸ÅÂÊ£¬ËÙÄÍÁ¦¸ùÖÇ¸ë
+  std::vector<int> probs = { 100,100,100,100,100,200 }; //åŸºç¡€æ¦‚ç‡ï¼Œé€Ÿè€åŠ›æ ¹æ™ºé¸½
   distribution = std::discrete_distribution<>(probs.begin(), probs.end());
 }
 */

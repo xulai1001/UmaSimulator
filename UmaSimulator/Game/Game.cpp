@@ -1,18 +1,18 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <cassert>
 #include "Game.h"
 using namespace std;
 
 const std::string Action::trainingName[8] =
 {
-  "ËÙ",
-  "ÄÍ",
-  "Á¦",
-  "¸ù",
-  "ÖÇ",
-  "ĞİÏ¢",
-  "Íâ³ö",
-  "±ÈÈü"
+  "é€Ÿ",
+  "è€",
+  "åŠ›",
+  "æ ¹",
+  "æ™º",
+  "ä¼‘æ¯",
+  "å¤–å‡º",
+  "æ¯”èµ›"
 };
 
 static bool randBool(mt19937_64& rand, double p)
@@ -20,7 +20,7 @@ static bool randBool(mt19937_64& rand, double p)
   return rand() % 65536 < p * 65536;
 }
 
-//¾¡Á¿ÓëGameÀàµÄË³ĞòÒ»ÖÂ
+//å°½é‡ä¸Gameç±»çš„é¡ºåºä¸€è‡´
 void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int umaStars, int newCards[6], int newZhongMaBlueCount[5], int newZhongMaExtraBonus[6])
 {
   gameSettings = settings;
@@ -29,11 +29,12 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
   isLinkUma = GameConstants::isLinkChara(umaId);
   if (!GameDatabase::AllUmas.count(umaId))
   {
-    throw "ERROR Unknown character. Updating database is required.";
+      cout << "\x1b[91mæœªçŸ¥è§’è‰²ID: " << umaId << ", è¯·æ›´æ–°AIæ•°æ®" << "\x1b[0m" << endl;
+      throw "ERROR Unknown character";
   }
   for (int i = 0; i < TOTAL_TURN; i++)
     isRacingTurn[i] = GameDatabase::AllUmas[umaId].races[i] == TURN_RACE;
-  assert(isRacingTurn[11] == true);//³öµÀÈü
+  assert(isRacingTurn[11] == true);//å‡ºé“èµ›
   //isRacingTurn[TOTAL_TURN - 5] = true;//ura1
   //isRacingTurn[TOTAL_TURN - 3] = true;//ura2
   //isRacingTurn[TOTAL_TURN - 1] = true;//ura3
@@ -48,12 +49,12 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
   motivation = 3;
 
   for (int i = 0; i < 5; i++)
-    fiveStatus[i] = GameDatabase::AllUmas[umaId].fiveStatusInitial[i] - 10 * (5 - umaStars); //ÈüÂíÄï³õÊ¼Öµ
+    fiveStatus[i] = GameDatabase::AllUmas[umaId].fiveStatusInitial[i] - 10 * (5 - umaStars); //èµ›é©¬å¨˜åˆå§‹å€¼
   for (int i = 0; i < 5; i++)
-    fiveStatusLimit[i] = GameConstants::BasicFiveStatusLimit[i]; //Ô­Ê¼ÊôĞÔÉÏÏŞ
+    fiveStatusLimit[i] = GameConstants::BasicFiveStatusLimit[i]; //åŸå§‹å±æ€§ä¸Šé™
 
   skillPt = 120;
-  skillScore = umaStars >= 3 ? 170 * (umaStars - 2) : 120 * (umaStars);//¹ÌÓĞ¼¼ÄÜ
+  skillScore = umaStars >= 3 ? 170 * (umaStars - 2) : 120 * (umaStars);//å›ºæœ‰æŠ€èƒ½
   hintSkillLvCount = 0;
 
   for (int i = 0; i < 5; i++)
@@ -75,9 +76,9 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
     zhongMaExtraBonus[i] = newZhongMaExtraBonus[i];
 
   for (int i = 0; i < 5; i++)
-    fiveStatusLimit[i] += int(zhongMaBlueCount[i] * 5.34 * 2); //ÊôĞÔÉÏÏŞ--ÖÖÂí»ù´¡Öµ
+    fiveStatusLimit[i] += int(zhongMaBlueCount[i] * 5.34 * 2); //å±æ€§ä¸Šé™--ç§é©¬åŸºç¡€å€¼
   for (int i = 0; i < 5; i++)
-    addStatus(i, zhongMaBlueCount[i] * 7); //ÖÖÂí
+    addStatus(i, zhongMaBlueCount[i] * 7); //ç§é©¬
 
   stage = ST_distribute;
   decidingEvent = DecidingEvent_none;
@@ -128,12 +129,12 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
         friend_statusBonus = GameConstants::FriendStatusBonusR[friendLevel];
       }
       friend_vitalBonus += 1e-10;
-      friend_statusBonus += 1e-10;//¼Ó¸öĞ¡Á¿£¬±ÜÃâÒòÎªÉáÈëÎó²î¶øËã´í
+      friend_statusBonus += 1e-10;//åŠ ä¸ªå°é‡ï¼Œé¿å…å› ä¸ºèˆå…¥è¯¯å·®è€Œç®—é”™
     }
   }
 
 
-  for (int i = 0; i < 6; i++)//Ö§Ô®¿¨³õÊ¼¼Ó³É
+  for (int i = 0; i < 6; i++)//æ”¯æ´å¡åˆå§‹åŠ æˆ
   {
     for (int j = 0; j < 5; j++)
       addStatus(j, persons[i].cardParam.initialBonus[j]);
@@ -167,7 +168,7 @@ void Game::newGame(mt19937_64& rand, GameSettings settings, int newUmaId, int um
   lg_buffCondition = ScenarioBuffCondition();
 
   calculateScenarioBonus();
-  randomizeTurn(rand); //Ëæ»ú·ÖÅä¿¨×é£¬°üÀ¨¼ÆËãÊôĞÔ
+  randomizeTurn(rand); //éšæœºåˆ†é…å¡ç»„ï¼ŒåŒ…æ‹¬è®¡ç®—å±æ€§
   
 }
 
@@ -181,11 +182,11 @@ void Game::calculateScenarioBonus()
 void Game::randomizeTurn(std::mt19937_64& rand)
 {
   if (stage != ST_distribute)
-    throw "Ëæ»ú·ÖÅä¿¨×éÓ¦µ±ÔÚST_distribute";
+    throw "éšæœºåˆ†é…å¡ç»„åº”å½“åœ¨ST_distribute";
   randomDistributeHeads(rand);
   randomInviteHeads(rand, lg_bonus.extraHead);
 
-  //ÊÇ·ñÓĞhint¡£²»ÔÚ³¡µÄÈËÍ·²»ĞèÒª¿¼ÂÇ
+  //æ˜¯å¦æœ‰hintã€‚ä¸åœ¨åœºçš„äººå¤´ä¸éœ€è¦è€ƒè™‘
   if (!isRacing)
   {
     for (int i = 0; i < 6; i++)
@@ -202,21 +203,21 @@ void Game::randomizeTurn(std::mt19937_64& rand)
 
         if (persons[pid].personType == PersonType_card)
         {
-          double hintProb = 0.075 * (1 + 0.01 * persons[pid].cardParam.hintProbIncrease) * (1 + 0.01 * hintProbBonus);//²»ÖªµÀÊÇ¼Ó»¹ÊÇ³Ë£¬ÏÈ°´³ËËã
+          double hintProb = 0.075 * (1 + 0.01 * persons[pid].cardParam.hintProbIncrease) * (1 + 0.01 * hintProbBonus);//ä¸çŸ¥é“æ˜¯åŠ è¿˜æ˜¯ä¹˜ï¼Œå…ˆæŒ‰ä¹˜ç®—
           persons[pid].isHint = randBool(rand, hintProb);
 
         }
       }
     }
 
-    //¡°ĞÄÑÛ¡±£ºÖÁÉÙ³öÏÖÒ»¸öhint
+    //â€œå¿ƒçœ¼â€ï¼šè‡³å°‘å‡ºç°ä¸€ä¸ªhint
     int sureHintHead = lg_bonus.alwaysHint ? 1 : 0;
     int triedTimes = 0;
     while (sureHintHead > 0)
     {
       triedTimes++;
       if (triedTimes > 1000)
-        throw "sureHintHead³¢ÊÔ1000´ÎÊ§°Ü";
+        throw "sureHintHeadå°è¯•1000æ¬¡å¤±è´¥";
       int idx = rand() % 6;
       if (persons[idx].personType == PersonType_card)
       {
@@ -226,7 +227,7 @@ void Game::randomizeTurn(std::mt19937_64& rand)
     }
   }
 
-  //Ëæ»ú·ÖÅäÑÕÉ«
+  //éšæœºåˆ†é…é¢œè‰²
   for (int i = 0; i < 8; i++)
   {
     lg_trainingColor[i] = rand() % 3;
@@ -250,32 +251,32 @@ void Game::randomDistributeHeads(std::mt19937_64& rand)
     for (int j = 0; j < 5; j++)
       personDistribution[i][j] = -1;
 
-  //±ÈÈü»ØºÏ
+  //æ¯”èµ›å›åˆ
   if (isRacing)
   {
-    return;//±ÈÈü²»ÓÃ·ÖÅä¿¨×é
+    return;//æ¯”èµ›ä¸ç”¨åˆ†é…å¡ç»„
   }
 
 
 
   int headN[5] = { 0,0,0,0,0 };
   bool friendN[5] = { 0,0,0,0,0 };
-  //µÚÒ»²½£ºÀíÊÂ³¤/¼ÇÕß
+  //ç¬¬ä¸€æ­¥ï¼šç†äº‹é•¿/è®°è€…
   for (int p = 6; p < 6 + 2; p++)
   {
     if (isXiahesu())
       continue;
-    if (p == PS_noncardReporter && turn < 12)//¼ÇÕß
+    if (p == PS_noncardReporter && turn < 12)//è®°è€…
     {
       continue;
     }
-    std::vector<int> probs = { 100,100,100,100,100,200 }; //ËÙÄÍÁ¦¸ùÖÇ¸ë
+    std::vector<int> probs = { 100,100,100,100,100,200 }; //é€Ÿè€åŠ›æ ¹æ™ºé¸½
     auto distribution = std::discrete_distribution<>(probs.begin(), probs.end());
     while (true)
     {
       int atTrain = distribution(rand);
       if (atTrain < 5 && (friendN[atTrain] > 0 || headN[atTrain] >= 5))
-        continue; //ÑµÁ·ÓĞÆäËûÈË£¬ÖØĞÂ·ÖÅä
+        continue; //è®­ç»ƒæœ‰å…¶ä»–äººï¼Œé‡æ–°åˆ†é…
       else
       {
         if (atTrain < 5)
@@ -295,32 +296,32 @@ void Game::randomDistributeHeads(std::mt19937_64& rand)
     if (persons[card].personType == PersonType_card)
       normalCards.push_back(card);
   }
-  std::shuffle(normalCards.begin(), normalCards.end(), rand);//±£Ö¤ËùÓĞ¿¨µÄµØÎ»ÊÇ¹«Æ½µÄ
+  std::shuffle(normalCards.begin(), normalCards.end(), rand);//ä¿è¯æ‰€æœ‰å¡çš„åœ°ä½æ˜¯å…¬å¹³çš„
 
 
   if (lg_mainColor == L_red)
   {
-    //µÚ¶ş²½£ººìµÇÂúî¿°í¿¨
+    //ç¬¬äºŒæ­¥ï¼šçº¢ç™»æ»¡ç¾ç»Šå¡
     for (int t = 0; t < normalCards.size(); t++)
     {
       int p = normalCards[t];
       if (lg_red_friendsGauge[p] != 20)continue;
       auto& ps = persons[p];
       int cardType = ps.cardParam.cardType;
-      if (headN[cardType] < 5)//Õâ¸öÑµÁ·»¹ÓĞ¿ÕÎ»£¬¾Í´ıÔÚÕâ¸öÑµÁ·
+      if (headN[cardType] < 5)//è¿™ä¸ªè®­ç»ƒè¿˜æœ‰ç©ºä½ï¼Œå°±å¾…åœ¨è¿™ä¸ªè®­ç»ƒ
       {
         personDistribution[cardType][headN[cardType]] = p;
         headN[cardType] += 1;
       }
-      else //¼«¸ö±ğÇé¿ö£¬±ÈÈç6ÕÅËÙ¿¨£¬ÓĞĞ©Âú¸ñµÄ»áµ½ÆäËûÑµÁ·
+      else //æä¸ªåˆ«æƒ…å†µï¼Œæ¯”å¦‚6å¼ é€Ÿå¡ï¼Œæœ‰äº›æ»¡æ ¼çš„ä¼šåˆ°å…¶ä»–è®­ç»ƒ
       {
-        std::vector<int> probs = { 100,100,100,100,100,50 - int(lg_bonus.disappearRateReduce) }; //ËÙÄÍÁ¦¸ùÖÇ¸ë
+        std::vector<int> probs = { 100,100,100,100,100,50 - int(lg_bonus.disappearRateReduce) }; //é€Ÿè€åŠ›æ ¹æ™ºé¸½
         auto distribution = std::discrete_distribution<>(probs.begin(), probs.end());
         while (true)
         {
           int atTrain = distribution(rand);
           if (atTrain < 5 && headN[atTrain] >= 5)
-            continue; //ÑµÁ·ÂúÈË£¬ÖØĞÂ·ÖÅä
+            continue; //è®­ç»ƒæ»¡äººï¼Œé‡æ–°åˆ†é…
           else
           {
             if (atTrain < 5)
@@ -335,25 +336,25 @@ void Game::randomDistributeHeads(std::mt19937_64& rand)
 
     }
 
-    //µÚÈı²½£ººìµÇÂúî¿°ínpc
+    //ç¬¬ä¸‰æ­¥ï¼šçº¢ç™»æ»¡ç¾ç»Šnpc
     for (int p = PS_npc0; p <= PS_npc4; p++)
     {
       if (lg_red_friendsGauge[p] != 20)continue;
       int cardType = p - PS_npc0;
-      if (headN[cardType] < 5)//Õâ¸öÑµÁ·»¹ÓĞ¿ÕÎ»£¬¾Í´ıÔÚÕâ¸öÑµÁ·
+      if (headN[cardType] < 5)//è¿™ä¸ªè®­ç»ƒè¿˜æœ‰ç©ºä½ï¼Œå°±å¾…åœ¨è¿™ä¸ªè®­ç»ƒ
       {
         personDistribution[cardType][headN[cardType]] = p;
         headN[cardType] += 1;
       }
-      else //¼«¸ö±ğÇé¿ö£¬±ÈÈç6ÕÅËÙ¿¨£¬ÓĞĞ©Âú¸ñµÄ»áµ½ÆäËûÑµÁ·
+      else //æä¸ªåˆ«æƒ…å†µï¼Œæ¯”å¦‚6å¼ é€Ÿå¡ï¼Œæœ‰äº›æ»¡æ ¼çš„ä¼šåˆ°å…¶ä»–è®­ç»ƒ
       {
-        std::vector<int> probs = { 100,100,100,100,100,50 - int(lg_bonus.disappearRateReduce) }; //ËÙÄÍÁ¦¸ùÖÇ¸ë
+        std::vector<int> probs = { 100,100,100,100,100,50 - int(lg_bonus.disappearRateReduce) }; //é€Ÿè€åŠ›æ ¹æ™ºé¸½
         auto distribution = std::discrete_distribution<>(probs.begin(), probs.end());
         while (true)
         {
           int atTrain = distribution(rand);
           if (atTrain < 5 && headN[atTrain] >= 5)
-            continue; //ÑµÁ·ÂúÈË£¬ÖØĞÂ·ÖÅä
+            continue; //è®­ç»ƒæ»¡äººï¼Œé‡æ–°åˆ†é…
           else
           {
             if (atTrain < 5)
@@ -369,23 +370,23 @@ void Game::randomDistributeHeads(std::mt19937_64& rand)
     }
   }
 
-  //µÚËÄ²½£ºÆÕÍ¨¿¨
+  //ç¬¬å››æ­¥ï¼šæ™®é€šå¡
   for (int t = 0; t < normalCards.size(); t++)
   {
     int p = normalCards[t];
-    if (lg_red_friendsGauge[p] == 20)continue;//ÒÑ¾­·ÖÅä
+    if (lg_red_friendsGauge[p] == 20)continue;//å·²ç»åˆ†é…
     auto& ps = persons[p];
     int cardType = ps.cardParam.cardType;
     int deYiLv = ps.cardParam.deYiLv + lg_bonus.deyilv;
     int absentRate = 50 - lg_bonus.disappearRateReduce;
-    std::vector<int> probs = { 100,100,100,100,100,absentRate }; //ËÙÄÍÁ¦¸ùÖÇ¸ë
+    std::vector<int> probs = { 100,100,100,100,100,absentRate }; //é€Ÿè€åŠ›æ ¹æ™ºé¸½
     probs[cardType] += deYiLv;
     auto distribution = std::discrete_distribution<>(probs.begin(), probs.end()); 
     while (true)
     {
       int atTrain = distribution(rand);
       if (atTrain < 5 && headN[atTrain] >= 5)
-        continue; //ÑµÁ·ÂúÈË£¬ÖØĞÂ·ÖÅä
+        continue; //è®­ç»ƒæ»¡äººï¼Œé‡æ–°åˆ†é…
       else
       {
         if (atTrain < 5)
@@ -398,24 +399,24 @@ void Game::randomDistributeHeads(std::mt19937_64& rand)
     }
   }
 
-  //µÚÎå²½£ººìµÇnpc
+  //ç¬¬äº”æ­¥ï¼šçº¢ç™»npc
 
   if (lg_mainColor == L_red)
   {
     for (int p = PS_npc0; p <= PS_npc4; p++)
     {
-      if (lg_red_friendsGauge[p] == 20)continue;//ÒÑ¾­·ÖÅä
+      if (lg_red_friendsGauge[p] == 20)continue;//å·²ç»åˆ†é…
       int cardType = p - PS_npc0;
       int deYiLv = lg_bonus.deyilv;
       int absentRate = 50 - lg_bonus.disappearRateReduce;
-      std::vector<int> probs = { 100,100,100,100,100,absentRate }; //ËÙÄÍÁ¦¸ùÖÇ¸ë
+      std::vector<int> probs = { 100,100,100,100,100,absentRate }; //é€Ÿè€åŠ›æ ¹æ™ºé¸½
       probs[cardType] += deYiLv;
       auto distribution = std::discrete_distribution<>(probs.begin(), probs.end()); 
       while (true)
       {
         int atTrain = distribution(rand);
         if (atTrain < 5 && headN[atTrain] >= 5)
-          continue; //ÑµÁ·ÂúÈË£¬ÖØĞÂ·ÖÅä
+          continue; //è®­ç»ƒæ»¡äººï¼Œé‡æ–°åˆ†é…
         else
         {
           if (atTrain < 5)
@@ -429,7 +430,7 @@ void Game::randomDistributeHeads(std::mt19937_64& rand)
     }
   }
 
-  //µÚÁù²½£ºÍÅ¿¨ÓÑÈË¿¨
+  //ç¬¬å…­æ­¥ï¼šå›¢å¡å‹äººå¡
   for (int p = 0; p < 6; p++)
   {
     auto& ps = persons[p];
@@ -437,12 +438,12 @@ void Game::randomDistributeHeads(std::mt19937_64& rand)
     int cardType = ps.cardParam.cardType;
     
     int absentRate = 100 - lg_bonus.disappearRateReduce;
-    std::vector<int> probs = { 100,100,100,100,100,absentRate }; //ËÙÄÍÁ¦¸ùÖÇ¸ë
+    std::vector<int> probs = { 100,100,100,100,100,absentRate }; //é€Ÿè€åŠ›æ ¹æ™ºé¸½
     auto distribution = std::discrete_distribution<>(probs.begin(), probs.end()); while (true)
     {
       int atTrain = distribution(rand);
       if (atTrain < 5 && (headN[atTrain] >= 5 || friendN[atTrain] > 0))
-        continue; //ÑµÁ·ÂúÈË£¬ÖØĞÂ·ÖÅä
+        continue; //è®­ç»ƒæ»¡äººï¼Œé‡æ–°åˆ†é…
       else
       {
         if (atTrain < 5)
@@ -477,11 +478,11 @@ void Game::randomInviteHeads(std::mt19937_64& rand, int num)
     normalCardsToInvite = normalCards.size();
   }
 
-  std::shuffle(normalCards.begin(), normalCards.end(), rand);//Ò¡Ç°num¸ö¿¨
+  std::shuffle(normalCards.begin(), normalCards.end(), rand);//æ‘‡å‰numä¸ªå¡
   for (int i = 0; i < normalCardsToInvite; i++)
     inviteOneHead(rand, normalCards[i]);
   
-  if (friendCardsToInvite > 0) //ÒªÒ¡ÓÑÈË¿¨ÁË
+  if (friendCardsToInvite > 0) //è¦æ‘‡å‹äººå¡äº†
   {
     vector<int> friendCards;
     for (int card = 0; card < 6; card++)
@@ -489,7 +490,7 @@ void Game::randomInviteHeads(std::mt19937_64& rand, int num)
       if (persons[card].personType != PersonType_card)
         friendCards.push_back(card);
     }
-    std::shuffle(friendCards.begin(), friendCards.end(), rand);//Ò¡Ç°num¸ö¿¨
+    std::shuffle(friendCards.begin(), friendCards.end(), rand);//æ‘‡å‰numä¸ªå¡
     for (int i = 0; i < friendCardsToInvite; i++)
       inviteOneHead(rand, friendCards[i]);
   }
@@ -506,25 +507,25 @@ void Game::inviteOneHead(std::mt19937_64& rand, int idx)
     triedTimes++;
     if (triedTimes > 1000)
     {
-      //·Ç³£¼«¶ËµÄÇé¿ö£ºÒ¡6¸öÍ·£¬ĞèÒªÒ¡ÍÅ¿¨£¬µ«ÊÇ2¸öÑµÁ·ÂúÈË£¬2¸öÑµÁ·ÀíÊÂ³¤¼ÇÕß£¬1¸öÑµÁ·ÊÇÍÅ¿¨×Ô¼º
-      //Ô¼50Íò¾ÖÒ»Óö
+      //éå¸¸æç«¯çš„æƒ…å†µï¼šæ‘‡6ä¸ªå¤´ï¼Œéœ€è¦æ‘‡å›¢å¡ï¼Œä½†æ˜¯2ä¸ªè®­ç»ƒæ»¡äººï¼Œ2ä¸ªè®­ç»ƒç†äº‹é•¿è®°è€…ï¼Œ1ä¸ªè®­ç»ƒæ˜¯å›¢å¡è‡ªå·±
+      //çº¦50ä¸‡å±€ä¸€é‡
       return;
-      //throw "inviteOneHead³¢ÊÔ1000´ÎÊ§°Ü";
+      //throw "inviteOneHeadå°è¯•1000æ¬¡å¤±è´¥";
     }
     int atTrain = rand() % 5;
-    //¼ì²éÊÇ·ñºÏ¹æ
+    //æ£€æŸ¥æ˜¯å¦åˆè§„
     bool isOK = true;
     for (int i = 0; i < 5; i++)
     {
       int t = personDistribution[atTrain][i];
       if (t < 0)break;
-      if (i == 4)//ÂúÈË
+      if (i == 4)//æ»¡äºº
       {
         isOK = false;
         break;
       }
-      if (t == idx || //ÖØ¸´
-        (!isNormalCard &&  //ÓÑÈË/ÍÅ¿¨²»»áºÍÆäËûÓÑÈËÍÅ¿¨/ÀíÊÂ³¤¼ÇÕßÔÚÒ»Æğ
+      if (t == idx || //é‡å¤
+        (!isNormalCard &&  //å‹äºº/å›¢å¡ä¸ä¼šå’Œå…¶ä»–å‹äººå›¢å¡/ç†äº‹é•¿è®°è€…åœ¨ä¸€èµ·
           (t == PS_noncardYayoi || t == PS_noncardReporter || ((t < 6 && t >= 0) && persons[t].personType != PersonType_card))))
       {
         isOK = false;
@@ -546,17 +547,17 @@ void Game::inviteOneHead(std::mt19937_64& rand, int idx)
         }
       }
       if (!suc)
-        throw "inviteOneHead·ÅÖÃÈËÍ·Ê§°Ü";
+        throw "inviteOneHeadæ”¾ç½®äººå¤´å¤±è´¥";
 
 
       break;
     }
-    else //ÖØĞÂ·ÖÅä
+    else //é‡æ–°åˆ†é…
       continue;
   }
 }
 
-//ĞèÒªÌáÇ°¼ÆËãcalculateScenarioBonus()
+//éœ€è¦æå‰è®¡ç®—calculateScenarioBonus()
 void Game::calculateTrainingValue()
 {
   for (int i = 0; i < 5; i++)
@@ -567,7 +568,7 @@ void Game::addTrainingLevelCount(int trainIdx, int n)
   trainLevelCount[trainIdx] += n;
   if (trainLevelCount[trainIdx] > 16)trainLevelCount[trainIdx] = 16;
 }
-int Game::calculateRealStatusGain(int value, int gain) const//¿¼ÂÇ1200ÒÔÉÏÎª2µÄ±¶ÊıµÄÊµ¼ÊÊôĞÔÔö¼ÓÖµ
+int Game::calculateRealStatusGain(int value, int gain) const//è€ƒè™‘1200ä»¥ä¸Šä¸º2çš„å€æ•°çš„å®é™…å±æ€§å¢åŠ å€¼
 {
   int newValue = value + gain;
   if (newValue <= 1200)return gain;
@@ -619,10 +620,10 @@ void Game::addMotivation(int value)
     motivation += value;
     if (motivation > 5)
       motivation = 5;
-    //TODO À¶µÇ
+    //TODO è“ç™»
   }
 }
-void Game::addJiBan(int idx, int value, int type) //type0ÊÇµã»÷£¬type1ÊÇÊÂ¼ş£¬type2ÊÇÃ»ÓĞÈÎºÎî¿°í¼Ó³É
+void Game::addJiBan(int idx, int value, int type) //type0æ˜¯ç‚¹å‡»ï¼Œtype1æ˜¯äº‹ä»¶ï¼Œtype2æ˜¯æ²¡æœ‰ä»»ä½•ç¾ç»ŠåŠ æˆ
 {
   if(idx==PS_noncardYayoi)
     friendship_noncard_yayoi += value;
@@ -665,8 +666,8 @@ void Game::addAllStatus(int value)
 }
 int Game::calculateFailureRate(int trainType, double failRateMultiply) const
 {
-  //´ÖÂÔÄâºÏµÄÑµÁ·Ê§°ÜÂÊ£¬¶ş´Îº¯Êı A*(x0-x)^2+B*(x0-x)
-  //Îó²îÓ¦¸ÃÔÚ2%ÒÔÄÚ
+  //ç²—ç•¥æ‹Ÿåˆçš„è®­ç»ƒå¤±è´¥ç‡ï¼ŒäºŒæ¬¡å‡½æ•° A*(x0-x)^2+B*(x0-x)
+  //è¯¯å·®åº”è¯¥åœ¨2%ä»¥å†…
   static const double A = 0.025;
   static const double B = 1.25;
   double x0 = 0.1 * GameConstants::FailRateBasic[trainType][getTrainingLevel(trainType)];
@@ -677,8 +678,8 @@ int Game::calculateFailureRate(int trainType, double failRateMultiply) const
     f = (100 - vital) * (x0 - vital) / 40.0;
   }
   if (f < 0)f = 0;
-  if (f > 99)f = 99;//ÎŞÁ·Ï°ÏÂÊÖ£¬Ê§°ÜÂÊ×î¸ß99%
-  f *= failRateMultiply;//Ö§Ô®¿¨µÄÑµÁ·Ê§°ÜÂÊÏÂ½µ´ÊÌõ
+  if (f > 99)f = 99;//æ— ç»ƒä¹ ä¸‹æ‰‹ï¼Œå¤±è´¥ç‡æœ€é«˜99%
+  f *= failRateMultiply;//æ”¯æ´å¡çš„è®­ç»ƒå¤±è´¥ç‡ä¸‹é™è¯æ¡
   int fr = ceil(f);
   fr += failureRateBias;
   if (fr < 0)fr = 0;
@@ -719,19 +720,19 @@ void Game::handleOutgoing(std::mt19937_64& rand)
     stage = ST_pickBuff;
     addVital(40);
     addMotivation(1);
-    if (failureRateBias > 0)failureRateBias = 0;//ÖÎÁ·Ï°ÏÂÊÖ
+    if (failureRateBias > 0)failureRateBias = 0;//æ²»ç»ƒä¹ ä¸‹æ‰‹
     addLgGauge(lg_trainingColor[T_outgoing], 1);
   }
-  else if (friend_type != 0 &&  //´øÁËÓÑÈË¿¨
-    friend_stage == FriendStage_afterUnlockOutgoing &&  //ÒÑ½âËøÍâ³ö
-    !friend_outgoingUsed[4]  //Íâ³öÃ»×ßÍê
+  else if (friend_type != 0 &&  //å¸¦äº†å‹äººå¡
+    friend_stage == FriendStage_afterUnlockOutgoing &&  //å·²è§£é”å¤–å‡º
+    !friend_outgoingUsed[4]  //å¤–å‡ºæ²¡èµ°å®Œ
     )
   {
-    //µÈ´ıÑ¡ÔñÓÑÈË³öĞĞ
+    //ç­‰å¾…é€‰æ‹©å‹äººå‡ºè¡Œ
     stage = ST_decideEvent;
     decidingEvent = DecidingEvent_outing;
   }
-  else //ÆÕÍ¨³öĞĞ
+  else //æ™®é€šå‡ºè¡Œ
   {
     stage = ST_pickBuff;
     runNormalOutgoing(rand);
@@ -740,7 +741,7 @@ void Game::handleOutgoing(std::mt19937_64& rand)
 
 void Game::runNormalOutgoing(std::mt19937_64& rand)
 {
-  //ÀÁµÃ²é¸ÅÂÊÁË£¬¾Í50%¼Ó2ĞÄÇé£¬50%¼Ó1ĞÄÇé10ÌåÁ¦
+  //æ‡’å¾—æŸ¥æ¦‚ç‡äº†ï¼Œå°±50%åŠ 2å¿ƒæƒ…ï¼Œ50%åŠ 1å¿ƒæƒ…10ä½“åŠ›
   if (rand() % 2)
     addMotivation(2);
   else
@@ -749,7 +750,7 @@ void Game::runNormalOutgoing(std::mt19937_64& rand)
     addVital(10);
   }
 
-  //×¥ÍŞÍŞ
+  //æŠ“å¨ƒå¨ƒ
   if (turn >= 24 && (!haveCatchedDoll) && (rand() % 3 == 0))
   {
     addVital(15);
@@ -808,7 +809,7 @@ void Game::runFriendOutgoing(std::mt19937_64& rand, int idx, int subIdx = -1)
   else if (idx == 3)
   {
     if (subIdx < 0 || subIdx >= 3)
-      throw "µÚËÄ¶Î³öĞĞĞèÒªÖ¸¶¨ÑÕÉ«";
+      throw "ç¬¬å››æ®µå‡ºè¡Œéœ€è¦æŒ‡å®šé¢œè‰²";
 
     addVitalFriend(45);
     addMotivation(1);
@@ -848,12 +849,12 @@ void Game::runFriendOutgoing(std::mt19937_64& rand, int idx, int subIdx = -1)
     addLgGauge(0, 3);
     addLgGauge(1, 3);
     addLgGauge(2, 3);
-    skillPt += 50;//½ğ¼¼ÄÜ
+    skillPt += 50;//é‡‘æŠ€èƒ½
     friend_qingre = true;
     friend_qingreTurn = 0;
 
   }
-  else throw "Î´ÖªµÄ³öĞĞ";
+  else throw "æœªçŸ¥çš„å‡ºè¡Œ";
 
 }
 void Game::runFriendClickEvent(std::mt19937_64& rand, int idx)
@@ -881,7 +882,7 @@ void Game::runFriendClickEvent(std::mt19937_64& rand, int idx)
   {
     addStatusFriend(4, 3);
 
-    //¸øî¿°í×îµÍµÄÈË¼Ó1î¿°í
+    //ç»™ç¾ç»Šæœ€ä½çš„äººåŠ 1ç¾ç»Š
     int minJiBan = 10000;
     for (int i = 0; i < 6; i++)
     {
@@ -894,7 +895,7 @@ void Game::runFriendClickEvent(std::mt19937_64& rand, int idx)
       }
     }
 
-    //Èç¹ûÓĞ¶à¸öî¿°íÏàÍ¬µÄÈËÍ·£¨ÓÈÆäÊÇ·ÛµÇºóÆÚ£©£¬Ëæ»ú³éÒ»¸ö¼Óî¿°í
+    //å¦‚æœæœ‰å¤šä¸ªç¾ç»Šç›¸åŒçš„äººå¤´ï¼ˆå°¤å…¶æ˜¯ç²‰ç™»åæœŸï¼‰ï¼ŒéšæœºæŠ½ä¸€ä¸ªåŠ ç¾ç»Š
     std::vector<int> candidates;
     for (int i = 0; i < 6; ++i) {
       if (persons[i].personType == PersonType_card)
@@ -908,10 +909,10 @@ void Game::runFriendClickEvent(std::mt19937_64& rand, int idx)
     {
       int minJiBanId = candidates[rand() % candidates.size()];
       addJiBan(minJiBanId, 1, 1);
-      printEvents("ÓÑÈËµã»÷ÊÂ¼ş:" + persons[minJiBanId].getPersonName() + " î¿°í+1");
+      printEvents("å‹äººç‚¹å‡»äº‹ä»¶:" + persons[minJiBanId].getPersonName() + " ç¾ç»Š+1");
     }
     else
-      throw "Ã»ÓĞ¿ÉÒÔ¼Óî¿°íµÄÈËÍ·£¬6ÕÅÓÑÈË£¿";
+      throw "æ²¡æœ‰å¯ä»¥åŠ ç¾ç»Šçš„äººå¤´ï¼Œ6å¼ å‹äººï¼Ÿ";
   }
 
 }
@@ -929,7 +930,7 @@ void Game::handleFriendUnlock(std::mt19937_64& rand)
   friend_qingreTurn = 0;
 
 
-  printEvents("ÓÑÈËÍâ³ö½âËø£¡");
+  printEvents("å‹äººå¤–å‡ºè§£é”ï¼");
   
 }
 void Game::handleFriendClickEvent(std::mt19937_64& rand, int atTrain)
@@ -937,7 +938,7 @@ void Game::handleFriendClickEvent(std::mt19937_64& rand, int atTrain)
   assert(friend_type!=0 && (friend_personId<6&& friend_personId>=0) && persons[friend_personId].personType==PersonType_scenarioCard);
   if (friend_stage == FriendStage_notClicked)
   {
-    printEvents("µÚÒ»´ÎµãÓÑÈË");
+    printEvents("ç¬¬ä¸€æ¬¡ç‚¹å‹äºº");
     friend_stage = FriendStage_beforeUnlockOutgoing;
     
     for (int i = 0; i < 5; i++)
@@ -950,7 +951,7 @@ void Game::handleFriendClickEvent(std::mt19937_64& rand, int atTrain)
   }
   else
   {
-    if ((!friend_qingre) && rand() % 5 < 3)return;//·ÇÇéÈÈÊ±40%¸ÅÂÊ³öÊÂ¼ş£¬60%¸ÅÂÊ²»³ö
+    if ((!friend_qingre) && rand() % 5 < 3)return;//éæƒ…çƒ­æ—¶40%æ¦‚ç‡å‡ºäº‹ä»¶ï¼Œ60%æ¦‚ç‡ä¸å‡º
 
     stage = ST_decideEvent;
     decidingEvent=DecidingEvent_three;
@@ -960,8 +961,8 @@ void Game::handleFriendClickEvent(std::mt19937_64& rand, int atTrain)
 }
 void Game::handleFriendFixedEvent()
 {
-  if (friend_type == 0)return;//Ã»ÓÑÈË¿¨
-  if (friend_stage < FriendStage_beforeUnlockOutgoing)return;//³öĞĞÃ»½âËø¾ÍÃ»ÊÂ¼ş
+  if (friend_type == 0)return;//æ²¡å‹äººå¡
+  if (friend_stage < FriendStage_beforeUnlockOutgoing)return;//å‡ºè¡Œæ²¡è§£é”å°±æ²¡äº‹ä»¶
   if (turn == 23)
   {
     addVitalMax(4);
@@ -970,7 +971,7 @@ void Game::handleFriendFixedEvent()
       addStatusFriend(i, 4);
     addStatusFriend(5, 5);
     addJiBan(friend_personId, 5, 1);
-    skillPt += 40;//Èı¼¶¼¼ÄÜ£¬¶øÇÒÓĞ½ø»¯£¬Òò´ËÕâ¸öhintÊÇÓĞĞ§µÄ
+    skillPt += 40;//ä¸‰çº§æŠ€èƒ½ï¼Œè€Œä¸”æœ‰è¿›åŒ–ï¼Œå› æ­¤è¿™ä¸ªhintæ˜¯æœ‰æ•ˆçš„
     for (int i = 0; i < 3; i++)
       addLgGauge(i, 2);
   }
@@ -989,7 +990,7 @@ void Game::handleFriendFixedEvent()
   }
   else
   {
-    assert(false && "ÆäËû»ØºÏÃ»ÓĞÓÑÈË¹Ì¶¨ÊÂ¼ş");
+    assert(false && "å…¶ä»–å›åˆæ²¡æœ‰å‹äººå›ºå®šäº‹ä»¶");
   }
 }
 bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
@@ -1000,17 +1001,17 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
 
   if (isRacing)
   {
-    //¹Ì¶¨±ÈÈüÊÕÒæÔÚcheckEventAfterTrain()Àï´¦Àí
+    //å›ºå®šæ¯”èµ›æ”¶ç›Šåœ¨checkEventAfterTrain()é‡Œå¤„ç†
     stage = ST_pickBuff;
     assert(train == T_race);
     addLgGauge(lg_trainingColor[T_race], 1);
   }
   else
   {
-    if (train == T_rest)//ĞİÏ¢
+    if (train == T_rest)//ä¼‘æ¯
     {
       stage = ST_pickBuff;
-      if (isXiahesu())//ºÏËŞÖ»ÄÜÍâ³ö
+      if (isXiahesu())//åˆå®¿åªèƒ½å¤–å‡º
       {
         return false;
       }
@@ -1026,7 +1027,7 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
       }
       addLgGauge(lg_trainingColor[T_rest], 1);
     }
-    else if (train == T_race)//±ÈÈü
+    else if (train == T_race)//æ¯”èµ›
     {
       stage = ST_pickBuff;
       if (turn <= 12 || turn >= 72)
@@ -1034,23 +1035,23 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
         printEvents("Cannot race now.");
         return false;
       }
-      //addAllStatus(1);//ÎäÕßÕñ
-      runRace(2, 30);//´ÖÂÔµÄ½üËÆ
+      //addAllStatus(1);//æ­¦è€…æŒ¯
+      runRace(2, 30);//ç²—ç•¥çš„è¿‘ä¼¼
 
-      //¿ÛÌå¹Ì¶¨15
+      //æ‰£ä½“å›ºå®š15
       addVital(-15);
       if (rand() % 5 == 0)
         addMotivation(1);
 
       addLgGauge(lg_trainingColor[T_race], 1);
     }
-    else if (train == T_outgoing)//Íâ³ö
+    else if (train == T_outgoing)//å¤–å‡º
     {
       handleOutgoing(rand);
     }
-    else if (train <= 4 && train >= 0)//³£¹æÑµÁ·
+    else if (train <= 4 && train >= 0)//å¸¸è§„è®­ç»ƒ
     {
-      if (rand() % 100 < failRate[train])//ÑµÁ·Ê§°Ü
+      if (rand() % 100 < failRate[train])//è®­ç»ƒå¤±è´¥
       {
         trainingSucceed = false;
         applyNormalTraining(rand, train, trainingSucceed);
@@ -1064,7 +1065,7 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
     }
     else
     {
-      printEvents("Î´ÖªµÄÑµÁ·ÏîÄ¿");
+      printEvents("æœªçŸ¥çš„è®­ç»ƒé¡¹ç›®");
       return false;
     }
   }
@@ -1072,7 +1073,7 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
   updateScenarioBuffAfterTrain(train, trainingSucceed);
 
   if (stage == ST_pickBuff)
-    maybeSkipPickBuffStage();//¼ÙÈçÃ»ÓĞÆäËûÊÂ¼ş£¨ÍÅ¿¨ÈıÑ¡Ò»£¬»òÍâ³ö£©£¬Ôò¼ì²éÊÇ·ñ¸Ã½øÈëÑ¡buff»·½Ú£¬·ñÔòÏÈ´¦ÀíÊÂ¼şÔÙ¼ì²é¡£
+    maybeSkipPickBuffStage();//å‡å¦‚æ²¡æœ‰å…¶ä»–äº‹ä»¶ï¼ˆå›¢å¡ä¸‰é€‰ä¸€ï¼Œæˆ–å¤–å‡ºï¼‰ï¼Œåˆ™æ£€æŸ¥æ˜¯å¦è¯¥è¿›å…¥é€‰buffç¯èŠ‚ï¼Œå¦åˆ™å…ˆå¤„ç†äº‹ä»¶å†æ£€æŸ¥ã€‚
 
   return true;
 }
@@ -1080,64 +1081,64 @@ bool Game::applyTraining(std::mt19937_64& rand, int16_t train)
 void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool success)
 {
   assert(stage == ST_train);
-  stage = ST_pickBuff;//ÓĞ¿ÉÄÜ±»handleFriendClickEvent(rand, train)ĞŞ¸Ä
+  stage = ST_pickBuff;//æœ‰å¯èƒ½è¢«handleFriendClickEvent(rand, train)ä¿®æ”¹
   if (!success)
   {
-    if (failRate[train] >= 20 && (rand() % 100 < failRate[train]))//ÑµÁ·´óÊ§°Ü£¬¸ÅÂÊÊÇÏ¹²ÂµÄ
+    if (failRate[train] >= 20 && (rand() % 100 < failRate[train]))//è®­ç»ƒå¤§å¤±è´¥ï¼Œæ¦‚ç‡æ˜¯ççŒœçš„
     {
-      printEvents("ÑµÁ·´óÊ§°Ü£¡");
+      printEvents("è®­ç»ƒå¤§å¤±è´¥ï¼");
       addStatus(train, -10);
       if (fiveStatus[train] > 1200)
-        addStatus(train, -10);//ÓÎÏ·Àï1200ÒÔÉÏ¿ÛÊôĞÔ²»ÕÛ°ë£¬ÔÚ´ËÄ£ÄâÆ÷Àï¶ÔÓ¦1200ÒÔÉÏ·­±¶
-      //Ëæ»ú¿Û2¸ö10£¬²»·Á¸Ä³ÉÈ«ÊôĞÔ-4½µµÍËæ»úĞÔ
+        addStatus(train, -10);//æ¸¸æˆé‡Œ1200ä»¥ä¸Šæ‰£å±æ€§ä¸æŠ˜åŠï¼Œåœ¨æ­¤æ¨¡æ‹Ÿå™¨é‡Œå¯¹åº”1200ä»¥ä¸Šç¿»å€
+      //éšæœºæ‰£2ä¸ª10ï¼Œä¸å¦¨æ”¹æˆå…¨å±æ€§-4é™ä½éšæœºæ€§
       for (int i = 0; i < 5; i++)
       {
         addStatus(i, -4);
         if (fiveStatus[i] > 1200)
-          addStatus(i, -4);//ÓÎÏ·Àï1200ÒÔÉÏ¿ÛÊôĞÔ²»ÕÛ°ë£¬ÔÚ´ËÄ£ÄâÆ÷Àï¶ÔÓ¦1200ÒÔÉÏ·­±¶
+          addStatus(i, -4);//æ¸¸æˆé‡Œ1200ä»¥ä¸Šæ‰£å±æ€§ä¸æŠ˜åŠï¼Œåœ¨æ­¤æ¨¡æ‹Ÿå™¨é‡Œå¯¹åº”1200ä»¥ä¸Šç¿»å€
       }
       addMotivation(-3);
       addVital(10);
     }
-    else//Ğ¡Ê§°Ü
+    else//å°å¤±è´¥
     {
-      printEvents("ÑµÁ·Ğ¡Ê§°Ü£¡");
+      printEvents("è®­ç»ƒå°å¤±è´¥ï¼");
       addStatus(train, -5);
       if (fiveStatus[train] > 1200)
-        addStatus(train, -5);//ÓÎÏ·Àï1200ÒÔÉÏ¿ÛÊôĞÔ²»ÕÛ°ë£¬ÔÚ´ËÄ£ÄâÆ÷Àï¶ÔÓ¦1200ÒÔÉÏ·­±¶
+        addStatus(train, -5);//æ¸¸æˆé‡Œ1200ä»¥ä¸Šæ‰£å±æ€§ä¸æŠ˜åŠï¼Œåœ¨æ­¤æ¨¡æ‹Ÿå™¨é‡Œå¯¹åº”1200ä»¥ä¸Šç¿»å€
       addMotivation(-1);
     }
     addLgGauge(lg_trainingColor[T_race], 1);
   }
   else
   {
-    //ÏÈ¼ÓÉÏÑµÁ·Öµ
+    //å…ˆåŠ ä¸Šè®­ç»ƒå€¼
     for (int i = 0; i < 5; i++)
       addStatus(i, trainValue[train][i]);
     skillPt += trainValue[train][5];
     addVital(trainVitalChange[train]);
 
     bool clickFriend = false;
-    vector<int> hintCards;//ÓĞÄÄ¼¸¸ö¿¨³öºì¸ĞÌ¾ºÅÁË
+    vector<int> hintCards;//æœ‰å“ªå‡ ä¸ªå¡å‡ºçº¢æ„Ÿå¹å·äº†
     
     for (int i = 0; i < 5; i++)
     {
       int p = personDistribution[train][i];
-      if (p < 0)break;//Ã»ÈË
+      if (p < 0)break;//æ²¡äºº
 
-      if (p == friend_personId && friend_type != 0)//ÓÑÈË¿¨
+      if (p == friend_personId && friend_type != 0)//å‹äººå¡
       {
         assert(persons[p].personType == PersonType_scenarioCard);
         addJiBan(p, 4, 0);
         clickFriend = true;
       }
-      else if (p < 6)//ÆÕÍ¨¿¨
+      else if (p < 6)//æ™®é€šå¡
       {
         addJiBan(p, 7, 0);
         if (persons[p].isHint)
           hintCards.push_back(p);
 
-        //Çå¿ÕÉÁ²ÊÈËÍ·µÄî¿°í
+        //æ¸…ç©ºé—ªå½©äººå¤´çš„ç¾ç»Š
         if (lg_mainColor == L_red && isCardShining(p, train) && lg_red_friendsGauge[p] == 20)
         {
           lg_red_friendsGauge[p] = 0;
@@ -1148,7 +1149,7 @@ void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool succes
       else if (p >= PS_npc0 && p <= PS_npc4)//npc
       {
         addJiBan(p, 7, 0);
-        //Çå¿ÕÉÁ²ÊÈËÍ·µÄî¿°í
+        //æ¸…ç©ºé—ªå½©äººå¤´çš„ç¾ç»Š
         if (lg_mainColor == L_red && isCardShining(p, train) && lg_red_friendsGauge[p] == 20)
         {
           lg_red_friendsGauge[p] = 0;
@@ -1156,14 +1157,14 @@ void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool succes
             lg_red_friendsLv[p] += 1;
         }
       }
-      else if (p == PS_noncardYayoi)//·Ç¿¨ÀíÊÂ³¤
+      else if (p == PS_noncardYayoi)//éå¡ç†äº‹é•¿
       {
         int jiban = friendship_noncard_yayoi;
         int g = jiban < 40 ? 2 : jiban < 60 ? 3 : jiban < 80 ? 4 : 5;
         skillPt += g;
         addJiBan(PS_noncardYayoi, 7, 0);
       }
-      else if (p == PS_noncardReporter)//¼ÇÕß
+      else if (p == PS_noncardReporter)//è®°è€…
       {
         int jiban = friendship_noncard_reporter;
         int g = jiban < 40 ? 2 : jiban < 60 ? 3 : jiban < 80 ? 4 : 5;
@@ -1172,7 +1173,7 @@ void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool succes
       }
       else
       {
-        //ÆäËûÓÑÈË/ÍÅ¿¨Ôİ²»Ö§³Ö
+        //å…¶ä»–å‹äºº/å›¢å¡æš‚ä¸æ”¯æŒ
         assert(false);
       }
     }
@@ -1181,7 +1182,7 @@ void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool succes
 
     if (hintCards.size() > 0)
     {
-      int hintCard = hintCards[rand() % hintCards.size()];//Ëæ»úÒ»ÕÅ¿¨³öhint
+      int hintCard = hintCards[rand() % hintCards.size()];//éšæœºä¸€å¼ å¡å‡ºhint
 
       addJiBan(hintCard, 5, 1);
 
@@ -1192,7 +1193,7 @@ void Game::applyNormalTraining(std::mt19937_64& rand, int16_t train, bool succes
     }
 
 
-    //ÑµÁ·µÈ¼¶ÌáÉı
+    //è®­ç»ƒç­‰çº§æå‡
     if (!isXiahesu())
       addTrainingLevelCount(train, 1);
 
@@ -1210,8 +1211,8 @@ void Game::addHintWithoutJiban(std::mt19937_64& rand, int idx)
   int hintLevel = persons[idx].cardParam.hintLevel;
   int cardType = persons[idx].cardParam.cardType;
   assert(cardType < 5 && cardType >= 0);
-  double skillProb = 0.9 * (1 - exp(-exp(2 - hintSkillLvCount / gameSettings.hintProbTimeConstant)));//ÓĞ¶à´ó¸ÅÂÊÊÇ¸ø¼¼ÄÜ¶ø²»ÊÇÊôĞÔ
-  if (hintLevel == 0)skillProb = 0;//¸ùÎÚÀ­À­ÕâÖÖ£¬Ö»¸øÊôĞÔ
+  double skillProb = 0.9 * (1 - exp(-exp(2 - hintSkillLvCount / gameSettings.hintProbTimeConstant)));//æœ‰å¤šå¤§æ¦‚ç‡æ˜¯ç»™æŠ€èƒ½è€Œä¸æ˜¯å±æ€§
+  if (hintLevel == 0)skillProb = 0;//æ ¹ä¹Œæ‹‰æ‹‰è¿™ç§ï¼Œåªç»™å±æ€§
 
   if (randBool(rand, skillProb))
   {
@@ -1248,24 +1249,24 @@ void Game::addHintWithoutJiban(std::mt19937_64& rand, int idx)
       skillPt += 5;
     }
     else
-      throw "ÓÑÈËÍÅ¶Ó¿¨²»ÄÜhint";
+      throw "å‹äººå›¢é˜Ÿå¡ä¸èƒ½hint";
   }
 }
 void Game::jicheng(std::mt19937_64& rand)
 {
   for (int i = 0; i < 5; i++)
-    addStatus(i, zhongMaBlueCount[i] * 6); //À¶Òò×ÓµäĞÍÖµ
+    addStatus(i, zhongMaBlueCount[i] * 6); //è“å› å­å…¸å‹å€¼
 
-  double factor = double(rand() % 65536) / 65536 * 2;//¾ç±¾Òò×ÓËæ»ú0~2±¶
+  double factor = double(rand() % 65536) / 65536 * 2;//å‰§æœ¬å› å­éšæœº0~2å€
   for (int i = 0; i < 5; i++)
-    addStatus(i, int(factor * zhongMaExtraBonus[i])); //¾ç±¾Òò×Ó
-  skillPt += int((0.5 + 0.5 * factor) * zhongMaExtraBonus[5]);//ÂÒÆß°ËÔã¼¼ÄÜµÄµÈĞ§pt
-
-  for (int i = 0; i < 5; i++)
-    fiveStatusLimit[i] += zhongMaBlueCount[i] * 2; //ÊôĞÔÉÏÏŞ--ÖÖÂí»ù´¡Öµ¡£18À¶Á½´Î¼Ì³Ğ¹²¼Ó´óÔ¼36ÉÏÏŞ£¬Ã¿´ÎÃ¿¸öÀ¶Òò×Ó+1ÉÏÏŞ£¬1200ÕÛ°ëÔÙ³Ë2
+    addStatus(i, int(factor * zhongMaExtraBonus[i])); //å‰§æœ¬å› å­
+  skillPt += int((0.5 + 0.5 * factor) * zhongMaExtraBonus[5]);//ä¹±ä¸ƒå…«ç³ŸæŠ€èƒ½çš„ç­‰æ•ˆpt
 
   for (int i = 0; i < 5; i++)
-    fiveStatusLimit[i] += rand() % 8; //ÊôĞÔÉÏÏŞ--ºóÁ½´Î¼Ì³ĞËæ»úÔö¼Ó
+    fiveStatusLimit[i] += zhongMaBlueCount[i] * 2; //å±æ€§ä¸Šé™--ç§é©¬åŸºç¡€å€¼ã€‚18è“ä¸¤æ¬¡ç»§æ‰¿å…±åŠ å¤§çº¦36ä¸Šé™ï¼Œæ¯æ¬¡æ¯ä¸ªè“å› å­+1ä¸Šé™ï¼Œ1200æŠ˜åŠå†ä¹˜2
+
+  for (int i = 0; i < 5; i++)
+    fiveStatusLimit[i] += rand() % 8; //å±æ€§ä¸Šé™--åä¸¤æ¬¡ç»§æ‰¿éšæœºå¢åŠ 
 
 }
 void Game::updateScenarioBuffAfterTrain(int16_t trainIdx, bool trainSucceed)
@@ -1322,12 +1323,12 @@ void Game::decideEvent(std::mt19937_64& rand, int16_t idx)
   maybeSkipPickBuffStage();
 }
 
-//idx 01234567ÒÀ´ÎÊÇÆÕÍ¨Íâ³ö£¬ÓÑÈËÍâ³ö123£¬ÓÑÈËÍâ³ö4µÄÈı¸öÑ¡Ïî£¬ÓÑÈËÍâ³ö5
+//idx 01234567ä¾æ¬¡æ˜¯æ™®é€šå¤–å‡ºï¼Œå‹äººå¤–å‡º123ï¼Œå‹äººå¤–å‡º4çš„ä¸‰ä¸ªé€‰é¡¹ï¼Œå‹äººå¤–å‡º5
 void Game::decideEvent_outing(std::mt19937_64& rand, int16_t idx)
 {
   if (!friend_type == 1 || friend_outgoingUsed[4] || isXiahesu())
   {
-    throw "decideEvent_outingÓÑÈËÍâ³ö²»¿ÉÓÃ";
+    throw "decideEvent_outingå‹äººå¤–å‡ºä¸å¯ç”¨";
   }
   if (idx == 0)
     runNormalOutgoing(rand);
@@ -1350,7 +1351,7 @@ void Game::decideEvent_outing(std::mt19937_64& rand, int16_t idx)
 void Game::decideEvent_three(std::mt19937_64& rand, int16_t idx)
 {
   if (friend_stage != FriendStage_beforeUnlockOutgoing && friend_stage != FriendStage_afterUnlockOutgoing)
-    throw "µÚÒ»´Îµã»÷²»»á´¥·¢ÈıÑ¡Ò»ÊÂ¼ş";
+    throw "ç¬¬ä¸€æ¬¡ç‚¹å‡»ä¸ä¼šè§¦å‘ä¸‰é€‰ä¸€äº‹ä»¶";
   runFriendClickEvent(rand, idx);
 }
 
@@ -1368,8 +1369,8 @@ bool Game::isLegal(Action action) const
     //}
     //else
     //{
-      //assert(false && "ËùÓĞuraÒÔÍâµÄ¾ç±¾±ÈÈü¶¼ÔÚcheckEventAfterTrain()Àï´¦Àí£¬²»ÄÜapplyTraining");
-      //return false;//ËùÓĞ¾ç±¾±ÈÈü¶¼ÔÚcheckEventAfterTrain()Àï´¦Àí£¨Ïàµ±ÓÚ±ÈÈü»ØºÏÖ±½ÓÌø¹ı£©£¬²»ÔÚÕâ¸öº¯Êı
+      //assert(false && "æ‰€æœ‰uraä»¥å¤–çš„å‰§æœ¬æ¯”èµ›éƒ½åœ¨checkEventAfterTrain()é‡Œå¤„ç†ï¼Œä¸èƒ½applyTraining");
+      //return false;//æ‰€æœ‰å‰§æœ¬æ¯”èµ›éƒ½åœ¨checkEventAfterTrain()é‡Œå¤„ç†ï¼ˆç›¸å½“äºæ¯”èµ›å›åˆç›´æ¥è·³è¿‡ï¼‰ï¼Œä¸åœ¨è¿™ä¸ªå‡½æ•°
     //}
   }
 
@@ -1377,7 +1378,7 @@ bool Game::isLegal(Action action) const
   {
     if (isXiahesu())
     {
-      return false;//½«ÏÄºÏËŞµÄ¡°Íâ³ö&ĞİÏ¢¡±³ÆÎªÍâ³ö
+      return false;//å°†å¤åˆå®¿çš„â€œå¤–å‡º&ä¼‘æ¯â€ç§°ä¸ºå¤–å‡º
     }
     return true;
   }
@@ -1395,7 +1396,7 @@ bool Game::isLegal(Action action) const
   }
   else
   {
-    assert(false && "Î´ÖªµÄÑµÁ·ÏîÄ¿");
+    assert(false && "æœªçŸ¥çš„è®­ç»ƒé¡¹ç›®");
     return false;
   }
   return false;
@@ -1409,7 +1410,7 @@ float Game::getSkillScore() const
   return rate * skillPt + skillScore;
 }
 
-static double scoringFactorOver1200(double x)//ÄÍÁ¦Ê¤¸º£¬½ÅÉ«Ê®·Ö£¬×·±È
+static double scoringFactorOver1200(double x)//è€åŠ›èƒœè´Ÿï¼Œè„šè‰²ååˆ†ï¼Œè¿½æ¯”
 {
   if (x <= 1150)return 0;
   return tanh((x - 1150) / 100.0) * sqrt(x - 1150);
@@ -1493,7 +1494,7 @@ int Game::finalScore() const
   }
   else
   {
-    throw "´ËÆÀ·ÖËã·¨»¹Î´ÊµÏÖ";
+    throw "æ­¤è¯„åˆ†ç®—æ³•è¿˜æœªå®ç°";
   }
   return 0;
 }
@@ -1512,21 +1513,21 @@ int Game::getTrainingLevel(int item) const
 
 void Game::calculateTrainingValueSingle(int tra)
 {
-  int headNum = 0;//¼¸ÕÅ¿¨»òÕßnpc£¬ÀíÊÂ³¤¼ÇÕß²»Ëã
-  int shiningNum = 0;//¼¸ÕÅÉÁ²Ê
-  int linkNum = 0;//¼¸ÕÅlink
+  int headNum = 0;//å‡ å¼ å¡æˆ–è€…npcï¼Œç†äº‹é•¿è®°è€…ä¸ç®—
+  int shiningNum = 0;//å‡ å¼ é—ªå½©
+  int linkNum = 0;//å‡ å¼ link
 
-  int basicValue[6] = { 0,0,0,0,0,0 };//ÑµÁ·µÄ»ù´¡Öµ£¬=Ô­»ù´¡Öµ+Ö§Ô®¿¨¼Ó³É
+  int basicValue[6] = { 0,0,0,0,0,0 };//è®­ç»ƒçš„åŸºç¡€å€¼ï¼Œ=åŸåŸºç¡€å€¼+æ”¯æ´å¡åŠ æˆ
 
-  double totalXunlian = 0;//ÏÂ²ã£¬ÑµÁ·1+ÑµÁ·2+...
-  double totalXunlianUpper = lg_bonus.xunlian;//=ÏÂ²ã+¾ç±¾+npc
-  double totalGanjing = 0;//¸É¾¢1+¸É¾¢2+...
-  double totalGanjingUpper = lg_bonus.ganjing;//=ÏÂ²ã+¾ç±¾
-  double totalYouqingMultiplier = 1.0;//(1+ÓÑÇé1)*(1+ÓÑÇé2)*...
-  double totalYouqingUpper = lg_bonus.youqing;//¾ç±¾ÓÑÇé¼Ó³É=¾ç±¾+npc
-  int vitalCostBasic;//ÌåÁ¦ÏûºÄ»ù´¡Á¿£¬=ReLU(»ù´¡ÌåÁ¦ÏûºÄ+linkÌåÁ¦ÏûºÄÔö¼Ó-ÖÇ²ÊÌåÁ¦ÏûºÄ¼õÉÙ)
-  double vitalCostMultiplier = 1.0;//(1-ÌåÁ¦ÏûºÄ¼õÉÙÂÊ1)*(1-ÌåÁ¦ÏûºÄ¼õÉÙÂÊ2)*...
-  double failRateMultiplier = 1.0;//(1-Ê§°ÜÂÊÏÂ½µÂÊ1)*(1-Ê§°ÜÂÊÏÂ½µÂÊ2)*...
+  double totalXunlian = 0;//ä¸‹å±‚ï¼Œè®­ç»ƒ1+è®­ç»ƒ2+...
+  double totalXunlianUpper = lg_bonus.xunlian;//=ä¸‹å±‚+å‰§æœ¬+npc
+  double totalGanjing = 0;//å¹²åŠ²1+å¹²åŠ²2+...
+  double totalGanjingUpper = lg_bonus.ganjing;//=ä¸‹å±‚+å‰§æœ¬
+  double totalYouqingMultiplier = 1.0;//(1+å‹æƒ…1)*(1+å‹æƒ…2)*...
+  double totalYouqingUpper = lg_bonus.youqing;//å‰§æœ¬å‹æƒ…åŠ æˆ=å‰§æœ¬+npc
+  int vitalCostBasic;//ä½“åŠ›æ¶ˆè€—åŸºç¡€é‡ï¼Œ=ReLU(åŸºç¡€ä½“åŠ›æ¶ˆè€—+linkä½“åŠ›æ¶ˆè€—å¢åŠ -æ™ºå½©ä½“åŠ›æ¶ˆè€—å‡å°‘)
+  double vitalCostMultiplier = 1.0;//(1-ä½“åŠ›æ¶ˆè€—å‡å°‘ç‡1)*(1-ä½“åŠ›æ¶ˆè€—å‡å°‘ç‡2)*...
+  double failRateMultiplier = 1.0;//(1-å¤±è´¥ç‡ä¸‹é™ç‡1)*(1-å¤±è´¥ç‡ä¸‹é™ç‡2)*...
 
 
 
@@ -1538,7 +1539,7 @@ void Game::calculateTrainingValueSingle(int tra)
   {
     int pIdx = personDistribution[tra][h];
     if (pIdx < 0)break;
-    if (pIdx == PS_noncardYayoi || pIdx == PS_noncardReporter)continue;//²»ÊÇ¿¨
+    if (pIdx == PS_noncardYayoi || pIdx == PS_noncardReporter)continue;//ä¸æ˜¯å¡
 
     headNum += 1;
 
@@ -1563,7 +1564,7 @@ void Game::calculateTrainingValueSingle(int tra)
   totalGanjingUpper += lg_bonus.ganjingPerHead * headNum;
   totalYouqingUpper += lg_bonus.youqingPerShiningHead * shiningNum;
 
-  //»ù´¡Öµ
+  //åŸºç¡€å€¼
   for (int i = 0; i < 6; i++)
     basicValue[i] = GameConstants::TrainingBasicValue[tra][tlevel][i];
   vitalCostBasic = -GameConstants::TrainingBasicValue[tra][tlevel][6];
@@ -1571,14 +1572,14 @@ void Game::calculateTrainingValueSingle(int tra)
   for (int h = 0; h < 5; h++)
   {
     int pid = personDistribution[tra][h];
-    if (pid < 0)break;//Ã»ÈË
-    if (pid == PS_noncardYayoi || pid == PS_noncardReporter)continue;//²»ÊÇ¿¨
+    if (pid < 0)break;//æ²¡äºº
+    if (pid == PS_noncardYayoi || pid == PS_noncardReporter)continue;//ä¸æ˜¯å¡
 
     if (pid >= PS_npc0 && pid <= PS_npc4)
     {
       int lv = lg_red_friendsLv[pid]; 
       totalXunlianUpper += GameConstants::LG_redLvXunlianNPC[lv];
-      if (isCardShining(pid, tra))//Õâ¸önpcÉÁÃ»ÉÁ
+      if (isCardShining(pid, tra))//è¿™ä¸ªnpcé—ªæ²¡é—ª
       {
         totalYouqingUpper += GameConstants::LG_redLvYouqingNPC[lv];
       }
@@ -1589,16 +1590,16 @@ void Game::calculateTrainingValueSingle(int tra)
       totalXunlianUpper += GameConstants::LG_redLvXunlianCard[lv];
 
       const Person& p = persons[pid];
-      bool isThisCardShining = isCardShining(pid, tra);//ÕâÕÅ¿¨ÉÁÃ»ÉÁ
-      bool isThisTrainingShining = shiningNum > 0;//Õâ¸öÑµÁ·ÉÁÃ»ÉÁ
+      bool isThisCardShining = isCardShining(pid, tra);//è¿™å¼ å¡é—ªæ²¡é—ª
+      bool isThisTrainingShining = shiningNum > 0;//è¿™ä¸ªè®­ç»ƒé—ªæ²¡é—ª
       CardTrainingEffect eff = p.cardParam.getCardEffect(*this, isThisCardShining, tra, p.friendship, p.cardRecord, headNum, shiningNum);
 
-      for (int i = 0; i < 6; i++)//»ù´¡Öµbonus
+      for (int i = 0; i < 6; i++)//åŸºç¡€å€¼bonus
       {
         if (basicValue[i] > 0)
           basicValue[i] += int(eff.bonus[i]);
       }
-      if (isThisCardShining)//ÉÁ²Ê£¬ÓÑÇé¼Ó³ÉºÍÖÇ²Ê»Ø¸´
+      if (isThisCardShining)//é—ªå½©ï¼Œå‹æƒ…åŠ æˆå’Œæ™ºå½©å›å¤
       {
         totalYouqingMultiplier *= (1 + 0.01 * eff.youQing);
         if (tra == T_wiz)
@@ -1614,7 +1615,7 @@ void Game::calculateTrainingValueSingle(int tra)
 
   }
 
-  //ÌåÁ¦£¬Ê§°ÜÂÊ
+  //ä½“åŠ›ï¼Œå¤±è´¥ç‡
 
   vitalCostMultiplier *= (1 - 0.01 * lg_bonus.vitalReduce);
   int vitalChangeInt = vitalCostBasic > 0 ? -int(vitalCostBasic * vitalCostMultiplier) : -vitalCostBasic;
@@ -1624,14 +1625,14 @@ void Game::calculateTrainingValueSingle(int tra)
   failRate[tra] = calculateFailureRate(tra, failRateMultiplier);
 
 
-  //ÈËÍ· * ÑµÁ· * ¸É¾¢ * ÓÑÇé    //Ö§Ô®¿¨±¶ÂÊ
+  //äººå¤´ * è®­ç»ƒ * å¹²åŠ² * å‹æƒ…    //æ”¯æ´å¡å€ç‡
   double motivationFactor = lg_blue_active ? 0.55 : 0.1 * (motivation - 3);
   double totalYouqingUpperMultiplier = shiningNum > 0 ? (1 + 0.01 * totalYouqingUpper) : 1;
   double multiplierLower = (1 + 0.05 * headNum) * (1 + 0.01 * totalXunlian) * (1 + motivationFactor * (1 + 0.01 * totalGanjing)) * totalYouqingMultiplier;
   double multiplierUpper = (1 + 0.05 * headNum) * (1 + 0.01 * totalXunlianUpper) * (1 + motivationFactor * (1 + 0.01 * totalGanjingUpper)) * totalYouqingMultiplier * totalYouqingUpperMultiplier;
   //trainValueCardMultiplier[t] = cardMultiplier;
 
-  //¿ÉÒÔ¿ªÊ¼ËãÁË
+  //å¯ä»¥å¼€å§‹ç®—äº†
   double trainValueTotalTmp[6];
   for (int i = 0; i < 6; i++)
   {
@@ -1642,7 +1643,7 @@ void Game::calculateTrainingValueSingle(int tra)
   }
 
 
-  //ÉÏ²ã=×ÜÊı-ÏÂ²ã
+  //ä¸Šå±‚=æ€»æ•°-ä¸‹å±‚
 
   for (int i = 0; i < 6; i++)
   {
@@ -1725,7 +1726,7 @@ void Game::addScenarioBuffBonus(int idx)
   }
   else if (id == 0 * 19 + 10)
   {
-    lg_buffs[idx].isActive = false; //»ØºÏºó´¥·¢
+    lg_buffs[idx].isActive = false; //å›åˆåè§¦å‘
   }
   else if (id == 0 * 19 + 11)
   {
@@ -1842,7 +1843,7 @@ void Game::addScenarioBuffBonus(int idx)
     lg_bonus.xunlian += 15;
     if (lg_mainColor == L_green)
     {
-      throw "ÂÌÉ«Î´ÊµÏÖ";
+      throw "ç»¿è‰²æœªå®ç°";
     }
   }
   else if (id == 1 * 19 + 15)
@@ -1956,7 +1957,7 @@ void Game::addScenarioBuffBonus(int idx)
   }
   else
   {
-    throw "Î´ÖªĞÄµÃ";
+    throw "æœªçŸ¥å¿ƒå¾—";
   }
 
 }
@@ -1966,9 +1967,9 @@ void Game::updateScenarioBuffCondition(int idx)
   int id = lg_buffs[idx].buffId;
   if (id < 0)return;
 
-  //¸É¾¢¾øºÃµ÷µÈ¼´Ê±ĞÔµÄÌõ¼ş²»ÔÚÕâÀï´¦Àí
+  //å¹²åŠ²ç»å¥½è°ƒç­‰å³æ—¶æ€§çš„æ¡ä»¶ä¸åœ¨è¿™é‡Œå¤„ç†
 
-  //ĞİÏ¢ºó
+  //ä¼‘æ¯å
   if (
     id == 0 * 19 + 11 ||
     id == 0 * 19 + 13 ||
@@ -1979,12 +1980,12 @@ void Game::updateScenarioBuffCondition(int idx)
       lg_buffs[idx].isActive = true;
     if (lg_buffCondition.isTraining)
       lg_buffs[idx].isActive = false;
-    //×¢Òâ±ÈÈü²»¸Ä±ä×´Ì¬
+    //æ³¨æ„æ¯”èµ›ä¸æ”¹å˜çŠ¶æ€
 
     if (lg_buffCondition.isRest && id == 0 * 19 + 11)
       addMotivation(1);
   }
-  //ÑµÁ·³É¹¦ºó£¬²»º¬´øÓĞCDµÄ
+  //è®­ç»ƒæˆåŠŸåï¼Œä¸å«å¸¦æœ‰CDçš„
   else if (
     id == 1 * 19 + 8 ||
     id == 1 * 19 + 10 ||
@@ -1999,9 +2000,9 @@ void Game::updateScenarioBuffCondition(int idx)
       lg_buffs[idx].isActive = false;
     if (lg_buffCondition.isTraining && lg_buffCondition.trainingSucceed)
       lg_buffs[idx].isActive = true;
-    //×¢Òâ±ÈÈüĞİÏ¢Íâ³ö²»¸Ä±ä×´Ì¬
+    //æ³¨æ„æ¯”èµ›ä¼‘æ¯å¤–å‡ºä¸æ”¹å˜çŠ¶æ€
   }
-  //ÓÑÇéÑµÁ·³É¹¦ºó£¬²»º¬´øÓĞCDµÄ
+  //å‹æƒ…è®­ç»ƒæˆåŠŸåï¼Œä¸å«å¸¦æœ‰CDçš„
   else if (
     id == 1 * 19 + 9 ||
     id == 2 * 19 + 16 ||
@@ -2012,9 +2013,9 @@ void Game::updateScenarioBuffCondition(int idx)
       lg_buffs[idx].isActive = false;
     if (lg_buffCondition.isTraining && lg_buffCondition.trainingSucceed && lg_buffCondition.isYouqing)
       lg_buffs[idx].isActive = true;
-    //×¢Òâ±ÈÈüĞİÏ¢Íâ³ö²»¸Ä±ä×´Ì¬
+    //æ³¨æ„æ¯”èµ›ä¼‘æ¯å¤–å‡ºä¸æ”¹å˜çŠ¶æ€
   }
-  //3~5Í·ÑµÁ·ºó£¬²»º¬´øÓĞCDµÄ
+  //3~5å¤´è®­ç»ƒåï¼Œä¸å«å¸¦æœ‰CDçš„
   else if (
     id == 2 * 19 + 9 ||
     id == 2 * 19 + 10 ||
@@ -2028,9 +2029,9 @@ void Game::updateScenarioBuffCondition(int idx)
       lg_buffs[idx].isActive = false;
     if (lg_buffCondition.isTraining && lg_buffCondition.trainingSucceed && lg_buffCondition.trainingHead >= headRequire)
       lg_buffs[idx].isActive = true;
-    //×¢Òâ±ÈÈüĞİÏ¢Íâ³ö²»¸Ä±ä×´Ì¬
+    //æ³¨æ„æ¯”èµ›ä¼‘æ¯å¤–å‡ºä¸æ”¹å˜çŠ¶æ€
   }
-  //ÓĞCDµÄ¶¼µ¥¶À´¦Àí
+  //æœ‰CDçš„éƒ½å•ç‹¬å¤„ç†
   else if (id == 0 * 19 + 10)
   {
     if (lg_buffs[idx].coolTime > 0)
@@ -2105,11 +2106,11 @@ void Game::updateScenarioBuffCondition(int idx)
   }
   else if (id >= 0 && id < 57)
   {
-    //²»ĞèÒª´¦Àí
+    //ä¸éœ€è¦å¤„ç†
   }
   else 
   {
-    throw "Î´ÖªĞÄµÃ";
+    throw "æœªçŸ¥å¿ƒå¾—";
   }
   
 }
@@ -2148,7 +2149,7 @@ void Game::setMainColorTurn36(std::mt19937_64& rand)
   if (gameSettings.color_priority != -1 && gameSettings.color_priority != lg_mainColor)
   {
     lg_mainColor = gameSettings.color_priority;
-    skillScore -= 3000;//Ã»Ñ¡µ½ÆÚÍûµÄÑÕÉ«£¬¼Ù×°¿Û3000·Ö£¬ÇÒ°´ÕÕÔ¤¶¨µÄÑÕÉ«¼ÌĞø½øĞĞ
+    skillScore -= 3000;//æ²¡é€‰åˆ°æœŸæœ›çš„é¢œè‰²ï¼Œå‡è£…æ‰£3000åˆ†ï¼Œä¸”æŒ‰ç…§é¢„å®šçš„é¢œè‰²ç»§ç»­è¿›è¡Œ
   }
   if (lg_mainColor == L_red)
   {
@@ -2181,7 +2182,7 @@ void Game::setMainColorTurn36(std::mt19937_64& rand)
 void Game::randomPickBuff(std::mt19937_64& rand)
 {
   if (stage != ST_pickBuff)
-    throw "µ±Ç°stage²»ÔÊĞírandomPickBuff"; 
+    throw "å½“å‰stageä¸å…è®¸randomPickBuff"; 
   stage = ST_chooseBuff;
   lg_pickedBuffsNum = 0;
   for (int i = 0; i < 9; i++)
@@ -2190,7 +2191,7 @@ void Game::randomPickBuff(std::mt19937_64& rand)
   for (int color = 0; color < 3; color++)
   {
     int toPickNum = lg_gauge[color] == 8 ? 3 : lg_gauge[color] >= 4 ? 2 : lg_gauge[color] >= 2 ? 1 : 0;
-    int toPickMaxStarNum = toPickNum == 3 ? (friend_type == 1 ? 2 : 1) : 0;//Âú8¸ñÓĞ2¸ö×î¸ßĞÇµÄ£¨²»´øÍÅ¿¨ÊÇ1¸ö£©
+    int toPickMaxStarNum = toPickNum == 3 ? (friend_type == 1 ? 2 : 1) : 0;//æ»¡8æ ¼æœ‰2ä¸ªæœ€é«˜æ˜Ÿçš„ï¼ˆä¸å¸¦å›¢å¡æ˜¯1ä¸ªï¼‰
     int toPickRandomStarNum = toPickNum - toPickMaxStarNum;
     while (toPickMaxStarNum > 0)
     {
@@ -2206,11 +2207,11 @@ void Game::randomPickBuff(std::mt19937_64& rand)
     {
       int star = 1;
       if (maxStar == 2)
-        star = rand() % 2 + 1;//50%Ò»ĞÇ£¬50%¶şĞÇ
+        star = rand() % 2 + 1;//50%ä¸€æ˜Ÿï¼Œ50%äºŒæ˜Ÿ
       else if (maxStar == 3)
       {
         int s = rand() % 10;
-        star = s < 3 ? 1 : s < 8 ? 2 : 3;//30%Ò»ĞÇ£¬50%¶şĞÇ£¬20%ÈıĞÇ
+        star = s < 3 ? 1 : s < 8 ? 2 : 3;//30%ä¸€æ˜Ÿï¼Œ50%äºŒæ˜Ÿï¼Œ20%ä¸‰æ˜Ÿ
       }
       int p = pickSingleBuff(rand, color, star);
       if (p >= 0)
@@ -2246,33 +2247,33 @@ int Game::pickSingleBuff(std::mt19937_64& rand, int16_t color, int16_t star)
     if (alreadyPicked)continue;
     return t;
   }
-  return -1;//´ó¸ÅÂÊÊÇ³éÍêÁË£¬Ğ¡¸ÅÂÊÊÇÔËÆø£¬µ«Ó°Ïì²»´ó£¬»áÖØĞÂ³éÈ¡
+  return -1;//å¤§æ¦‚ç‡æ˜¯æŠ½å®Œäº†ï¼Œå°æ¦‚ç‡æ˜¯è¿æ°”ï¼Œä½†å½±å“ä¸å¤§ï¼Œä¼šé‡æ–°æŠ½å–
 }
 
 void Game::chooseBuff(int16_t idx)
 {
   if (stage != ST_chooseBuff)
-    throw "²»ÊÇÑ¡buffµÄ½×¶Î";
+    throw "ä¸æ˜¯é€‰buffçš„é˜¶æ®µ";
   if (turn % 6 != 5 || turn > 65)
-    throw "²»ÊÇÑ¡ĞÄµÃµÄ»ØºÏ";
+    throw "ä¸æ˜¯é€‰å¿ƒå¾—çš„å›åˆ";
   if (turn != 65)
   {
     if (idx < 0 || idx >= lg_pickedBuffsNum)
-      throw "²»ºÏ·¨Ñ¡Ôñ";
+      throw "ä¸åˆæ³•é€‰æ‹©";
     int loc = turn / 6;
     lg_haveBuff[lg_pickedBuffs[idx]] = true;
     lg_buffs[loc].buffId = lg_pickedBuffs[idx];
     lg_buffs[loc].isActive = false;
     lg_buffs[loc].coolTime = 0;
   }
-  else if (idx != 0) //¶ÔÓÚ65»ØºÏ£¨µÚ11¸öĞÄµÃ£©£¬idx=0´ú±í²»Ñ¡£¬idx=10*(Î»ÖÃ+1)+µÚ¼¸¸öÑ¡Ïî
+  else if (idx != 0) //å¯¹äº65å›åˆï¼ˆç¬¬11ä¸ªå¿ƒå¾—ï¼‰ï¼Œidx=0ä»£è¡¨ä¸é€‰ï¼Œidx=10*(ä½ç½®+1)+ç¬¬å‡ ä¸ªé€‰é¡¹
   {
-    int loc = (idx / 10) - 1;//·ÅÔÚµÚ¼¸¸öÎ»ÖÃ¡£µÚ66¸ö»ØºÏĞèÒªÌæ»»Ò»¸öbuff
+    int loc = (idx / 10) - 1;//æ”¾åœ¨ç¬¬å‡ ä¸ªä½ç½®ã€‚ç¬¬66ä¸ªå›åˆéœ€è¦æ›¿æ¢ä¸€ä¸ªbuff
     idx = idx % 10;
     if (loc < 0 || loc >= 10)
-      throw "µÚ66¸ö»ØºÏĞèÒªÌæ»»Ò»¸öbuff£¬10*(Î»ÖÃ+1)+µÚ¼¸¸öÑ¡Ïî";
+      throw "ç¬¬66ä¸ªå›åˆéœ€è¦æ›¿æ¢ä¸€ä¸ªbuffï¼Œ10*(ä½ç½®+1)+ç¬¬å‡ ä¸ªé€‰é¡¹";
     if (idx < 0 || idx >= lg_pickedBuffsNum)
-      throw "²»ºÏ·¨Ñ¡Ôñ";
+      throw "ä¸åˆæ³•é€‰æ‹©";
     lg_haveBuff[lg_buffs[loc].buffId] = false;
     lg_haveBuff[lg_pickedBuffs[idx]] = true;
     lg_buffs[loc].buffId = lg_pickedBuffs[idx];
@@ -2294,14 +2295,14 @@ void Game::checkEvent(std::mt19937_64& rand)
   checkRandomEvents(rand);
 
 
-  //»ØºÏÊı+1
+  //å›åˆæ•°+1
   turn++;
   stage = ST_distribute;
   
   if (turn >= TOTAL_TURN)
   {
-    printEvents("Óı³É½áÊø!");
-    printEvents("ÄãµÄµÃ·ÖÊÇ£º" + to_string(finalScore()));
+    printEvents("è‚²æˆç»“æŸ!");
+    printEvents("ä½ çš„å¾—åˆ†æ˜¯ï¼š" + to_string(finalScore()));
   }
   else {
     isRacing = isRacingTurn[turn];
@@ -2312,14 +2313,14 @@ void Game::checkEvent(std::mt19937_64& rand)
 }
 void Game::checkFixedEvents(std::mt19937_64& rand)
 {
-  //´¦Àí¸÷ÖÖ¹Ì¶¨ÊÂ¼ş
+  //å¤„ç†å„ç§å›ºå®šäº‹ä»¶
   if (isRefreshMind)
   {
     addVital(5);
-    if (rand() % 4 == 0) //¼ÙÉèÃ¿»ØºÏÓĞ25%¸ÅÂÊbuffÏûÊ§
+    if (rand() % 4 == 0) //å‡è®¾æ¯å›åˆæœ‰25%æ¦‚ç‡buffæ¶ˆå¤±
       isRefreshMind = false;
   }
-  if (isRacing)//ÉúÑÄ±ÈÈü
+  if (isRacing)//ç”Ÿæ¶¯æ¯”èµ›
   {
     if (turn < 72)
     {
@@ -2344,25 +2345,25 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
 
   }
 
-  if (turn == 11)//³öµÀÈü
+  if (turn == 11)//å‡ºé“èµ›
   {
     assert(isRacing);
   }
-  else if (turn == 23)//µÚÒ»ÄêÄêµ×
+  else if (turn == 23)//ç¬¬ä¸€å¹´å¹´åº•
   {
     runRace(30, 125);
-    skillScore += 170;//¹ÌÓĞ¼¼ÄÜµÈ¼¶+1
+    skillScore += 170;//å›ºæœ‰æŠ€èƒ½ç­‰çº§+1
     addVital(25);
     for (int i = 0; i < 5; i++)
       addTrainingLevelCount(i, 4);
 
     handleFriendFixedEvent();
-    printEvents("µÚÒ»Äê½áÊø");
+    printEvents("ç¬¬ä¸€å¹´ç»“æŸ");
   }
-  else if (turn == 29)//µÚ¶şÄê¼Ì³Ğ
+  else if (turn == 29)//ç¬¬äºŒå¹´ç»§æ‰¿
   {
     jicheng(rand);
-    printEvents("µÚ¶şÄê¼Ì³Ğ");
+    printEvents("ç¬¬äºŒå¹´ç»§æ‰¿");
   }
   else if (turn == 35)
   {
@@ -2370,62 +2371,62 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
     for (int i = 0; i < 5; i++)
       addTrainingLevelCount(i, 4);
     setMainColorTurn36(rand);
-    printEvents("µÚ¶şÄêºÏËŞ¿ªÊ¼");
+    printEvents("ç¬¬äºŒå¹´åˆå®¿å¼€å§‹");
   }
   else if (turn == 42)
   {
     addAllStatus(5);
     skillPt += 50;
   }
-  else if (turn == 47)//µÚ¶şÄêÄêµ×
+  else if (turn == 47)//ç¬¬äºŒå¹´å¹´åº•
   {
     runRace(45, 210);
-    skillScore += 170;//¹ÌÓĞ¼¼ÄÜµÈ¼¶+1
+    skillScore += 170;//å›ºæœ‰æŠ€èƒ½ç­‰çº§+1
     addVital(35);
     for (int i = 0; i < 5; i++)
       addTrainingLevelCount(i, 4);
-    printEvents("µÚ¶şÄê½áÊø");
+    printEvents("ç¬¬äºŒå¹´ç»“æŸ");
   }
-  else if (turn == 48)//³é½±
+  else if (turn == 48)//æŠ½å¥–
   {
   //  int rd = rand() % 100;
-  //  if (rd < 16)//ÎÂÈª»òÒ»µÈ½±
+  //  if (rd < 16)//æ¸©æ³‰æˆ–ä¸€ç­‰å¥–
   //  {
   //    addVital(30);
   //    addAllStatus(10);
   //    addMotivation(2);
 
-  //    printEvents("³é½±£ºÄã³éÖĞÁËÎÂÈª/Ò»µÈ½±");
+  //    printEvents("æŠ½å¥–ï¼šä½ æŠ½ä¸­äº†æ¸©æ³‰/ä¸€ç­‰å¥–");
   //  }
-  //  else if (rd < 16 + 27)//¶şµÈ½±
+  //  else if (rd < 16 + 27)//äºŒç­‰å¥–
   //  {
   //    addVital(20);
   //    addAllStatus(5);
   //    addMotivation(1);
-  //    printEvents("³é½±£ºÄã³éÖĞÁË¶şµÈ½±");
+  //    printEvents("æŠ½å¥–ï¼šä½ æŠ½ä¸­äº†äºŒç­‰å¥–");
   //  }
-  //  else if (rd < 16 + 27 + 46)//ÈıµÈ½±
+  //  else if (rd < 16 + 27 + 46)//ä¸‰ç­‰å¥–
   //  {
   //    addVital(20);
-  //    printEvents("³é½±£ºÄã³éÖĞÁËÈıµÈ½±");
+  //    printEvents("æŠ½å¥–ï¼šä½ æŠ½ä¸­äº†ä¸‰ç­‰å¥–");
   //  }
-  //  else//²ŞÖ½
+  //  else//å•çº¸
   //  {
   //    addMotivation(-1);
-  //    printEvents("³é½±£ºÄã³éÖĞÁË²ŞÖ½");
+  //    printEvents("æŠ½å¥–ï¼šä½ æŠ½ä¸­äº†å•çº¸");
   //  }
   }
   else if (turn == 49)
   {
   }
-  else if (turn == 53)//µÚÈıÄê¼Ì³Ğ
+  else if (turn == 53)//ç¬¬ä¸‰å¹´ç»§æ‰¿
   {
     jicheng(rand);
-    printEvents("µÚÈıÄê¼Ì³Ğ");
+    printEvents("ç¬¬ä¸‰å¹´ç»§æ‰¿");
 
     //if (getYayoiJiBan() >= 60)
     //{
-    //  skillScore += 170;//¹ÌÓĞ¼¼ÄÜµÈ¼¶+1
+    //  skillScore += 170;//å›ºæœ‰æŠ€èƒ½ç­‰çº§+1
     //  addMotivation(1);
     //}
     //else
@@ -2439,22 +2440,22 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
     //addAllStatus(10);
     //skillPt += 100;
   
-    printEvents("µÚÈıÄêºÏËŞ¿ªÊ¼");
+    printEvents("ç¬¬ä¸‰å¹´åˆå®¿å¼€å§‹");
   }
   else if (turn == 70)
   {
   }
-  else if (turn == TOTAL_TURN - 1)//ÓÎÏ·½áÊø
+  else if (turn == TOTAL_TURN - 1)//æ¸¸æˆç»“æŸ
   {
-    //¾Ş´ó¹ã¸æ£¬Íê³É
+    //å·¨å¤§å¹¿å‘Šï¼Œå®Œæˆ
     addAllStatus(25);
     skillPt += 125;
 
 
     runRace(55, 300);
-    skillScore += 170;//¹ÌÓĞ¼¼ÄÜµÈ¼¶+1
+    skillScore += 170;//å›ºæœ‰æŠ€èƒ½ç­‰çº§+1
 
-    //¼ÇÕß
+    //è®°è€…
     if (friendship_noncard_reporter >= 80)
     {
       addAllStatus(5);
@@ -2487,22 +2488,22 @@ void Game::checkFixedEvents(std::mt19937_64& rand)
       //there should be something, but not important
     }
 
-    //ÓÑÈË¿¨ÊÂ¼ş
+    //å‹äººå¡äº‹ä»¶
     handleFriendFixedEvent();
 
     //addAllStatus(5);
     //skillPt += 20;
 
-    printEvents("½áÊø£¬ÓÎÏ·½áËã");
+    printEvents("ç»“æŸï¼Œæ¸¸æˆç»“ç®—");
   }
 }
 
 void Game::checkRandomEvents(std::mt19937_64& rand)
 {
   if (turn >= 72)
-    return;//uraÆÚ¼ä²»»á·¢Éú¸÷ÖÖËæ»úÊÂ¼ş
+    return;//uraæœŸé—´ä¸ä¼šå‘ç”Ÿå„ç§éšæœºäº‹ä»¶
 
-  //ÓÑÈË»á²»»á½âËø³öĞĞ
+  //å‹äººä¼šä¸ä¼šè§£é”å‡ºè¡Œ
   if (friend_type != 0)
   {
     Person& p = persons[friend_personId];
@@ -2513,13 +2514,13 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
         GameConstants::FriendUnlockOutgoingProbEveryTurnHighFriendship :
         GameConstants::FriendUnlockOutgoingProbEveryTurnLowFriendship;
       //unlockOutgoingProb = 1.0;
-      if (randBool(rand, unlockOutgoingProb))//Æô¶¯
+      if (randBool(rand, unlockOutgoingProb))//å¯åŠ¨
       {
         handleFriendUnlock(rand);
       }
     }
 
-    if (friend_qingre)//ÇéÈÈ×´Ì¬Ëæ»ú½áÊø
+    if (friend_qingre)//æƒ…çƒ­çŠ¶æ€éšæœºç»“æŸ
     {
       if (friend_qingreTurn > 9)friend_qingreTurn = 9;
       double stopProb = GameConstants::FriendQingreStopProb[friend_qingreTurn];
@@ -2527,7 +2528,7 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
       {
         friend_qingre = false;
         friend_qingreTurn = 0;
-        printEvents("ÍÅ¿¨ÇéÈÈ½áÊø");
+        printEvents("å›¢å¡æƒ…çƒ­ç»“æŸ");
       }
       else
         friend_qingreTurn += 1;
@@ -2535,9 +2536,9 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
 
   }
 
-  //Ä£Äâ¸÷ÖÖËæ»úÊÂ¼ş
+  //æ¨¡æ‹Ÿå„ç§éšæœºäº‹ä»¶
 
-  //Ö§Ô®¿¨Á¬ĞøÊÂ¼ş£¬Ëæ»ú¸øÒ»¸ö¿¨¼Ó5î¿°í
+  //æ”¯æ´å¡è¿ç»­äº‹ä»¶ï¼Œéšæœºç»™ä¸€ä¸ªå¡åŠ 5ç¾ç»Š
   if (randBool(rand, GameConstants::EventProb))
   {
     int card = rand() % 6;
@@ -2545,72 +2546,72 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
     //addAllStatus(4);
     addStatus(rand() % 5, gameSettings.eventStrength);
     skillPt += gameSettings.eventStrength;
-    printEvents("Ä£ÄâÖ§Ô®¿¨Ëæ»úÊÂ¼ş£º" + persons[card].cardParam.cardName + " µÄî¿°í+5£¬ptºÍËæ»úÊôĞÔ+" + to_string(gameSettings.eventStrength));
+    printEvents("æ¨¡æ‹Ÿæ”¯æ´å¡éšæœºäº‹ä»¶ï¼š" + persons[card].cardParam.cardName + " çš„ç¾ç»Š+5ï¼Œptå’Œéšæœºå±æ€§+" + to_string(gameSettings.eventStrength));
 
-    //Ö§Ô®¿¨Ò»°ãÊÇÇ°¼¸¸öÊÂ¼ş¼ÓĞÄÇé
+    //æ”¯æ´å¡ä¸€èˆ¬æ˜¯å‰å‡ ä¸ªäº‹ä»¶åŠ å¿ƒæƒ…
     if (randBool(rand, 0.6 * pow((1.0 - turn * 1.0 / TOTAL_TURN),2)))
     {
       addMotivation(1);
-      printEvents("Ä£ÄâÖ§Ô®¿¨Ëæ»úÊÂ¼ş£ºĞÄÇé+1");
+      printEvents("æ¨¡æ‹Ÿæ”¯æ´å¡éšæœºäº‹ä»¶ï¼šå¿ƒæƒ…+1");
     }
     if (randBool(rand, 0.5))
     {
       addVital(10);
-      printEvents("Ä£ÄâÖ§Ô®¿¨Ëæ»úÊÂ¼ş£ºÌåÁ¦+10");
+      printEvents("æ¨¡æ‹Ÿæ”¯æ´å¡éšæœºäº‹ä»¶ï¼šä½“åŠ›+10");
     }
     else if (randBool(rand, 0.003))
     {
       addVital(-10);
-      printEvents("Ä£ÄâÖ§Ô®¿¨Ëæ»úÊÂ¼ş£ºÌåÁ¦-10");
+      printEvents("æ¨¡æ‹Ÿæ”¯æ´å¡éšæœºäº‹ä»¶ï¼šä½“åŠ›-10");
     }
     if (randBool(rand, 0.003))
     {
       isPositiveThinking = true;
-      printEvents("Ä£ÄâÖ§Ô®¿¨Ëæ»úÊÂ¼ş£º»ñµÃ¡°ÕıÏòË¼¿¼¡±");
+      printEvents("æ¨¡æ‹Ÿæ”¯æ´å¡éšæœºäº‹ä»¶ï¼šè·å¾—â€œæ­£å‘æ€è€ƒâ€");
     }
   }
 
-  //Ä£ÄâÂíÄïËæ»úÊÂ¼ş
+  //æ¨¡æ‹Ÿé©¬å¨˜éšæœºäº‹ä»¶
   if (randBool(rand, 0.25))
   {
     addAllStatus(3);
     skillPt += 15;
-    printEvents("Ä£ÄâÂíÄïËæ»úÊÂ¼ş£ºÈ«ÊôĞÔ+3");
+    printEvents("æ¨¡æ‹Ÿé©¬å¨˜éšæœºäº‹ä»¶ï¼šå…¨å±æ€§+3");
   }
 
-  //¼ÓÌåÁ¦
+  //åŠ ä½“åŠ›
   if (randBool(rand, 0.10))
   {
     addVital(5);
-    printEvents("Ä£ÄâËæ»úÊÂ¼ş£ºÌåÁ¦+5");
+    printEvents("æ¨¡æ‹Ÿéšæœºäº‹ä»¶ï¼šä½“åŠ›+5");
   }
 
-  //¼ÓÌåÁ¦
+  //åŠ ä½“åŠ›
   if (randBool(rand, 0.05))
   {
     addVital(10);
-    printEvents("Ä£ÄâËæ»úÊÂ¼ş£ºÌåÁ¦+10");
+    printEvents("æ¨¡æ‹Ÿéšæœºäº‹ä»¶ï¼šä½“åŠ›+10");
   }
 
-  //¼Ó30ÌåÁ¦£¨³Ô·¹ÊÂ¼ş£©
+  //åŠ 30ä½“åŠ›ï¼ˆåƒé¥­äº‹ä»¶ï¼‰
   if (randBool(rand, 0.02))
   {
     addVital(30);
-    printEvents("Ä£ÄâËæ»úÊÂ¼ş£ºÌåÁ¦+30");
+    printEvents("æ¨¡æ‹Ÿéšæœºäº‹ä»¶ï¼šä½“åŠ›+30");
   }
 
-  //¼ÓĞÄÇé
+  //åŠ å¿ƒæƒ…
   if (randBool(rand, 0.02))
   {
     addMotivation(1);
-    printEvents("Ä£ÄâËæ»úÊÂ¼ş£ºĞÄÇé+1");
+    printEvents("æ¨¡æ‹Ÿéšæœºäº‹ä»¶ï¼šå¿ƒæƒ…+1");
   }
 
-  //µôĞÄÇé
+  //æ‰å¿ƒæƒ…
   if (turn >= 12 && randBool(rand, 0.05))
   {
     addMotivation(-1);
-    printEvents("Ä£ÄâËæ»úÊÂ¼ş£º\033[0m\033[33mĞÄÇé-1\033[0m\033[32m");
+    printEvents("æ¨¡æ‹Ÿéšæœºäº‹ä»¶ï¼š\033[0m\033[33må¿ƒæƒ…-1\033[0m\033[32m");
   }
 
 }
@@ -2644,29 +2645,29 @@ std::vector<Action> Game::getAllLegalActions() const
     if (decidingEvent == DecidingEvent_outing)
     {
       if(!(friend_stage == FriendStage_afterUnlockOutgoing && !friend_outgoingUsed[4]))
-        throw "ÎŞ·¨ÓÑÈË³öĞĞ";
-      allActions.push_back(Action(ST_decideEvent, 0));//ÆÕÍ¨³öĞĞ
+        throw "æ— æ³•å‹äººå‡ºè¡Œ";
+      allActions.push_back(Action(ST_decideEvent, 0));//æ™®é€šå‡ºè¡Œ
       if (friend_outgoingUsed[0] && friend_outgoingUsed[1] && friend_outgoingUsed[2])
       {
         if (friend_outgoingUsed[3])
         {
-          allActions.push_back(Action(ST_decideEvent, 7));//µÚ5¶Î
+          allActions.push_back(Action(ST_decideEvent, 7));//ç¬¬5æ®µ
         }
         else
         {
-          allActions.push_back(Action(ST_decideEvent, 4));//µÚ4¶Î
-          allActions.push_back(Action(ST_decideEvent, 5));//µÚ4¶Î
-          allActions.push_back(Action(ST_decideEvent, 6));//µÚ4¶Î
+          allActions.push_back(Action(ST_decideEvent, 4));//ç¬¬4æ®µ
+          allActions.push_back(Action(ST_decideEvent, 5));//ç¬¬4æ®µ
+          allActions.push_back(Action(ST_decideEvent, 6));//ç¬¬4æ®µ
         }
       }
       else
       {
         if (!friend_outgoingUsed[0])
-          allActions.push_back(Action(ST_decideEvent, 1));//µÚ1¶Î
+          allActions.push_back(Action(ST_decideEvent, 1));//ç¬¬1æ®µ
         if (!friend_outgoingUsed[1])
-          allActions.push_back(Action(ST_decideEvent, 2));//µÚ2¶Î
+          allActions.push_back(Action(ST_decideEvent, 2));//ç¬¬2æ®µ
         if (!friend_outgoingUsed[2])
-          allActions.push_back(Action(ST_decideEvent, 3));//µÚ3¶Î
+          allActions.push_back(Action(ST_decideEvent, 3));//ç¬¬3æ®µ
       }
 
     }
@@ -2676,7 +2677,7 @@ std::vector<Action> Game::getAllLegalActions() const
       allActions.push_back(Action(ST_decideEvent, 1));
       allActions.push_back(Action(ST_decideEvent, 2));
     }
-    else throw "Î´ÖªdecidingEvent";
+    else throw "æœªçŸ¥decidingEvent";
 
   }
   else if (stage == ST_pickBuff)
@@ -2687,7 +2688,7 @@ std::vector<Action> Game::getAllLegalActions() const
   else if (stage == ST_chooseBuff)
   {
     if (lg_pickedBuffsNum <= 0)
-      throw "Ã»ÓĞ³éµ½buff£¿";
+      throw "æ²¡æœ‰æŠ½åˆ°buffï¼Ÿ";
     if (turn == 65)
     {
       allActions.push_back(Action(ST_chooseBuff, 0));
@@ -2707,7 +2708,7 @@ std::vector<Action> Game::getAllLegalActions() const
     allActions.push_back(Action(ST_event));
   }
   else
-    throw "Î´Öªstage";
+    throw "æœªçŸ¥stage";
   return allActions;
 }
 void Game::applyAction(std::mt19937_64& rand, Action action)
@@ -2719,7 +2720,7 @@ void Game::applyAction(std::mt19937_64& rand, Action action)
     return;
   }
   if (stage != action.stage)
-    throw "Game::applyActionµÄstage²»Æ¥Åä";
+    throw "Game::applyActionçš„stageä¸åŒ¹é…";
 
   if (stage == ST_distribute)
   {
@@ -2728,7 +2729,7 @@ void Game::applyAction(std::mt19937_64& rand, Action action)
   else if (stage == ST_train)
   {
     bool suc = applyTraining(rand, action.idx);
-    assert(suc && "Game::applyActionÑ¡ÔñÁË²»ºÏ·¨µÄÑµÁ·");
+    assert(suc && "Game::applyActioné€‰æ‹©äº†ä¸åˆæ³•çš„è®­ç»ƒ");
 
   }
   else if (stage == ST_decideEvent)
@@ -2751,7 +2752,7 @@ void Game::applyAction(std::mt19937_64& rand, Action action)
     checkEvent(rand);
   }
   else
-    throw "Î´Öªstage";
+    throw "æœªçŸ¥stage";
 }
 
 void Game::continueUntilNextDecision(std::mt19937_64& rand)
@@ -2795,7 +2796,7 @@ bool Game::isCardShining(int personIdx, int trainIdx) const
     }
     return false;
   }
-  else if (personIdx >= PS_npc0 && personIdx <= PS_npc4)//ºìµÇnpc
+  else if (personIdx >= PS_npc0 && personIdx <= PS_npc4)//çº¢ç™»npc
   {
     int tra = personIdx - PS_npc0;
     assert(lg_mainColor == L_red);
@@ -2884,11 +2885,11 @@ std::string Action::toString() const
 static string getColoredColorName(int color)
 {
   if (color == L_red)
-    return "\033[1;31mºì\033[0m";
+    return "\033[1;31mçº¢\033[0m";
   else if (color == L_green)
-    return "\033[1;32mÂÌ\033[0m";
+    return "\033[1;32mç»¿\033[0m";
   else if (color == L_blue)
-    return "\033[1;34mÀ¶\033[0m";
+    return "\033[1;34mè“\033[0m";
   else
     return "???";
 }
@@ -2906,28 +2907,28 @@ std::string Action::toString(const Game& game) const
     if (game.decidingEvent == DecidingEvent_outing)
     {
       if (idx == 0)
-        return "ÆÕÍ¨Íâ³ö";
+        return "æ™®é€šå¤–å‡º";
       else if (idx == 1)
-        return "ÍÅ¶ÓÍâ³ö1";
+        return "å›¢é˜Ÿå¤–å‡º1";
       else if (idx == 2)
-        return "ÍÅ¶ÓÍâ³ö2";
+        return "å›¢é˜Ÿå¤–å‡º2";
       else if (idx == 3)
-        return "ÍÅ¶ÓÍâ³ö3";
+        return "å›¢é˜Ÿå¤–å‡º3";
       else if (idx == 4)
-        return "ÍÅ¶ÓÍâ³ö4Ñ¡À¶";
+        return "å›¢é˜Ÿå¤–å‡º4é€‰è“";
       else if (idx == 5)
-        return "ÍÅ¶ÓÍâ³ö4Ñ¡ÂÌ";
+        return "å›¢é˜Ÿå¤–å‡º4é€‰ç»¿";
       else if (idx == 6)
-        return "ÍÅ¶ÓÍâ³ö4Ñ¡ºì";
+        return "å›¢é˜Ÿå¤–å‡º4é€‰çº¢";
       else if (idx == 7)
-        return "ÍÅ¶ÓÍâ³ö5";
+        return "å›¢é˜Ÿå¤–å‡º5";
       else
         assert(false);
     }
     else if (game.decidingEvent == DecidingEvent_three)
     {
       if (idx < 3)
-        return "Ñ¡" + getColoredColorName(idx);
+        return "é€‰" + getColoredColorName(idx);
       else
         assert(false);
     }
@@ -2939,11 +2940,11 @@ std::string Action::toString(const Game& game) const
     if (game.turn == 65)
     {
       if (idx == 0)
-        return "²»Ñ¡";
+        return "ä¸é€‰";
     }
 
     int t = game.turn == 65 ? idx % 10 : idx;
-    int c = game.lg_pickedBuffs[t] / 19;//ÑÕÉ«
+    int c = game.lg_pickedBuffs[t] / 19;//é¢œè‰²
     int ord = 0;
     for (int i = 0; i < t; i++)
     {
@@ -2952,12 +2953,12 @@ std::string Action::toString(const Game& game) const
     }
     if (game.turn == 65)
     {
-      return "Ñ¡" + getColoredColorName(c) + "É«µÚ \033[33m" + to_string(ord+1) + "\033[0m ¸öÌæ»»µô " + ScenarioBuffInfo::getScenarioBuffName(game.lg_buffs[idx / 10 - 1].buffId);
+      return "é€‰" + getColoredColorName(c) + "è‰²ç¬¬ \033[33m" + to_string(ord+1) + "\033[0m ä¸ªæ›¿æ¢æ‰ " + ScenarioBuffInfo::getScenarioBuffName(game.lg_buffs[idx / 10 - 1].buffId);
     }
     else
     {
-      return "Ñ¡" + getColoredColorName(c) + "É«µÚ \033[33m" + to_string(ord + 1) + "\033[0m ¸ö";// +ScenarioBuffInfo::getScenarioBuffName(game.lg_pickedBuffs[idx]);
-      //return "Ñ¡" + ScenarioBuffInfo::getScenarioBuffName(game.lg_pickedBuffs[idx]);
+      return "é€‰" + getColoredColorName(c) + "è‰²ç¬¬ \033[33m" + to_string(ord + 1) + "\033[0m ä¸ª";// +ScenarioBuffInfo::getScenarioBuffName(game.lg_pickedBuffs[idx]);
+      //return "é€‰" + ScenarioBuffInfo::getScenarioBuffName(game.lg_pickedBuffs[idx]);
     }
   }
   else

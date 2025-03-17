@@ -1,4 +1,4 @@
-//���Բ�ͬ��ͷ���ĸ���
+﻿//测试不同人头数的概率
 #include <iostream>
 #include <random>
 #include <sstream>

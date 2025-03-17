@@ -1,33 +1,33 @@
-#include "GameConstants.h"
+ï»¿#include "GameConstants.h"
 #include "UmaData.h"
 
-//³£Êı»òÕß±È½Ï¶ÌµÄÁĞ±í·ÅÔÚ×îÇ°Ãæ
+//å¸¸æ•°æˆ–è€…æ¯”è¾ƒçŸ­çš„åˆ—è¡¨æ”¾åœ¨æœ€å‰é¢
 const double GameConstants::ScorePtRateDefault = 2.0;
-const double GameConstants::HintLevelPtRateDefault = 6.5;//ÒÔÇ°Ä¬ÈÏ5£¬ÖÖ²Ë±­µÄhint¾­³£Ï¡È±£¬¾Íµ÷´óÒ»µã
+const double GameConstants::HintLevelPtRateDefault = 6.5;//ä»¥å‰é»˜è®¤5ï¼Œç§èœæ¯çš„hintç»å¸¸ç¨€ç¼ºï¼Œå°±è°ƒå¤§ä¸€ç‚¹
 const double GameConstants::HintProbTimeConstantDefault = 80;
 //const double GameConstants::ScorePtRateQieZhe = 2.2;
-const int GameConstants::BasicFiveStatusLimit[5] = { 2500,2000,2000,1800,1700 }; //ÓÎÏ·ÀïÔ­À´ÊÇ1850 1600 1600 1500 1450£¬Ä£ÄâÆ÷ÖĞ1200ÒÔÉÏ·­±¶
+const int GameConstants::BasicFiveStatusLimit[5] = { 2500,2000,2000,1800,1700 }; //æ¸¸æˆé‡ŒåŸæ¥æ˜¯1850 1600 1600 1500 1450ï¼Œæ¨¡æ‹Ÿå™¨ä¸­1200ä»¥ä¸Šç¿»å€
 
-//const int GameConstants::NormalRaceFiveStatusBonus = 3;//³£¹æ±ÈÈüÊôĞÔ¼Ó³É=3
-//const int GameConstants::NormalRacePtBonus = 45;//³£¹æ±ÈÈüpt¼Ó³É,G1=45
+//const int GameConstants::NormalRaceFiveStatusBonus = 3;//å¸¸è§„æ¯”èµ›å±æ€§åŠ æˆ=3
+//const int GameConstants::NormalRacePtBonus = 45;//å¸¸è§„æ¯”èµ›ptåŠ æˆ,G1=45
 const double GameConstants::EventProb = 0.4;
 const int GameConstants::EventStrengthDefault = 30;
 
 const double GameConstants::FriendUnlockOutgoingProbEveryTurnLowFriendship = 0.07;
 const double GameConstants::FriendUnlockOutgoingProbEveryTurnHighFriendship = 0.07;
 
-const double GameConstants::FriendVitalBonusSSR[5] = { 1.2,1.23,1.26,1.3,1.3 };//ÓÑÈËSSR¿¨µÄ»Ø¸´Á¿±¶Êı£¨ÂúÆÆ1.8£©
-const double GameConstants::FriendVitalBonusR[5] = { 1,1,1,1,1 };//ÓÑÈËR¿¨µÄ»Ø¸´Á¿±¶Êı
-const double GameConstants::FriendStatusBonusSSR[5] = { 1.15,1.16,1.18,1.2,1.2 };//ÓÑÈËSSR¿¨µÄÊÂ¼şĞ§¹û±¶Êı£¨ÂúÆÆ1.25£©
-const double GameConstants::FriendStatusBonusR[5] = { 1,1,1,1,1 };//ÓÑÈËR¿¨µÄÊÂ¼şĞ§¹û±¶Êı
+const double GameConstants::FriendVitalBonusSSR[5] = { 1.2,1.23,1.26,1.3,1.3 };//å‹äººSSRå¡çš„å›å¤é‡å€æ•°ï¼ˆæ»¡ç ´1.8ï¼‰
+const double GameConstants::FriendVitalBonusR[5] = { 1,1,1,1,1 };//å‹äººRå¡çš„å›å¤é‡å€æ•°
+const double GameConstants::FriendStatusBonusSSR[5] = { 1.15,1.16,1.18,1.2,1.2 };//å‹äººSSRå¡çš„äº‹ä»¶æ•ˆæœå€æ•°ï¼ˆæ»¡ç ´1.25ï¼‰
+const double GameConstants::FriendStatusBonusR[5] = { 1,1,1,1,1 };//å‹äººRå¡çš„äº‹ä»¶æ•ˆæœå€æ•°
 
-const double GameConstants::FriendQingreStopProb[10]={ 0, 0, 0.3, 0.3, 0.3, 1.0, 1.0, 1.0, 1.0, 1.0};//ÍÅ¿¨ÒÑ¾­ÇéÈÈx»ØºÏºó£¬±¾»ØºÏÓĞ¶à´ó¸ÅÂÊÖÕÖ¹
+const double GameConstants::FriendQingreStopProb[10]={ 0, 0, 0.3, 0.3, 0.3, 1.0, 1.0, 1.0, 1.0, 1.0};//å›¢å¡å·²ç»æƒ…çƒ­xå›åˆåï¼Œæœ¬å›åˆæœ‰å¤šå¤§æ¦‚ç‡ç»ˆæ­¢
 
 const std::vector<int> GameConstants::LinkCharas = { 9046 };
 
-const double GameConstants::LG_redLvXunlianCard[10] = { 0,2,3,5,6,7,8,10,10,10 };//ºìµÇ²»Í¬µÈ¼¶µÄ¿¨µÄÑµÁ·¼Ó³É
-const double GameConstants::LG_redLvXunlianNPC[10] = {0,10,12,14,16,18,20,22,24,25 };//ºìµÇ²»Í¬µÈ¼¶µÄnpcµÄÑµÁ·¼Ó³É
-const double GameConstants::LG_redLvYouqingNPC[10] = { 0,15,16,17,18,19,20,20,20,20 };//ºìµÇ²»Í¬µÈ¼¶µÄnpcµÄÓÑÇé¼Ó³É
+const double GameConstants::LG_redLvXunlianCard[10] = { 0,2,3,5,6,7,8,10,10,10 };//çº¢ç™»ä¸åŒç­‰çº§çš„å¡çš„è®­ç»ƒåŠ æˆ
+const double GameConstants::LG_redLvXunlianNPC[10] = {0,10,12,14,16,18,20,22,24,25 };//çº¢ç™»ä¸åŒç­‰çº§çš„npcçš„è®­ç»ƒåŠ æˆ
+const double GameConstants::LG_redLvYouqingNPC[10] = { 0,15,16,17,18,19,20,20,20,20 };//çº¢ç™»ä¸åŒç­‰çº§çš„npcçš„å‹æƒ…åŠ æˆ
 
 
 const int GameConstants::FailRateBasic[5][5] =
@@ -53,7 +53,7 @@ bool GameConstants::isLinkChara(int id)
 
 const int GameConstants::TrainingBasicValue[5][5][7] =
 {
-  //ËÙ
+  //é€Ÿ
   {
     { 11, 0, 2, 0, 0, 7, -20},
     { 12, 0, 2, 0, 0, 7, -21},
@@ -61,7 +61,7 @@ const int GameConstants::TrainingBasicValue[5][5][7] =
     { 14, 0, 3, 0, 0, 7, -24},
     { 15, 0, 4, 0, 0, 7, -26},
   },
-  //ÄÍ
+  //è€
   {
     { 0, 8, 0, 6, 0, 7, -21},
     { 0, 9, 0, 6, 0, 7, -22},
@@ -69,7 +69,7 @@ const int GameConstants::TrainingBasicValue[5][5][7] =
     { 0, 11, 0, 7, 0, 7, -25},
     { 0, 12, 0, 8, 0, 7, -27},
   },
-  //Á¦
+  //åŠ›
   {
     { 0, 4, 10, 0, 0, 7, -21},
     { 0, 4, 11, 0, 0, 7, -22},
@@ -77,7 +77,7 @@ const int GameConstants::TrainingBasicValue[5][5][7] =
     { 0, 5, 13, 0, 0, 7, -25},
     { 0, 6, 14, 0, 0, 7, -27},
   },
-  //¸ù
+  //æ ¹
   {
     { 2, 0, 2, 10, 0, 7, -21},
     { 2, 0, 2, 11, 0, 7, -22},
@@ -85,7 +85,7 @@ const int GameConstants::TrainingBasicValue[5][5][7] =
     { 3, 0, 2, 13, 0, 7, -25},
     { 3, 0, 3, 14, 0, 7, -27},
   },
-  //ÖÇ
+  //æ™º
   {
     { 3, 0, 0, 0, 7, 5, 5},
     { 3, 0, 0, 0, 8, 5, 5},

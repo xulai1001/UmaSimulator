@@ -80,8 +80,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PublicIncludeDirectories>G:\src\UmaSimulator\UmaSimulator;$(PublicIncludeDirectories)</PublicIncludeDirectories>
-    <ExternalIncludePath>C:\Users\zhenz\Downloads\boost_1_84_0\boost_1_84_0;G:\libtorch\include;G:\libtorch\include\torch\csrc\api\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>C:\Users\zhenz\Downloads\boost_1_84_0\boost_1_84_0\stage\lib;G:\libtorch\lib;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>C:\Users\zhenz\Downloads\boost_1_84_0\boost_1_84_0;G:\libtorch\include;G:\libtorch\include\torch\csrc\api\include;G:\boost-1.84.0;$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>C:\Users\zhenz\Downloads\boost_1_84_0\boost_1_84_0\stage\lib;G:\libtorch\lib;G:\boost-1.84.0\libs;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -144,7 +147,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:__cplusplus /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir)External;C:\local\boost_1_83_0;C:\local\libtorch\include;C:\local\libtorch\include\torch\csrc\api\include;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
