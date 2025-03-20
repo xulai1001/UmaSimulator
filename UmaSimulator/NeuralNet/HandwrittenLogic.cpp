@@ -20,6 +20,13 @@ const double raceBonus = 0;//比赛收益，不考虑体力
 
 const double lg_controlColorFactor = 20; //控色参数
 
+//降低红登满羁绊时估值
+// *=lg_red_fullGauge_constant*(pow(lg_red_fullGauge_factorMultiplier,N)*(1-lg_red_fullGauge_factorReserve)+lg_red_fullGauge_factorReserve)
+const double lg_red_fullGauge_constant = 1.1;
+const double lg_red_fullGauge_factorMultiplierCard = 0.7;
+const double lg_red_fullGauge_factorMultiplierNPC = 1;
+const double lg_red_fullGauge_factorReserve = 0.3;
+
 
 //一个分段函数，用来控属性
 inline double statusSoftFunction(double x, double reserve, double reserveInvX2)//reserve是控属性保留空间（降低权重），reserveInvX2是1/(2*reserve)
@@ -69,6 +76,34 @@ static void statusGainEvaluation(const Game& g, double* result) { //result依次
     res += g.gameSettings.ptScoreRate * g.trainValue[tra][5];
     result[tra] = res;
   }
+
+
+
+
+  //降低红登满羁绊时估值
+  if (g.lg_mainColor == L_red)
+  {
+    for (int tra = 0; tra < 5; tra++)
+    {
+      int fullGaugeCards = 0;
+      int fullGaugeNPCs = 0;
+      for (int i = 0; i < 5; i++)
+      {
+        int p = g.personDistribution[tra][i];
+        if (p < 0)break;
+        if (g.isCardShining(p, tra) && p != g.friend_personId && g.lg_red_friendsGauge[p] == 20)
+        {
+          if (p < 6)
+            fullGaugeCards += 1;
+          else
+            fullGaugeNPCs += 1;
+        }
+      }
+      double w = lg_red_fullGauge_constant * pow(lg_red_fullGauge_factorMultiplierCard, fullGaugeCards) * pow(lg_red_fullGauge_factorMultiplierNPC, fullGaugeNPCs);
+      result[tra] *= w * (1 - lg_red_fullGauge_factorReserve) + lg_red_fullGauge_factorReserve;
+    }
+  }
+
 }
 
 

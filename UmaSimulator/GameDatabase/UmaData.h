@@ -36,7 +36,8 @@ struct UmaData
 	friend void to_json(json& j, const UmaData& me)
 	{
 		j["gameId"] = me.gameId;
-		j["name"] = string_To_UTF8(me.name);
+		//j["name"] = string_To_UTF8(me.name);
+		j["name"] = me.name;
 		j["star"] = me.star;
 		j["fiveStatusBonus"] = arrayToJson(me.fiveStatusBonus, 5);
 		j["fiveStatusInitial"] = arrayToJson(me.fiveStatusInitial, 5);

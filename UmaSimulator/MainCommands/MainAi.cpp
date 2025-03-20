@@ -466,9 +466,10 @@ void main_ai()
 
 					scoreLastTurn = maxV;
 
-					if (false)//debug
+					//if (true)//debug
+				  if (false)//debug
 					{
-						cout << "参考分：" << refScore << endl;
+						cout << "参考分：" << maxV.value << endl;
 
 						Game game4 = game;
 						game4.gameSettings.playerPrint = true;
