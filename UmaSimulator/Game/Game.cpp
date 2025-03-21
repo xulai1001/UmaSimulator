@@ -2539,17 +2539,19 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
   //模拟各种随机事件
 
   //支援卡连续事件，随机给一个卡加5羁绊
-  if (randBool(rand, GameConstants::EventProb))
+  if (!isXiahesu() && turn <= 72 && randBool(rand, GameConstants::EventProb))
   {
     int card = rand() % 6;
     addJiBan(card, 5, 1);
     //addAllStatus(4);
-    addStatus(rand() % 5, gameSettings.eventStrength);
-    skillPt += gameSettings.eventStrength;
+    //前期事件属性/技能少，后期多
+    double statusToGain = gameSettings.eventStrength * (0.5 + 1.0 * (turn * 1.0 / TOTAL_TURN));
+    addStatus(rand() % 5, statusToGain);
+    skillPt += statusToGain;
     printEvents("模拟支援卡随机事件：" + persons[card].cardParam.cardName + " 的羁绊+5，pt和随机属性+" + to_string(gameSettings.eventStrength));
 
     //支援卡一般是前几个事件加心情
-    if (randBool(rand, 0.6 * pow((1.0 - turn * 1.0 / TOTAL_TURN),2)))
+    if (randBool(rand, 0.6 * pow((1.0 - turn * 1.0 / TOTAL_TURN), 2)))
     {
       addMotivation(1);
       printEvents("模拟支援卡随机事件：心情+1");
@@ -2572,7 +2574,13 @@ void Game::checkRandomEvents(std::mt19937_64& rand)
   }
 
   //模拟马娘随机事件
-  if (randBool(rand, 0.25))
+  if (turn >= 24 && randBool(rand, 0.25))
+  {
+    addAllStatus(3);
+    skillPt += 15;
+    printEvents("模拟马娘随机事件：全属性+3");
+  }
+  if (turn >= 48 && randBool(rand, 0.25))
   {
     addAllStatus(3);
     skillPt += 15;

@@ -27,7 +27,7 @@ bool Game::loadGameFromJson(std::string jsonStr)
         
     }
     //int zhongmaBlue[5] = { 18,0,0,0,0 };
-    int zhongmaBonus[6] = { 5,5,30,30,5,100 };
+    int zhongmaBonus[6] = { 5,5,30,30,5,200 };
     newGame(rand,GameSettings(), j["umaId"], j["umaStar"], newcards, newzmbluecount, zhongmaBonus);
     assert(friend_type == 0 || friend_personId == j["friend_personId"]);
     
